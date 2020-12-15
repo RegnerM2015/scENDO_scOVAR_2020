@@ -8,7 +8,7 @@
 
 # scRNA-seq Processing Scripts 
 
-# scATAC-seq Processing and scRNA-seq Integration scripts
+# scATAC-seq Processing and scRNA-seq Integration Scripts
 
 # Figure Scripts
 
