@@ -33,6 +33,9 @@
 
 # scATAC-seq Processing and scRNA-seq Integration Scripts
 
-# Figure Scripts
+# Main Figure Scripts
+
+# Supplementary Figure Scripts
+Please email regnerm@live.unc.edu to request access to the supplemental scripts 
 
 # Data download: TBD
