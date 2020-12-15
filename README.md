@@ -79,7 +79,7 @@
 
 # Figure_5/TFSEE_Step2_Motif_Enrich.sh
 
-# Figure_5/
+# Figure_5/TFSEE_Step3_Motif_Pred_Matrix.py
 
 # Figure_5/
 
