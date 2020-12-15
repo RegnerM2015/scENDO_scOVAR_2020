@@ -49,8 +49,28 @@
 1. Peak calling within each inferred cell type subcluster
 1. Peak-to-gene linkage analysis 
 
+# Figure 1/
+1. Plot scRNA-seq and scATAC-seq UMAPs for the Full Cohort (Patients 1-11)
+1. Plot stacked bar charts showing the contribution of each patient to each cell type subcluster
 
-# Main Figure Scripts
+# Figure 2/
+1. Plot heatmap of distal-only peak-to-gene links calculated in the Full Cohort (Patients 1-11)
+1. Plot scATAC-seq browser track for gene of interest and corresponding scRNA-seq expression in violin plot
+1. Plot violin plot for pathway expression signature calculated by Seurat's *AddModuleScore()*
+
+# Figure 3/
+1. Plot scRNA-seq and scATAC-seq UMAPs for the EEC Cohort (Patients 1-5)
+1. Plot stacked bar charts showing the contribution of each patient to each cell type subcluster
+1. Plot heatmap of distal-only peak-to-gene links calculated in the EEC Cohort (Patients 1-5)
+1. Plot scATAC-seq browser track for gene of interest and corresponding scRNA-seq expression in violin plot
+
+# Figure 4/
+1. Plot scRNA-seq and scATAC-seq UMAPs for the HGSOC Cohort (Patients 8-9)
+1. Plot stacked bar charts showing the contribution of each patient to each cell type subcluster
+1. Plot heatmap of distal-only peak-to-gene links calculated in the HGSOC Cohort (Patients 8-9)
+1. Plot scATAC-seq browser track for gene of interest and corresponding scRNA-seq expression in violin plot
+
+# Figure 5/
 
 # Supplementary Figure Scripts
 Please email regnerm@live.unc.edu for inquiries into the supplemental figure scripts
