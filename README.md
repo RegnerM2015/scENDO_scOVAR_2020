@@ -49,32 +49,43 @@
 1. Peak calling within each inferred cell type subcluster
 1. Peak-to-gene linkage analysis 
 
-# Figure 1/Figure_1.R
+# Figure_1/Figure_1.R
 1. Plot scRNA-seq and scATAC-seq UMAPs for the Full Cohort (Patients 1-11)
 1. Plot stacked bar charts showing the contribution of each patient to each cell type subcluster
 
-# Figure 2/Figure_2.R
+# Figure_2/Figure_2.R
 1. Plot heatmap of distal-only peak-to-gene links calculated in the Full Cohort (Patients 1-11)
 1. Plot scATAC-seq browser track for gene of interest and corresponding scRNA-seq expression in violin plot
 1. Plot violin plot for pathway expression signature calculated by Seurat's *AddModuleScore()*
 
-# Figure 3/Figure_3.R
+# Figure_3/Figure_3.R
 1. Plot scRNA-seq and scATAC-seq UMAPs for the EEC Cohort (Patients 1-5)
 1. Plot stacked bar charts showing the contribution of each patient to each cell type subcluster
 1. Plot heatmap of distal-only peak-to-gene links calculated in the EEC Cohort (Patients 1-5)
 1. Plot scATAC-seq browser track for gene of interest and corresponding scRNA-seq expression in violin plot
 
-# Figure 4/Figure_4.R
+# Figure_4/Figure_4.R
 1. Plot scRNA-seq and scATAC-seq UMAPs for the HGSOC Cohort (Patients 8-9)
 1. Plot stacked bar charts showing the contribution of each patient to each cell type subcluster
 1. Plot heatmap of distal-only peak-to-gene links calculated in the HGSOC Cohort (Patients 8-9)
 1. Plot scATAC-seq browser track for gene of interest and corresponding scRNA-seq expression in violin plot
 
-# Figure 5/TFSEE_Step0_Reformat_FileNames.sh
+# Figure_5/TFSEE_Step0_Reformat_FileNames.sh
 1. Remove whitespace from filenames
 1. Concatenate all cell type-specific enhancer lists into one BED file 
 
-# Figure 5
+# Figure_5/TFSEE_Step1.5_Reformat_CSV.R
+1. Edit input csv files for CellRanger bamslice 
+
+# Figure_5/
+
+# Figure_5/
+
+# Figure_5/
+
+# Figure_5/
+
+# Figure_5/
 
 # Supplementary Figure Scripts
 Please email regnerm@live.unc.edu for inquiries into the supplemental figure scripts
