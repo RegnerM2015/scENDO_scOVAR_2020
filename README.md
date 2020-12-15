@@ -77,7 +77,7 @@
 # Figure_5/TFSEE_Step1.5_Reformat_CSV.R
 1. Edit input csv files for CellRanger bamslice 
 
-# Figure_5/
+# Figure_5/TFSEE_Step2_Motif_Enrich.sh
 
 # Figure_5/
 
