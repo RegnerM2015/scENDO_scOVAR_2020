@@ -1,4 +1,4 @@
-# A multi-omic single-cell atlas of human gyneocologic malignancies Regner et al., 2020 
+# A multi-omic single-cell atlas of gynecologic malignancies Regner et al., 2020 
 
 # Link: TBD
 
