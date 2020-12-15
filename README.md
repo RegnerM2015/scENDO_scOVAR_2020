@@ -31,7 +31,7 @@
 1. Assign cell type labels to clusters based on the majority label within each cluster
 1. Verify SingleR cell type labels with cell type gene signatures from PanglaoDB using Seurat's *AddModuleScore()*
 
-# scATAC-seq Processing and scRNA-seq Integration Scripts
+# scATAC-seq Processing Scripts/
 
 # Main Figure Scripts
 
