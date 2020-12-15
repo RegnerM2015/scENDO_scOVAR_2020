@@ -37,7 +37,7 @@
 1. Feature selection, dimension reduction and label transfering using scRNA-seq cell type subcluster labels
 1. Peak calling within each inferred cell type subcluster
 1. Peak-to-gene linkage analysis 
-1. Generate list of cell type-specific enhancers for input into Total Functional Score of Enhancer Elements (TFSEE)
+1. Generate lists of cell type-specific enhancers for input into Total Functional Score of Enhancer Elements (TFSEE)
 ### /EEC_Cohort/Patients1-5_scATAC-seq.R
 1. Preprocessing & QC
 1. Feature selection, dimension reduction and label transfering using scRNA-seq cell type subcluster labels
@@ -70,7 +70,11 @@
 1. Plot heatmap of distal-only peak-to-gene links calculated in the HGSOC Cohort (Patients 8-9)
 1. Plot scATAC-seq browser track for gene of interest and corresponding scRNA-seq expression in violin plot
 
-# Figure 5/
+# Figure 5/TFSEE_Step0_Reformat_FileNames.sh
+1. Remove whitespace from filenames
+1. Concatenate all cell type-specific enhancer lists into one BED file 
+
+# Figure 5
 
 # Supplementary Figure Scripts
 Please email regnerm@live.unc.edu for inquiries into the supplemental figure scripts
