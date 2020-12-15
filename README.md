@@ -6,9 +6,9 @@
 
 ![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Fig1_Overview.png)
 
-# scRNA-seq processing scripts 
+# scRNA-seq Processing Scripts 
 
-# scATAC-seq processing and scRNA-seq integration scripts
+# scATAC-seq Processing and scRNA-seq Integration scripts
 
 # Figure Scripts
 
