@@ -53,6 +53,6 @@
 # Main Figure Scripts
 
 # Supplementary Figure Scripts
-Please email regnerm@live.unc.edu to request access to the supplemental scripts 
+Please email regnerm@live.unc.edu for inquiries into the supplemental figure scripts
 
 # Data download: TBD
