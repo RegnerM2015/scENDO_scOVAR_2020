@@ -6,7 +6,7 @@
 
 ![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Fig1_Overview.png)
 
-# ./scRNA-seq Processing Scripts/
+# scRNA-seq Processing Scripts/
 ### /Individual_Samples/*Patient[1-9]_scRNA-seq.R*
 1. Preprocessing & QC
 1. Feature selection, dimension reduction and clustering 
