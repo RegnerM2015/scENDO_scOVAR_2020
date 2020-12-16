@@ -1,0 +1,113 @@
+R version 4.0.2 (2020-06-22)
+Platform: x86_64-conda_cos6-linux-gnu (64-bit)
+Running under: CentOS Linux 7 (Core)
+
+Matrix products: default
+BLAS/LAPACK: /home/regnerm/anaconda3/envs/r-environment/lib/libopenblasp-r0.3.10.so
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+ [1] grid      parallel  stats4    stats     graphics  grDevices utils    
+ [8] datasets  methods   base     
+
+other attached packages:
+ [1] DESeq2_1.28.1               tidyr_1.1.0                
+ [3] bedtoolsr_2.29.0-5          stringi_1.4.6              
+ [5] RColorBrewer_1.1-2          forcats_0.5.0              
+ [7] scales_1.1.1                psych_1.9.12.31            
+ [9] DoubletFinder_2.0.3         viridis_0.5.1              
+[11] viridisLite_0.3.0           SingleR_1.2.2              
+[13] ArchR_0.9.5                 magrittr_1.5               
+[15] rhdf5_2.32.2                Matrix_1.2-18              
+[17] data.table_1.13.0           EnsDb.Hsapiens.v86_2.99.0  
+[19] ensembldb_2.12.1            AnnotationFilter_1.12.0    
+[21] GenomicFeatures_1.40.1      AnnotationDbi_1.50.0       
+[23] stringr_1.4.0               Signac_0.2.5               
+[25] tibble_3.0.3                fgsea_1.14.0               
+[27] msigdbr_7.1.1               ConsensusClusterPlus_1.52.0
+[29] ComplexHeatmap_2.4.2        patchwork_1.0.1            
+[31] Seurat_3.2.0                dplyr_1.0.2                
+[33] scater_1.16.2               ggplot2_3.3.2              
+[35] SingleCellExperiment_1.10.1 SummarizedExperiment_1.18.2
+[37] DelayedArray_0.14.1         matrixStats_0.56.0         
+[39] Biobase_2.48.0              GenomicRanges_1.40.0       
+[41] GenomeInfoDb_1.24.2         IRanges_2.22.2             
+[43] S4Vectors_0.26.1            BiocGenerics_0.34.0        
+
+loaded via a namespace (and not attached):
+  [1] reticulate_1.16               tidyselect_1.1.0             
+  [3] RSQLite_2.2.0                 htmlwidgets_1.5.1            
+  [5] BiocParallel_1.22.0           Rtsne_0.15                   
+  [7] munsell_0.5.0                 codetools_0.2-16             
+  [9] ica_1.0-2                     future_1.18.0                
+ [11] miniUI_0.1.1.1                withr_2.2.0                  
+ [13] colorspace_1.4-1              ROCR_1.0-11                  
+ [15] tensor_1.5                    listenv_0.8.0                
+ [17] GenomeInfoDbData_1.2.3        mnormt_2.0.1                 
+ [19] polyclip_1.10-0               bit64_4.0.5                  
+ [21] vctrs_0.3.2                   generics_0.0.2               
+ [23] BiocFileCache_1.12.0          ggseqlogo_0.1                
+ [25] R6_2.4.1                      ggbeeswarm_0.6.0             
+ [27] clue_0.3-57                   rsvd_1.0.3                   
+ [29] locfit_1.5-9.4                bitops_1.0-6                 
+ [31] spatstat.utils_1.17-0         assertthat_0.2.1             
+ [33] promises_1.1.1                beeswarm_0.2.3               
+ [35] gtable_0.3.0                  globals_0.12.5               
+ [37] goftest_1.2-2                 rlang_0.4.7                  
+ [39] genefilter_1.70.0             gggenes_0.4.0                
+ [41] GlobalOptions_0.1.2           splines_4.0.2                
+ [43] rtracklayer_1.48.0            lazyeval_0.2.2               
+ [45] yaml_2.2.1                    BiocManager_1.30.10          
+ [47] reshape2_1.4.4                abind_1.4-5                  
+ [49] httpuv_1.5.4                  tools_4.0.2                  
+ [51] ellipsis_0.3.1                ggridges_0.5.2               
+ [53] Rcpp_1.0.5                    plyr_1.8.6                   
+ [55] progress_1.2.2                zlibbioc_1.34.0              
+ [57] purrr_0.3.4                   RCurl_1.98-1.2               
+ [59] prettyunits_1.1.1             rpart_4.1-15                 
+ [61] openssl_1.4.3                 deldir_0.1-28                
+ [63] pbapply_1.4-2                 GetoptLong_1.0.2             
+ [65] cowplot_1.0.0                 zoo_1.8-8                    
+ [67] ggrepel_0.8.2                 cluster_2.1.0                
+ [69] circlize_0.4.10               lmtest_0.9-37                
+ [71] RANN_2.6.1                    tmvnsim_1.0-2                
+ [73] ProtGenerics_1.20.0           fitdistrplus_1.1-1           
+ [75] hms_0.5.3                     mime_0.9                     
+ [77] xtable_1.8-4                  XML_3.99-0.5                 
+ [79] gridExtra_2.3                 shape_1.4.4                  
+ [81] compiler_4.0.2                biomaRt_2.44.1               
+ [83] KernSmooth_2.23-17            crayon_1.3.4                 
+ [85] htmltools_0.5.0               mgcv_1.8-31                  
+ [87] later_1.1.0.1                 geneplotter_1.66.0           
+ [89] DBI_1.1.0                     ExperimentHub_1.14.0         
+ [91] dbplyr_1.4.4                  MASS_7.3-51.6                
+ [93] rappdirs_0.3.1                igraph_1.2.5                 
+ [95] pkgconfig_2.0.3               GenomicAlignments_1.24.0     
+ [97] plotly_4.9.2.1                annotate_1.66.0              
+ [99] vipor_0.4.5                   XVector_0.28.0               
+[101] digest_0.6.25                 sctransform_0.2.1            
+[103] RcppAnnoy_0.0.16              spatstat.data_1.4-3          
+[105] Biostrings_2.56.0             leiden_0.3.3                 
+[107] fastmatch_1.1-0               uwot_0.1.8                   
+[109] DelayedMatrixStats_1.10.1     curl_4.3                     
+[111] shiny_1.5.0                   Rsamtools_2.4.0              
+[113] rjson_0.2.20                  lifecycle_0.2.0              
+[115] nlme_3.1-148                  jsonlite_1.7.0               
+[117] Rhdf5lib_1.10.1               BiocNeighbors_1.6.0          
+[119] askpass_1.1                   pillar_1.4.6                 
+[121] lattice_0.20-41               fastmap_1.0.1                
+[123] httr_1.4.2                    survival_3.2-3               
+[125] interactiveDisplayBase_1.26.0 glue_1.4.1                   
+[127] spatstat_1.64-1               png_0.1-7                    
+[129] BiocVersion_3.11.1            bit_4.0.4                    
+[131] blob_1.2.1                    ggfittext_0.9.0              
+[133] BiocSingular_1.4.0            AnnotationHub_2.20.0         
+[135] memoise_1.1.0                 irlba_2.3.3                  
+[137] future.apply_1.6.0            ape_5.4-1                    
