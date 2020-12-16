@@ -78,14 +78,14 @@
 1. Edit input csv files for CellRanger bamslice 
 
 # Figure_5/TFSEE_Step2_Motif_Enrich.sh
+1. Run CellRanger bamslice to generate BAM file for each malignant cell type cluster 
+1. Find variants in each malignant cell type cluster relative to hg38 assembly
+1. bedtools getfasta to extract enhancer sequences (
 
 # Figure_5/TFSEE_Step3_Motif_Pred_Matrix.py
 
-# Figure_5/TFSEE_Step4_Matrix_Calculations.R
+# Figure_5/TFSEE_Step4_Matrix_Calculations_Filter.R
 
-# Figure_5/
-
-# Figure_5/
 
 # Supplementary Figure Scripts
 Please email regnerm@live.unc.edu for inquiries into the supplemental figure scripts
