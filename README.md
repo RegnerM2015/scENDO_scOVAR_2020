@@ -16,6 +16,7 @@ Run CellRanger count pipeline for Patient 1 with refdata-cellranger-GRCh38-3.0.0
 ### /Example_Patient2_scRNA-seq_CellRanger-count.sh
 Run CellRanger count pipeline for Patient 2 with refdata-cellranger-GRCh38-3.0.0
 
+# CellRanger ATAC
 ### /Example_Patients1-2_scATAC-seq_mkfastq.sh
 Demultiplex Illumina base calls into FASTQ files with CellRanger-atac mkfastq
 ### /Example_Patient1_scATAC-seq_CellRanger-count.sh
