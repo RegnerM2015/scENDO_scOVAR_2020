@@ -8,12 +8,13 @@
 
 
 # CellRanger
-### /Example_Patient1_scATAC-seq_CellRanger-count.sh
-
-### /Example_Patient2_scATAC-seq_CellRanger-count.sh
 
 ### /Example_mkfastq_Patients1-2.sh
-
+1. Generate
+### /Example_Patient1_scATAC-seq_CellRanger-count.sh
+1. Run CellRanger-atac count pipeline for Patient 1 with refdata-cellranger-atac-GRCh38-1.2.0
+### /Example_Patient2_scATAC-seq_CellRanger-count.sh
+1. Run CellRanger-atac count pipeline for Patient 2 with refdata-cellranger-atac-GRCh38-1.2.0
 
 # scRNA-seq Processing Scripts
 ### /Individual_Samples/*Patient[1-9]_scRNA-seq.R*
