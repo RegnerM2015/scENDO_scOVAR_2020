@@ -10,7 +10,7 @@
 # CellRanger
 
 ### /Example_mkfastq_Patients1-2.sh
-1. Generate
+1. Demultiplex Illumina base calls into FASTQ files 
 ### /Example_Patient1_scATAC-seq_CellRanger-count.sh
 1. Run CellRanger-atac count pipeline for Patient 1 with refdata-cellranger-atac-GRCh38-1.2.0
 ### /Example_Patient2_scATAC-seq_CellRanger-count.sh
