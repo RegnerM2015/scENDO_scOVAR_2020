@@ -49,6 +49,9 @@
 1. Peak calling within each inferred cell type subcluster
 1. Peak-to-gene linkage analysis 
 
+# Summary of scRNA-seq and scATAC-seq pipelines 
+![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Flowchart_Pipelines.png)
+
 # Figure_1/Figure_1.R
 1. Plot scRNA-seq and scATAC-seq UMAPs for the Full Cohort (Patients 1-11)
 1. Plot stacked bar charts showing the contribution of each patient to each cell type subcluster
