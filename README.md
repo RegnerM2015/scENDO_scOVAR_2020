@@ -92,9 +92,16 @@
 
 # Figure_5/TFSEE_Step4_Matrix_Calculations_Filter.R
 1. Generate enhancer activity matrix, TF expression matrix, and read in TF motif prediction matrix
+2. Rlog transform enhancer activity matrix and TF expression matrix
+1. Enrich for robustly expressed TFs (signal >1st quartile) and for robustly accessible enhancers (signal >1st quartile)
+1. Scale enhancer activity matrix, TF expression matrix, and -log10(TF motif prediction matrix + 0.5) 
 1. Perform TFSEE matrix operations (matrix multiplication followed by element-wise multiplication)
+1. Plot TFSEE unsupervised clustering heatmap with TFs marked for druggability status as determined from the canSAR database 
 
-# Figure_5/
+# Figure_5/Scatter_Sarcoma_Epi_Ovarian.R
+1. Compute log2FC in TFSEE score between sarcoma cluster and epithelial cluster 
+1. Compute log2FC in TF expression (rlog transformed) between sarcoma and epithelial cluster 
+1. Make scatter plot of log2FC in TFSEE score versus log2FC in TF expression 
 
 
 
