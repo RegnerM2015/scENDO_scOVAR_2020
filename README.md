@@ -75,7 +75,8 @@
 1. Concatenate all cell type-specific enhancer lists into one BED file 
 
 # Figure_5/TFSEE_Step1_NonZero_Enhancers.R
-1. 
+1. Screen for enhancers that have signal across all malignant cell types 
+1. Subset cell type-specific enhancers BED file after screen
 
 # Figure_5/TFSEE_Step1.5_Reformat_CSV.R
 1. Edit input csv files for CellRanger bamslice 
@@ -83,11 +84,18 @@
 # Figure_5/TFSEE_Step2_Motif_Enrich.sh
 1. Run CellRanger bamslice to generate BAM file for each malignant cell type cluster 
 1. Find variants in each malignant cell type cluster relative to hg38 assembly
-1. bedtools getfasta to extract enhancer sequences (
+1. bedtools getfasta to extract enhancer sequences (cell type-specific enhancers BED file)
+1. MEME motif searching and matching (meme/tomtom)
 
 # Figure_5/TFSEE_Step3_Motif_Pred_Matrix.py
+1. Parse MEME/TOMTOM outputs to generate a matrix of TF motif prediction p-values 
 
 # Figure_5/TFSEE_Step4_Matrix_Calculations_Filter.R
+1. Generate enhancer activity matrix, TF expression matrix, and read in TF motif prediction matrix
+1. Perform TFSEE matrix operations (matrix multiplication followed by element-wise multiplication)
+
+# Figure_5/
+
 
 
 # Supplementary Figure Scripts
