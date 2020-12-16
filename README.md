@@ -12,6 +12,8 @@
 
 ### /Example_Patient2_scATAC-seq_CellRanger-count.sh
 
+### /Example_mkfastq_Patients1-2.sh
+
 
 # scRNA-seq Processing Scripts
 ### /Individual_Samples/*Patient[1-9]_scRNA-seq.R*
