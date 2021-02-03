@@ -4,7 +4,7 @@
 
 # Please cite: TBD
 
-![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Fig1_Overview.png)
+![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Fig_1.png)
 
 
 # CellRanger (version 3.1.0)
