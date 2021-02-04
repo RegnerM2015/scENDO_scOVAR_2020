@@ -7,7 +7,7 @@
 
 # Remove whitespace from file names 
 
-for file in *; do mv "$file" `echo $file | tr ' ' '_'` ; done
+#for file in *; do mv "$file" `echo $file | tr ' ' '_'` ; done
 
 
 # Concatenate all marker enhancer BED files into one 

@@ -17,17 +17,17 @@ from scipy.stats import pearsonr, spearmanr, cumfreq
 ### Parse MEME and TOMTOM Motif data
 
 # Loop through meme output
-meme_cell_dict = {"./BAMs_3533EL/outs/subsets/enhancers_32-Unciliated_epithelia_1_meme":"./BAMs_3533EL/outs/subsets/enhancers_32-Unciliated_epithelia_1_tomtom",
-"./BAMs_36639L/outs/subsets/enhancers_22-Unciliated_epithelia_1_meme":"./BAMs_36639L/outs/subsets/enhancers_22-Unciliated_epithelia_1_tomtom",
-"./BAMs_37EACL/outs/subsets/enhancers_19-Epithelial_cell_meme":"./BAMs_37EACL/outs/subsets/enhancers_19-Epithelial_cell_tomtom",
-"./BAMs_37EACL/outs/subsets/enhancers_35-Epithelial_cell_meme":"./BAMs_37EACL/outs/subsets/enhancers_35-Epithelial_cell_tomtom",
-"./BAMs_38FE7L/outs/subsets/enhancers_1-Epithelial_cell_meme":"./BAMs_38FE7L/outs/subsets/enhancers_1-Epithelial_cell_tomtom",
-"./BAMs_3BAE2L/outs/subsets/enhancers_10-Epithelial_cell_meme":"./BAMs_3BAE2L/outs/subsets/enhancers_10-Epithelial_cell_tomtom",
-"./BAMs_3CCF1L/outs/subsets/enhancers_16-Fibroblast_meme":"./BAMs_3CCF1L/outs/subsets/enhancers_16-Fibroblast_tomtom",
-"./BAMs_3CCF1L/outs/subsets/enhancers_18-Epithelial_cell_meme":"BAMs_3CCF1L/outs/subsets/enhancers_18-Epithelial_cell_tomtom",
-"./BAMs_3E4D1L/outs/subsets/enhancers_0-Fibroblast_meme":"./BAMs_3E4D1L/outs/subsets/enhancers_0-Fibroblast_tomtom",
-"./BAMs_3E4D1L/outs/subsets/enhancers_27-Fibroblast_meme":"./BAMs_3E4D1L/outs/subsets/enhancers_27-Fibroblast_tomtom",
-"./BAMs_3E5CFL/outs/subsets/enhancers_9-Epithelial_cell_meme":"./BAMs_3E5CFL/outs/subsets/enhancers_9-Epithelial_cell_tomtom"}
+meme_cell_dict = {"./enhancers_Marker_Enhancers_ArchR_32-Unciliated_epithelia_1-updated.bed_meme":"./enhancers_Marker_Enhancers_ArchR_32-Unciliated_epithelia_1-updated.bed_tomtom",
+"./enhancers_Marker_Enhancers_ArchR_22-Unciliated_epithelia_1-updated.bed_meme":"./enhancers_Marker_Enhancers_ArchR_22-Unciliated_epithelia_1-updated.bed_tomtom",
+"./enhancers_Marker_Enhancers_ArchR_19-Epithelial_cell-updated.bed_meme":"./enhancers_Marker_Enhancers_ArchR_19-Epithelial_cell-updated.bed_tomtom",
+"./enhancers_Marker_Enhancers_ArchR_35-Epithelial_cell-updated.bed_meme":"./enhancers_Marker_Enhancers_ArchR_35-Epithelial_cell-updated.bed_tomtom",
+"./enhancers_Marker_Enhancers_ArchR_1-Epithelial_cell-updated.bed_meme":"./enhancers_Marker_Enhancers_ArchR_1-Epithelial_cell-updated.bed_tomtom",
+"./enhancers_Marker_Enhancers_ArchR_10-Epithelial_cell-updated.bed_meme":"./enhancers_Marker_Enhancers_ArchR_10-Epithelial_cell-updated.bed_tomtom",
+"./enhancers_Marker_Enhancers_ArchR_16-Fibroblast-updated.bed_meme":"./enhancers_Marker_Enhancers_ArchR_16-Fibroblast-updated.bed_tomtom",
+"./enhancers_Marker_Enhancers_ArchR_18-Epithelial_cell-updated.bed_meme":"enhancers_Marker_Enhancers_ArchR_18-Epithelial_cell-updated.bed_tomtom",
+"./enhancers_Marker_Enhancers_ArchR_0-Fibroblast-updated.bed_meme":"./enhancers_Marker_Enhancers_ArchR_0-Fibroblast-updated.bed_tomtom",
+"./enhancers_Marker_Enhancers_ArchR_27-Fibroblast-updated.bed_meme":"./enhancers_Marker_Enhancers_ArchR_27-Fibroblast-updated.bed_tomtom",
+"./enhancers_Marker_Enhancers_ArchR_9-Epithelial_cell-updated.bed_meme":"./enhancers_Marker_Enhancers_ArchR_9-Epithelial_cell-updated.bed_tomtom"}
 
 
 # Read Target ID to Motif into dictionary

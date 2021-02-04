@@ -3,7 +3,7 @@ tfsee <- readRDS("./tfsee_matrix.rds")
 expr.mat <- readRDS("./expr_matrix.rds")
 
 # Fold in druggability information for TFs
-drug.scores <- read.csv("./CanSar_TF_data.csv")
+drug.scores <- read.csv("./TFs_CanSAR.csv")
 drug.scores <- as.data.frame(cbind(drug.scores$gene_name,drug.scores$ligand_druggability_score))
 colnames(drug.scores) <- c("TF","Score")
 dim(drug.scores)
@@ -11,7 +11,7 @@ dim(drug.scores)
 drug.scores <- drug.scores[duplicated(drug.scores) == FALSE,]
 dim(drug.scores)
 drug.scores <- dplyr::arrange(drug.scores,TF)
-drug.scores <- drug.scores[-15,]# Remove duplicate DDIT3
+drug.scores <- drug.scores[-18,]# Remove duplicate DDIT3
 drug.scores <- drug.scores[drug.scores$TF %in% colnames(tfsee),]
 
 drug.scores.sub <- dplyr::filter(drug.scores,Score > 0)
@@ -37,8 +37,8 @@ tfsee.endo <- as.data.frame(tfsee.endo)
 colnames(tfsee.endo) <- "Endometrioid"
 
 length(which(rownames(tfsee.serous) == rownames(tfsee.endo)))
-# tfsee.serous <- tfsee.serous+0.1
-# tfsee.endo <- tfsee.endo+0.1
+tfsee.serous <- tfsee.serous+0.1
+tfsee.endo <- tfsee.endo+0.1
 FC.tfsee <- log2(tfsee.serous$Serous/tfsee.endo$Endometrioid)
 
 hist(FC.tfsee)
@@ -52,8 +52,8 @@ expr.endo <- as.data.frame(expr.mat[,8])
 colnames(expr.endo) <- "Endometrioid"
 
 length(which(rownames(expr.serous) == rownames(expr.endo)))
-# expr.serous <- expr.serous+0.1
-# expr.endo <- expr.endo+0.1
+expr.serous <- expr.serous+0.1
+expr.endo <- expr.endo+0.1
 FC.expr <- log2(expr.serous$Serous/expr.endo$Endometrioid)
 hist(FC.expr)
 
@@ -96,5 +96,9 @@ ggplot(total,aes(x=FC.tfsee,y = FC.expr))+
   geom_point(aes(color = drug.score),size = 2)+
   ylab("log2FC(TF Expression)")+theme_bw()+
   xlab("log2FC(Raw TFSEE Score)")+
-  scale_color_manual(values = c("gray60","black"))+ggsave("TFSEE_FC_Scar_Epi_Ov.pdf",width =5,height = 4)
+  scale_color_manual(values = c("gray60","black"))+
+  geom_vline(aes(xintercept = 0.5),linetype = "dashed") + 
+  geom_vline(aes(xintercept = -0.5),linetype = "dashed") + 
+  geom_hline(aes(yintercept = 0.5),linetype = "dashed") + 
+  geom_hline(aes(yintercept = -0.5),linetype = "dashed") + ggsave("TFSEE_FC_Scar_Epi_Ov.pdf",width =5,height = 4)
 

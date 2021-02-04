@@ -308,7 +308,7 @@ dev.off()
 
 
 # Fold in druggability information for TFs
-drug.scores <- read.csv("./CanSar_TF_data.csv")
+drug.scores <- read.csv("./TFs_CanSAR.csv")
 drug.scores <- as.data.frame(cbind(drug.scores$gene_name,drug.scores$ligand_druggability_score))
 colnames(drug.scores) <- c("TF","Score")
 dim(drug.scores)
@@ -316,7 +316,7 @@ dim(drug.scores)
 drug.scores <- drug.scores[duplicated(drug.scores) == FALSE,]
 dim(drug.scores)
 drug.scores <- dplyr::arrange(drug.scores,TF)
-drug.scores <- drug.scores[-15,]# Remove duplicate DDIT3
+drug.scores <- drug.scores[-18,]# Remove duplicate DDIT3
 drug.scores <- drug.scores[drug.scores$TF %in% colnames(tfsee),]
 
 
