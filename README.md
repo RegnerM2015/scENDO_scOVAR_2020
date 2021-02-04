@@ -114,7 +114,7 @@ Run CellRanger-atac count pipeline for Patient 2 with refdata-cellranger-atac-GR
 ### /TFSEE_Step4_Matrix_Calculations_Filter.R
 1. Generate enhancer activity matrix, TF expression matrix, and read in TF motif prediction matrix
 2. Rlog transform enhancer activity matrix and TF expression matrix
-1. Enrich for robustly expressed TFs (signal >1st quartile) and for robustly accessible enhancers (signal >1st quartile)
+1. Enrich for robustly expressed TFs (mean signal >1st quartile) and for robustly accessible enhancers (mean signal >1st quartile)
 1. Scale enhancer activity matrix, TF expression matrix, and -log10(TF motif prediction matrix + 0.5) 
 1. Perform TFSEE matrix operations (matrix multiplication followed by element-wise multiplication)
 1. Plot TFSEE unsupervised clustering heatmap with TFs marked for druggability status as determined from the canSAR database 
