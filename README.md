@@ -1,6 +1,6 @@
 # A multi-omic single-cell atlas of human gynecologic malignancies Regner et al., 2021
 
-# Link: TBD
+# Submitted to Nature Cancer
 
 # Please cite: TBD
 
