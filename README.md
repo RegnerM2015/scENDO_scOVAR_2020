@@ -101,15 +101,12 @@ Run CellRanger-atac count pipeline for Patient 2 with refdata-cellranger-atac-GR
 # Figure_5
 ### /TFSEE_Step0_Reformat_FileNames.sh
 1. Remove whitespace from filenames
+1. Gather marker enhancer bed files for select cell type clusters 
 1. Concatenate all cell type-specific enhancer lists into one BED file 
 ### /TFSEE_Step1_NonZero_Enhancers.R
 1. Screen for enhancers that have signal across all malignant cell types 
 1. Subset cell type-specific enhancers BED file after screen
-### /TFSEE_Step1.5_Reformat_CSV.R
-1. Edit input csv files for CellRanger bamslice 
 ### /TFSEE_Step2_Motif_Enrich.sh
-1. Run CellRanger bamslice to generate BAM file for each malignant cell type cluster 
-1. Find variants in each malignant cell type cluster relative to hg38 assembly
 1. bedtools getfasta to extract enhancer sequences (cell type-specific enhancers BED file)
 1. MEME motif searching and matching (meme/tomtom)
 ### /TFSEE_Step3_Motif_Pred_Matrix.py
