@@ -131,4 +131,4 @@ Run CellRanger-atac count pipeline for Patient 2 with refdata-cellranger-atac-GR
 # Supplementary Figure Scripts
 Please email regnerm@live.unc.edu for inquiries into the supplemental figure scripts
 
-# Data download: TBD
+# Data download: dbGaP Study Accession: phs002340.v1.p1
