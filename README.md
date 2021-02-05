@@ -12,12 +12,11 @@
 # Cell Ranger Pre-processing
 #### cellranger/cellranger-atac directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/CellRanger)
 
-
 # scRNA-seq Processing Scripts
 #### scRNA-seq directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/scRNA-seq%20Processing%20Scripts)
 
 # scATAC-seq Processing Scripts
-#### scATAC-seq directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/scRNA-seq%20Processing%20Scripts)
+#### scATAC-seq directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/scATAC-seq%20Processing%20Scripts)
 
 # Figure Scripts
 #### Figure 1 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_1)
@@ -27,7 +26,7 @@
 #### Figure 5 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_5)
 
 # Supplementary Figure Scripts
-Please email regnerm@live.unc.edu for inquiries into the supplemental figure scripts
+#### Please email regnerm@live.unc.edu for inquiries into the supplemental figure scripts
 
 # Data download: 
-dbGaP Study Accession: phs002340.v1.p1
+#### dbGaP Study Accession: phs002340.v1.p1
