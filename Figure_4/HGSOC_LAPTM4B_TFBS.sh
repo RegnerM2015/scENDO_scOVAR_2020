@@ -12,8 +12,8 @@ export PATH=/share/apps/install-compute/bin/bcftools:$PATH
 
 dir=/datastore/nextgenout5/share/labs/francolab/scENDO_scOVAR_Proj/scATAC-seq_Processing/HGSOC_ATAC
 
-# # call variants
-bcftools mpileup -Ou -f ${dir}/genome.fa *.bam | bcftools call -mv -Oz -o variants.vcf.gz
+# # call variants in the 11-Epithelial cluster of Patient 9
+bcftools mpileup -Ou -f ${dir}/genome.fa Patient_9_11-Epithieal_specific_reads.bam | bcftools call -mv -Oz -o variants.vcf.gz
 
 bcftools index variants.vcf.gz
 bcftools view --types snps variants.vcf.gz > variants_new.vcf
