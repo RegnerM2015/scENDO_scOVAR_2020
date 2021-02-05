@@ -24,4 +24,4 @@
 1. Make scatter plot of log2FC in TFSEE score versus log2FC in TF expression 
 
 
-#### An alternate version of the analysis was performed using only marker enhancers enriched in the 11 cell types subclusters with 100% patient specificity:()
+#### *An alternate version of the analysis was performed using only marker enhancers enriched in the 11 cell types subclusters with 100% patient specificity:()
