@@ -24,4 +24,4 @@
 1. Make scatter plot of log2FC in TFSEE score versus log2FC in TF expression 
 
 
-#### *The main version of the analysis was performed using marker enhancers enriched in CNV postive and/or epithelial cell type subclusters:(https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_5)
+#### *The main version of the analysis was performed using marker enhancers enriched in CNV postive and/or epithelial cell type subclusters: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_5)
