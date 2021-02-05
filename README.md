@@ -4,7 +4,7 @@
 
 # Please cite: TBD, submitted to Nature Cancer
 
-![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Overview_Fig_Cartoon.png)
+![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Cartoon_Fig_1.png)
 
 
 # CellRanger (version 3.1.0)
