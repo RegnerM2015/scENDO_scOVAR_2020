@@ -13,7 +13,8 @@ export PATH=/share/apps/install-compute/bin/bcftools:$PATH
 dir=/datastore/nextgenout5/share/labs/francolab/scENDO_scOVAR_Proj/scATAC-seq_Processing/HGSOC_ATAC
 
 # # call variants in the 11-Epithelial cluster of Patient 9
-# The Patient_9_11-Epithieal_specific_reads.bam file was generated with Cell Rangerf's bamslice on the original Patient 9 bam file (https://support.10xgenomics.com/single-cell-dna/software/pipelines/latest/using/bamslice)
+# The Patient_9_11-Epithieal_specific_reads.bam file was generated with Cell Rangerf's bamslice on the original Patient 9 bam file 
+# (https://support.10xgenomics.com/single-cell-dna/software/pipelines/latest/using/bamslice)
 bcftools mpileup -Ou -f ${dir}/genome.fa Patient_9_11-Epithieal_specific_reads.bam | bcftools call -mv -Oz -o variants.vcf.gz
 
 bcftools index variants.vcf.gz
