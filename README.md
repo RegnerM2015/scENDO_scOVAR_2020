@@ -6,31 +6,8 @@
 
 ![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Cartoon_Fig_1.png)
 
-# scATAC-seq Processing Scripts
-### /Full_Cohort/Patients1-11_scATAC-seq.R
-1. Preprocessing & QC
-1. Feature selection, dimension reduction and label transfering using scRNA-seq cell type subcluster labels
-1. Peak calling within each inferred cell type subcluster
-1. Peak-to-gene linkage analysis 
-1. Generate lists of cell type-specific enhancers for input into Total Functional Score of Enhancer Elements (TFSEE)
-### /EEC_Cohort/Patients1-5_scATAC-seq.R
-1. Preprocessing & QC
-1. Feature selection, dimension reduction and label transfering using scRNA-seq cell type subcluster labels
-1. Peak calling within each inferred cell type subcluster
-1. Peak-to-gene linkage analysis 
-### /HGSOC_Cohort/Patients8-9_scATAC-seq.R
-1. Preprocessing & QC
-1. Feature selection, dimension reduction and label transfering using scRNA-seq cell type subcluster labels
-1. Peak calling within each inferred cell type subcluster
-1. Peak-to-gene linkage analysis 
-
 # Summary of scRNA-seq and scATAC-seq pipelines 
 ![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Flowchart_Pipelines.png)
-
-# Figure_1
-### /Figure_1.R
-1. Plot scRNA-seq and scATAC-seq UMAPs for the Full Cohort (Patients 1-11)
-1. Plot stacked bar charts showing the contribution of each patient to each cell type subcluster
 
 # Figure_2
 ### /Figure_2.R
