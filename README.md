@@ -10,14 +10,14 @@
 ![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Cartoon.png)
 
 # Cell Ranger pre-processing
-cellranger/cellranger-atac directory: 
+#### cellranger/cellranger-atac directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/CellRanger)
 
 # Figure Scripts
-Figure 1 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_1)
-Figure 2 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_2)
-Figure 3 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_3)
-Figure 4 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_4)
-Figure 5 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_5)
+#### Figure 1 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_1)
+#### Figure 2 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_2)
+#### Figure 3 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_3)
+#### Figure 4 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_4)
+#### Figure 5 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_5)
 
 # Supplementary Figure Scripts
 Please email regnerm@live.unc.edu for inquiries into the supplemental figure scripts
