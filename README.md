@@ -9,8 +9,15 @@
 
 ![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Cartoon.png)
 
-# Cell Ranger pre-processing
+# Cell Ranger Pre-processing
 #### cellranger/cellranger-atac directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/CellRanger)
+
+
+# scRNA-seq Processing Scripts
+#### scRNA-seq directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/scRNA-seq%20Processing%20Scripts)
+
+# scATAC-seq Processing Scripts
+#### scATAC-seq directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/scRNA-seq%20Processing%20Scripts)
 
 # Figure Scripts
 #### Figure 1 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_1)
