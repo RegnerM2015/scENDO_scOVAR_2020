@@ -1,5 +1,7 @@
 # A multi-omic single-cell atlas of human gynecologic malignancies 
-# Regner et al., 2021
+# Matthew J. Regner, Kamila Wisniewska, Susana Garcia-Recio, Aatish Thennavan1, Raul Mendez-Giraldez, Venkat S. Malladi, Gabrielle Hawkins, Joel S. Parker, Charles M. Perou, Victoria L. Bae-Jump, and Hector L. Franco*
+## * Corresponding Author 
+
 
 # Submitted to Nature Cancer
 
