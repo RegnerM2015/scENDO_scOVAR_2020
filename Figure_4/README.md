@@ -12,5 +12,6 @@
 1. Perform FIMO motif scanning using Patient-specfic enhancer sequences 
 
 ### /TF_expression_FIMO.R
-
+1. Read in FIMO output
+1. Sort FIMO TF motif hits by TF expression and q-values
 
