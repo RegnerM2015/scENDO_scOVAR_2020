@@ -6,7 +6,10 @@
 1. Plot scATAC-seq browser track for gene of interest and corresponding scRNA-seq expression in violin plot
 
 ### /HGSOC_LAPTM4B_TFBS.sh
-
+1. Call variants in the Patient 9 11-Epithelial cluster-specific bam file relative to hg38 reference genome
+1. Generate Patient 9 11-Epithelial cluster-specific genome sequence
+1. Extract enhancer sequences from Patient 9 11-Epithelial cluster-specific genome sequence
+1. Perform FIMO motif scanning using Patient-specfic enhancer sequences 
 
 ### /TF_expression_FIMO.R
 
