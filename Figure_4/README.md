@@ -14,4 +14,5 @@
 ### /TF_expression_FIMO.R
 1. Read in FIMO output
 1. Sort FIMO TF motif hits by TF expression and q-values
+1. Plot matching TF expression in scRNA-seq for top ranking TF motifs
 
