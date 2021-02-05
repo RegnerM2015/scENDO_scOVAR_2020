@@ -2,18 +2,13 @@
 ### Matthew J. Regner, Kamila Wisniewska, Susana Garcia-Recio, Aatish Thennavan, Raul Mendez-Giraldez, Venkat S. Malladi, Gabrielle Hawkins, Joel S. Parker, Charles M. Perou, Victoria L. Bae-Jump, and Hector L. Franco*
 ### * Corresponding Author 
 
-# Please cite: TBD, submitted to Nature Cancer
+### Please cite: TBD, submitted to Nature Cancer
 
 ![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Cartoon_Fig_1.png)
 
 # Summary of scRNA-seq and scATAC-seq pipelines 
 ![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Flowchart_Pipelines.png)
 
-# Figure_2
-### /Figure_2.R
-1. Plot heatmap of distal-only peak-to-gene links calculated in the Full Cohort (Patients 1-11)
-1. Plot scATAC-seq browser track for gene of interest and corresponding scRNA-seq expression in violin plot
-1. Plot violin plot for pathway expression signature calculated by Seurat's *AddModuleScore()*
 
 # Figure_3
 ### /Figure_3.R
