@@ -7,7 +7,7 @@
 
 ### Please cite: TBD, submitted to Nature Cancer
 
-![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Cartoon_Fig_1.png)
+![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Fig_Cartoon.png)
 
 
 # Supplementary Figure Scripts
