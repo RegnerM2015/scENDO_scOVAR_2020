@@ -1,13 +1,13 @@
 # Title: A multi-omic single-cell atlas of human gynecological malignancies 
 ### Matthew J. Regner1,3,8, Kamila Wisniewska1,8, Susana Garcia-Recio1, Aatish Thennavan1,4, Raul Mendez-Giraldez1, Venkat S. Malladi5, Gabrielle Hawkins6, Joel S. Parker1,2, Charles M. Perou1,2,7, Victoria L. Bae-Jump1,6, and Hector L. Franco1,2,3,*
-### 1.	The Lineberger Comprehensive Cancer Center, University of North Carolina at Chapel Hill, Chapel Hill, NC, 27599, USA
-### 2.	The Department of Genetics, School of Medicine, University of North Carolina at Chapel Hill, Chapel Hill, NC, 27599, USA
-### 3.	Bioinformatics and Computational Biology Graduate Program, University of North Carolina at Chapel Hill, Chapel Hill, NC, 27599, USA
-### 4.	Oral and Craniofacial Biomedicine Program, University of North Carolina at Chapel Hill, Chapel Hill, NC, 27599, USA
-### 5.	Department of Bioinformatics, University of Texas Southwestern Medical Center, Dallas, Texas 75390, USA
-### 6.	Division of Gynecology Oncology, University of North Carolina at Chapel Hill, Chapel Hill, NC, 27599, USA
-### 7.	Department of Pathology and Laboratory Medicine, University of North Carolina at Chapel Hill, Chapel Hill, NC, 27599, USA
-### 8.	These authors contributed equally.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;### 1.	The Lineberger Comprehensive Cancer Center, University of North Carolina at Chapel Hill, Chapel Hill, NC, 27599, USA
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;### 2.	The Department of Genetics, School of Medicine, University of North Carolina at Chapel Hill, Chapel Hill, NC, 27599, USA
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;### 3.	Bioinformatics and Computational Biology Graduate Program, University of North Carolina at Chapel Hill, Chapel Hill, NC, 27599, USA
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;### 4.	Oral and Craniofacial Biomedicine Program, University of North Carolina at Chapel Hill, Chapel Hill, NC, 27599, USA
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;### 5.	Department of Bioinformatics, University of Texas Southwestern Medical Center, Dallas, Texas 75390, USA
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;### 6.	Division of Gynecology Oncology, University of North Carolina at Chapel Hill, Chapel Hill, NC, 27599, USA
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;### 7.	Department of Pathology and Laboratory Medicine, University of North Carolina at Chapel Hill, Chapel Hill, NC, 27599, USA
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;### 8.	These authors contributed equally.
 
 
 ### * Corresponding Author 
