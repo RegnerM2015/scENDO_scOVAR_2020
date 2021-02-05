@@ -1,7 +1,7 @@
 # Title: A multi-omic single-cell atlas of human gynecological malignancies 
 ### Matthew J. Regner (1), Kamila Wisniewska (1), Susana Garcia-Recio, Aatish Thennavan, Raul Mendez-Giraldez, Venkat S. Malladi, Gabrielle Hawkins, Joel S. Parker, Charles M. Perou, Victoria L. Bae-Jump, and Hector L. Franco *
 
-####      (1) These authors contributing equally
+####      (1) These authors contributed equally
 ####      * Corresponding Author 
 
 
