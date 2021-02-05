@@ -1,7 +1,7 @@
 # Figure_5
 ### /TFSEE_Step0_Reformat_FileNames.sh
 1. Remove whitespace from filenames
-1. Gather marker enhancer bed files for select cell type clusters 
+1. Gather marker enhancer bed files for cell type clusters that are CNV postive and/or epithelial
 1. Concatenate all cell type-specific enhancer lists into one BED file 
 ### /TFSEE_Step1_NonZero_Enhancers.R
 1. Screen for enhancers that have signal across all malignant cell types 
@@ -22,3 +22,6 @@
 1. Compute log2FC in TFSEE score between sarcoma cluster and epithelial cluster 
 1. Compute log2FC in TF expression (rlog transformed) between sarcoma and epithelial cluster 
 1. Make scatter plot of log2FC in TFSEE score versus log2FC in TF expression 
+
+
+#### An alternate version of the analysis was performed using only marker enhancers enriched in the 11 cell types subclusters with 100% patient specificity:()
