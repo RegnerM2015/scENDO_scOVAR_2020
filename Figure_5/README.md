@@ -1,7 +1,7 @@
 # Figure_5
 ### /TFSEE_Step0_Reformat_FileNames.sh
 1. Remove whitespace from filenames
-1. Gather marker enhancer bed files for cell type clusters that are CNV postive and/or epithelial
+1. Gather marker enhancer bed files for cell type subclusters that are CNV postive and/or epithelial
 1. Concatenate all cell type-specific enhancer lists into one BED file 
 ### /TFSEE_Step1_NonZero_Enhancers.R
 1. Screen for enhancers that have signal across all malignant cell types 
