@@ -38,9 +38,3 @@ VlnPlot(ovar_HGSOC_scRNA_processed,features = c("CEBPD","YY1","YY1","ATF4"),ncol
   
   
   
-  
-  
-  
-  
-library(curatedOvarianData)
-data(package="curatedOvarianData")
