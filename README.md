@@ -5,7 +5,7 @@
 ####      * Corresponding Author 
 
 
-### Please cite: TBD, submitted to Nature Cancer
+### Please cite: TBD, submitted to Molecular Cell
 
 ![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Cartoon.png)
 
