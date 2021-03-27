@@ -9,6 +9,9 @@
 
 ![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Cartoon.png)
 
+# Reproducibility 
+#### Session Information and conda .yml file: https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Reproducibility
+
 # Cell Ranger pre-processing
 #### cellranger/cellranger-atac directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/CellRanger)
 
