@@ -1,7 +1,7 @@
 ###################################################
 # Matt Regner
 # Franco Lab 
-# Nov 2020
+# Nov 2020-June 2021
 # Description: plot patient UMAPs, cell type UMAPs,
 # histology UMAPs, patient proportion per cluster
 ###################################################
@@ -10,7 +10,11 @@ library(ggplot2)
 library(Seurat)
 library(scales)
 library(forcats)
-
+library(ArchR)
+library(stringr)
+library(stringi)
+library(RColorBrewer)
+library(dplyr)
 # Make patient sample metadata and color assignments 
 
 sampleColors <- RColorBrewer::brewer.pal(11,"Paired")
@@ -65,7 +69,7 @@ rna.sample.plot <-ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color = Sample))+
   theme(legend.key.size = unit(0.2, "cm"))+
   scale_color_manual(values = sampleColors)+
   guides(colour = guide_legend(override.aes = list(size=6)))
-rna.sample.plot +ggsave("Sample_RNA.pdf",width = 8,height = 6)
+rna.sample.plot +ggsave("Sample_RNA.pdf",width = 8,height = 7)
 
 # ATAC UMAP second:
 atac.df <- plotEmbedding(atac,colorBy = "cellColData",name = "Sample",embedding = "UMAP")
@@ -81,66 +85,7 @@ ggplot(atac.df,aes_string(x = "x",y="y",color = "Sample"))+
   theme(legend.key.size = unit(0.2, "cm"))+
   scale_color_manual(values = sampleColors)+
   guides(colour = guide_legend(override.aes = list(size=6)))+
-ggsave(paste0("Sample_ATAC.pdf"),width = 8,height = 6)
-
-
-
-
-# Plot Histology UMAPs for RNA/ATAC
-
-# Add Histology variable to RNA data
-rna.df$Histology <- rna.df$Sample
-rna.df$Histology <- str_replace_all(rna.df$Histology, "3533EL", "Endometrioid")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "3571DL", "Endometrioid")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "36186L", "Endometrioid")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "36639L", "Endometrioid")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "366C5L", "Endometrioid")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "37EACL", "Serous")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "38FE7L", "Endometrioid")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "3BAE2L", "Serous")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "3E5CFL", "Serous")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "3E4D1L", "GIST")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "3CCF1L", "Carcinosarcoma")
-
-
-rna.sample.plot <-ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color = Histology))+
-  geom_point(size = .1)+
-  theme_classic()+
-  theme(plot.title = element_text(face = "bold"))+
-  xlab("UMAP_1")+
-  ylab("UMAP_2")+ 
-  theme(legend.key.size = unit(0.2, "cm"))+
-  scale_color_manual(values = c("gray60","coral2","mediumpurple1","#00CED1"))+
-  guides(colour = guide_legend(override.aes = list(size=6)))
-rna.sample.plot +ggsave("Histology_RNA.pdf",width = 8,height = 6)
-
-
-# Add Histology variable to ATAC data
-atac.df$Histology <- atac.df$Sample
-atac.df$Histology <- str_replace_all(atac.df$Histology, "3533EL", "Endometrioid")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "3571DL", "Endometrioid")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "36186L", "Endometrioid")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "36639L", "Endometrioid")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "366C5L", "Endometrioid")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "37EACL", "Serous")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "38FE7L", "Endometrioid")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "3BAE2L", "Serous")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "3E5CFL", "Serous")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "3E4D1L", "GIST")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "3CCF1L", "Carcinosarcoma")
-
-
-atac.sample.plot <-ggplot(atac.df,aes(x = x,y=y,color = Histology))+
-  geom_point(size = .1)+
-  theme_classic()+
-  theme(plot.title = element_text(face = "bold"))+
-  xlab("UMAP_1")+
-  ylab("UMAP_2")+ 
-  theme(legend.key.size = unit(0.2, "cm"))+
-  scale_color_manual(values = c("gray60","coral2","mediumpurple1","#00CED1"))+
-  guides(colour = guide_legend(override.aes = list(size=6)))
-atac.sample.plot +ggsave("Histology_ATAC.pdf",width = 8,height = 6)
-
+ggsave(paste0("Sample_ATAC.pdf"),width = 8,height = 7)
 
 
 
@@ -148,29 +93,95 @@ atac.sample.plot +ggsave("Histology_ATAC.pdf",width = 8,height = 6)
 # Plot cell type UMAPs for RNA/ATAC
 
 # RNA
-levels(factor(rna$cell.type))
+levels(factor(rna$RNA_snn_res.0.7))
+rna.df$cluster <- rna$RNA_snn_res.0.7
 rna.df$cell.type <- rna$cell.type
-rna.df$cell.type <- gsub(".*-","",rna.df$cell.type)
-levels(factor(rna.df$cell.type))
+#Manually annotate 23-cluster as smooth muscle
+rna.df$cell.type <- str_replace_all(rna.df$cell.type,"23-Stromal fibroblast","23-Smooth muscle cells")
+
+rna.df$cluster <- as.factor(rna.df$cluster)
+rna.df$cell.type <- as.factor(rna.df$cell.type)
+levels(rna.df$cluster)
+levels(rna.df$cell.type)
 
 
-rna.df$cell.type <- str_replace_all(rna.df$cell.type, "Ciliated", "Epithelial")
-rna.df$cell.type <- str_replace_all(rna.df$cell.type, "Endothelia", "Endothelial")
-rna.df$cell.type <- str_replace_all(rna.df$cell.type, "Epithelial cell", "Epithelial")
-rna.df$cell.type <- str_replace_all(rna.df$cell.type, "Macrophages", "Macrophage")
-rna.df$cell.type <- str_replace_all(rna.df$cell.type, "Fibroblast", "Fibroblast/Stromal")
-rna.df$cell.type <- str_replace_all(rna.df$cell.type, "Stromal fibroblasts", "Fibroblast/Stromal")
-rna.df$cell.type <- str_replace_all(rna.df$cell.type, "Unciliated epithelia 1", "Epithelial")
-rna.df$cell.type <- str_replace_all(rna.df$cell.type, "Unciliated epithelia 2", "Epithelial")
-rna.df$cell.type <- str_replace_all(rna.df$cell.type, "Lymphocytes", "NK cell")
+# Help sort the cluster numbers:
+###############################
+epi <- grep("pitheli",levels(rna.df$cell.type))
+epi.new <- grep("-Ciliated",levels(rna.df$cell.type))
+epi <- c(epi,epi.new)
+
+fibro <- grep("ibro",levels(rna.df$cell.type))
+
+smooth <- grep("mooth",levels(rna.df$cell.type))
+
+endo <- grep("dothel",levels(rna.df$cell.type))
+
+t.nk <- grep("T cell",levels(rna.df$cell.type))
+t.nk.new <- grep("Lym",levels(rna.df$cell.type))
+t.nk <- c(t.nk,t.nk.new)
+
+mac <- grep("acrophage",levels(rna.df$cell.type))
+
+mast <- grep("Mast",levels(rna.df$cell.type))
+
+b <- grep("B cell",levels(rna.df$cell.type))
 
 
+cell.types.idx <- c(epi,fibro,smooth,endo,t.nk,mac,mast,b)
 
-cols <- brewer.pal(9,"Set1")
-cols[6] <- "gold3"
-cols[7] <- "gray30"
-cols[9] <- "gray60"
-ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color = cell.type))+
+store <- numeric(0)
+for(i in 1:length(cell.types.idx)){
+  name <- levels(rna.df$cell.type)[cell.types.idx[i]]
+  print(gsub("-.*","",name))
+  new.name <- gsub("-.*","",name)
+  new.num <- as.numeric(new.name)
+  store[i] <- new.num
+}
+print(store)
+#####################################################
+
+my_levels <- c(11,20,21,22,31,
+               19,34,
+               3,
+               9,10,
+               16,17,
+               0,27,
+               6,8,12,14,15,18,24,25,26,29,
+               7,23,
+               1,33,
+               2,4,30,
+               5,13,
+               32,
+               28,35)
+
+
+# Relevel object@ident
+rna.df$cluster.new <- factor(x = rna.df$cluster, levels = my_levels)
+
+
+epithelial.cols <- colorRampPalette(c("#A0E989", "#245719"))
+epithelial.cols <- epithelial.cols(14)
+
+fibro.cols <-colorRampPalette(c("#FABFD2", "#B1339E"))
+fibro.cols <- fibro.cols(10)
+
+smooth.cols <- c("#b47fe5","#d8b7e8")
+
+endo.cols <- c("#93CEFF","#4A99FF")
+
+t.cols <- c("gray60","gray20","gray40")
+
+macro.cols <- c("#ff6600","#ff9d5c")
+
+mast.cols <- "gold3"
+
+b.cols <- c("#B22222","#CD5C5C")
+
+
+cols <- c(epithelial.cols,fibro.cols,smooth.cols,endo.cols,t.cols,macro.cols,mast.cols,b.cols)
+
+p1 <- ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color = cluster.new))+
   geom_point(size = .1)+
   theme_classic()+
   theme(plot.title = element_text(face = "bold"))+
@@ -178,38 +189,71 @@ ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color = cell.type))+
   ylab("UMAP_2")+ 
   theme(legend.key.size = unit(0.2, "cm"))+
   scale_color_manual(values = cols)+
-  guides(colour = guide_legend(override.aes = list(size=6)))+ggsave("Cell_Type_RNA.pdf",width = 8,height = 6)
+  guides(colour = guide_legend(override.aes = list(size=6)))+ggsave("Cell_Type_RNA.pdf",width = 8,height = 7)
 
+p1 <- ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color = cluster.new))+
+  geom_point(size = .1)+
+  theme_classic()+
+  theme(plot.title = element_text(face = "bold"))+
+  xlab("UMAP_1")+
+  ylab("UMAP_2")+ 
+  theme(legend.key.size = unit(0.2, "cm"))+
+  scale_color_manual(values = cols)+
+  guides(colour = guide_legend(override.aes = list(size=6)))+NoLegend()
+LabelClusters(p1,id="cluster.new",color="black",repel = T,size=8)+ggsave("Cell_Type_RNA-labels.pdf",width = 8,height = 7)
 
 
 # ATAC
 levels(factor(atac$predictedGroup_ArchR))
 
-
 atac.df <- plotEmbedding(atac,colorBy = "cellColData",name = "predictedGroup_ArchR",embedding = "UMAP")
 atac.df <- as.data.frame(atac.df$data)
-atac.df$cell.type<- gsub(".*-","",atac.df$color)
+atac.df$cell.type <- sub(".*?-","",atac.df$color)
+atac.df$cell.type <- as.factor(atac.df$cell.type)
+atac.df$cell.type <- str_replace_all(atac.df$cell.type,"23-Stromal fibroblast","23-Smooth muscle cells")
+atac.df$cluster <-  gsub("-.*","",atac.df$cell.type)
 
 
-levels(factor(atac.df$cell.type))
+my_levels <- c(11,20,21,22,31,
+               19,34,
+               3,
+               9,10,
+               16,17,
+               0,27,
+               6,8,12,14,15,18,24,25,26,29,
+               7,23,
+               1,33,
+               2,4,30,
+               5,13,
+               32,
+               28,35)
 
-atac.df$cell.type <- str_replace_all(atac.df$cell.type, "Ciliated", "Epithelial")
-atac.df$cell.type <- str_replace_all(atac.df$cell.type, "Endothelia", "Endothelial")
-atac.df$cell.type <- str_replace_all(atac.df$cell.type, "Epithelial cell", "Epithelial")
-atac.df$cell.type <- str_replace_all(atac.df$cell.type, "Macrophages", "Macrophage")
-atac.df$cell.type <- str_replace_all(atac.df$cell.type, "Fibroblast", "Fibroblast/Stromal")
-atac.df$cell.type <- str_replace_all(atac.df$cell.type, "Stromal fibroblasts", "Fibroblast/Stromal")
-atac.df$cell.type <- str_replace_all(atac.df$cell.type, "Unciliated epithelia 1", "Epithelial")
-atac.df$cell.type <- str_replace_all(atac.df$cell.type, "Unciliated epithelia 2", "Epithelial")
-atac.df$cell.type <- str_replace_all(atac.df$cell.type, "Lymphocytes", "NK cell")
+# Relevel object@ident
+atac.df$cluster.new <- factor(x = atac.df$cluster, levels = my_levels)
 
 
+epithelial.cols <- colorRampPalette(c("#A0E989", "#245719"))
+epithelial.cols <- epithelial.cols(14)
 
-cols <- brewer.pal(9,"Set1")
-cols[6] <- "gold3"
-cols[7] <- "gray30"
-cols[9] <- "gray60"
-ggplot(atac.df,aes(x =x,y=y,color = cell.type))+
+fibro.cols <-colorRampPalette(c("#FABFD2", "#B1339E"))
+fibro.cols <- fibro.cols(10)
+
+smooth.cols <- c("#b47fe5","#d8b7e8")
+
+endo.cols <- c("#93CEFF","#4A99FF")
+
+t.cols <- c("gray60","gray20","gray40")
+
+macro.cols <- c("#ff6600","#ff9d5c")
+
+mast.cols <- "gold3"
+
+b.cols <- c("#B22222","#CD5C5C")
+
+
+cols <- c(epithelial.cols,fibro.cols,smooth.cols,endo.cols,t.cols,macro.cols,mast.cols,b.cols)
+
+p1 <- ggplot(atac.df,aes(x =x,y=y,color = cluster.new))+
   geom_point(size = .1)+
   theme_classic()+
   theme(plot.title = element_text(face = "bold"))+
@@ -217,9 +261,17 @@ ggplot(atac.df,aes(x =x,y=y,color = cell.type))+
   ylab("UMAP_2")+ 
   theme(legend.key.size = unit(0.2, "cm"))+
   scale_color_manual(values = cols)+
-  guides(colour = guide_legend(override.aes = list(size=6)))+ggsave("Cell_Type_ATAC.pdf",width = 8,height = 6)
-
-
+  guides(colour = guide_legend(override.aes = list(size=6)))+ggsave("Cell_Type_ATAC.pdf",width = 8,height = 7)
+p1 <- ggplot(atac.df,aes(x = x,y=y,color = cluster.new))+
+  geom_point(size = .1)+
+  theme_classic()+
+  theme(plot.title = element_text(face = "bold"))+
+  xlab("UMAP_1")+
+  ylab("UMAP_2")+ 
+  theme(legend.key.size = unit(0.2, "cm"))+
+  scale_color_manual(values = cols)+
+  guides(colour = guide_legend(override.aes = list(size=6)))+NoLegend()
+LabelClusters(p1,id="cluster.new",color="black",repel = T,size=8)+ggsave("Cell_Type_ATAC-labels.pdf",width = 8,height = 7)
 
 #########################################################################################################
 
@@ -232,14 +284,19 @@ colnames(df) <- c("Cluster","Sample","Cells")
 # Reorder cluster factor levels to group by cell type 
 levels(factor(rna$cell.type))
 df %>% 
-  dplyr::mutate(cell.type = factor(Cluster,levels = c("1","9","10","11","18","19","21","22","23","32","35",
-                                                      "0","7","8","12","14","15","16","17","24","25","26","27","29","30",
-                                                      "4",
-                                                      "6","20","34",
-                                                      "2","3","31",
-                                                      "5","13",
-                                                      "33",
-                                                      "28","36"))) %>% 
+  dplyr::mutate(cell.type = factor(Cluster,levels = c(11,20,21,22,31,
+                                                      19,34,
+                                                      3,
+                                                      9,10,
+                                                      16,17,
+                                                      0,27,
+                                                      6,8,12,14,15,18,24,25,26,29,
+                                                      7,23,
+                                                      1,33,
+                                                      2,4,30,
+                                                      5,13,
+                                                      32,
+                                                      28,35))) %>% 
   ggplot(aes(fill=Sample, y=Cells, x= fct_rev(cell.type))) + 
   geom_bar(position="fill", stat="identity")+
   coord_flip()+theme_classic()+xlab("Clusters")+ylab("# of cells")+
@@ -256,14 +313,19 @@ colnames(df) <- c("Cluster","Sample","Cells")
 # Reorder cluster factor levels to group by cell type 
 levels(factor(atac$predictedGroup_ArchR))
 df %>% 
-  dplyr::mutate(cell.type = factor(Cluster,levels = c("1","9","10","11","18","19","21","22","23","32","35",
-                                                      "0","7","8","12","14","15","16","17","24","25","26","27","29","30",
-                                                      "4",
-                                                      "6","20","34",
-                                                      "2","3","31",
-                                                      "5","13",
-                                                      "33",
-                                                      "28","36"))) %>% 
+  dplyr::mutate(cell.type = factor(Cluster,levels = c(11,20,21,22,31,
+                                                      19,34,
+                                                      3,
+                                                      9,10,
+                                                      16,17,
+                                                      0,27,
+                                                      6,8,12,14,15,18,24,25,26,29,
+                                                      7,23,
+                                                      1,33,
+                                                      2,4,30,
+                                                      5,13,
+                                                      32,
+                                                      28,35))) %>% 
   ggplot(aes(fill=Sample, y=Cells, x= fct_rev(cell.type))) + 
   geom_bar(position="fill", stat="identity")+
   coord_flip()+theme_classic()+xlab("Clusters")+ylab("# of cells")+
@@ -283,80 +345,24 @@ total <- merge(total.rna,total.atac,by = "Cluster")
 WriteXLS::WriteXLS(total,"./Total_Cell_Numbers_per_Cluster.xlsx")
 
 
+# Suppl. Figure CNV plot
+# Plot CNV box: 
+meta <- rna@meta.data
+meta$cluster <- factor(meta$RNA_snn_res.0.7,levels = rev(c(11,20,21,22,31,
+                                                           19,34,
+                                                           3,
+                                                           9,10,
+                                                           16,17,
+                                                           0,27,
+                                                           6,8,12,14,15,18,24,25,26,29,
+                                                           7,23,
+                                                           1,33,
+                                                           2,4,30,
+                                                           5,13,
+                                                           32,
+                                                           28,35)))
 
-VlnPlot(rna,features = "Total_CNVs")
+ggplot(meta,aes(x=cluster,y=Total_CNVs,fill=cluster))+geom_boxplot()+coord_flip()+
+  theme_classic()+scale_fill_manual(values = rev(cols))+NoLegend()+
+  ggsave("CNV_BoxPlot.pdf",width = 4,height = 8)
 
-# 
-# 
-# # Immune cell proportion barchart
-# meta.atac <- as.data.frame(proj@cellColData)
-# 
-# meta.atac$predictedGroup_ArchR <- sub("-", ":", meta.atac$predictedGroup_ArchR)
-# meta.atac$predictedGroup_ArchR <- gsub(".*:", "", meta.atac$predictedGroup_ArchR)
-# 
-# 
-# meta.atac$immune <- ifelse(meta.atac$predictedGroup_ArchR == "T cell" | 
-#                              meta.atac$predictedGroup_ArchR == "B cell"|
-#                              meta.atac$predictedGroup_ArchR == "NK cell" |
-#                              meta.atac$predictedGroup_ArchR == "Macrophage","Immune","Non-immune")
-# 
-# 
-# BAE2L.prop <- nrow(meta.atac[meta.atac$immune == "Immune" & meta.atac$Sample == '3BAE2L',])/nrow(meta.atac[meta.atac$Sample == '3BAE2L',])
-# E5CFL.prop <- nrow(meta.atac[meta.atac$immune == "Immune" & meta.atac$Sample == '3E5CFL',])/nrow(meta.atac[meta.atac$Sample == '3E5CFL',])
-# 
-# df <- data.frame(Sample = c("3BAE2L","3E5CFL"),
-#                  Proportion = c(BAE2L.prop,E5CFL.prop))
-# 
-# meta.atac.sub <- dplyr::filter(meta.atac,immune == "Immune")
-# library(ggplot2)
-# ggplot(data =meta.atac.sub) + 
-#   geom_bar(mapping = aes(x =Sample, fill = Proportion))
-# 
-# 
-# 
-# meta.atac.1 <- dplyr::filter(meta.atac,Sample == "3BAE2L")
-# ggplot(meta.atac.1, aes(immune)) + 
-#   geom_bar(aes(y = (..count..)/sum(..count..))) + 
-#   scale_y_continuous(labels=scales::percent,limits = c(0,0.6)) +
-#   ylab("% immune cells")+ggsave("3BAE2L_atac_immune.pdf",width = 4,height = 3)
-# 
-# meta.atac.2 <- dplyr::filter(meta.atac,Sample == "3E5CFL")
-# ggplot(meta.atac.2, aes(immune)) + 
-#   geom_bar(aes(y = (..count..)/sum(..count..))) + 
-#   scale_y_continuous(labels=scales::percent,limits = c(0,0.6)) +
-#   ylab("% immune cells")+ggsave("3E5CFL_atac_immune.pdf",width = 4,height = 3)
-# 
-# 
-# 
-# 
-# library(ggplot2)
-# ggplot(meta.atac, aes(x=as.factor(Sample), fill=as.factor(immune)))+
-#   geom_bar(aes( y=..count../tapply(..count.., ..x.. ,sum)[..x..]), position="dodge" ) +
-#   geom_text(aes( y=..count../tapply(..count.., ..x.. ,sum)[..x..], label=scales::percent(..count../tapply(..count.., ..x.. ,sum)[..x..]) ),
-#             stat="count", position=position_dodge(0.9), vjust=-0.5)+
-#   scale_y_continuous(labels = scales::percent)+ylab("% immune cells")+
-#   theme_classic()+ggsave("atac_immune.pdf",width = 4,height = 3)
-# 
-# 
-# 
-# library(ggplot2)
-# ggplot(meta.rna, aes(x=as.factor(sample), fill=as.factor(immune)))+
-#   geom_bar(aes( y=..count../tapply(..count.., ..x.. ,sum)[..x..]), position="dodge" )+
-#   geom_text(aes( y=..count../tapply(..count.., ..x.. ,sum)[..x..], label=scales::percent(..count../tapply(..count.., ..x.. ,sum)[..x..]) ),
-#           stat="count", position=position_dodge(0.9), vjust=-0.5)+
-#   scale_y_continuous(labels = scales::percent)+ylab("% immune cells")+
-#   theme_classic()+ggsave("rna_immune.pdf",width = 4,height = 3)
-# 
-# 
-# 
-# 
-# 
-# library(ggplot2)
-# ggplot(meta.rna, aes(x=as.factor(sample), fill=as.factor(immune)))+
-#   geom_bar(aes( y=..count../tapply(..count.., ..x.. ,sum)[..x..]), position="dodge" ) +
-#   geom_text(aes( y=..count../tapply(..count.., ..x.. ,sum)[..x..], label=scales::percent(..count../tapply(..count.., ..x.. ,sum)[..x..]) ),
-#             stat="count", position=position_dodge(0.9), vjust=-0.5)+
-#   ylab('Percent of Cylinder Group, %') +
-#   scale_y_continuous(labels = scales::percent)
-# 
-# 
