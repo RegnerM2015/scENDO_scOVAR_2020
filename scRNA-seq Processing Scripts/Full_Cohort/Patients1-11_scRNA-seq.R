@@ -14,7 +14,7 @@
 
 #####################################################################
 # Change to your library path
-.libPaths('/home/regnerm/anaconda3/envs/r-environment/lib/R/library')
+.libPaths('/home/regnerm/anaconda3/envs/scENDO_scOVAR/lib/R/library')
 source("./rowr.R")
 source("./stacked_violin.R")
 #####################################################################
@@ -175,11 +175,11 @@ smooth.cor <- cor(rna$PC1,rna$smooth.6,method = "spearman")
 plasma.cor <- cor(rna$PC1,rna$plasma.7,method = "spearman")
 
 
-
-rna <- JackStraw(rna, num.replicate = 100,dims = 50)
-rna <- ScoreJackStraw(rna,dims = 1:50)
-JackStrawPlot(rna, dims = 1:50)+ggsave("JackStraw.png")
-
+# 
+# rna <- JackStraw(rna, num.replicate = 100,dims = 50)
+# rna <- ScoreJackStraw(rna,dims = 1:50)
+# JackStrawPlot(rna, dims = 1:50)+ggsave("JackStraw.png")
+# 
 
 ###########################################################
 # Part 2: Reprocessing and CNV-read depth check
@@ -355,7 +355,7 @@ DimPlot(rna,group.by = "cell.type",label = F)+ggsave("cell_type_UMAP.pdf",width 
 # Perform DEGs analysis with cell type annotated clusters 
 # # Wilcox
 Idents(rna) <- "cell.type"
-Wilcox.markers <- FindAllMarkers(object =rna, min.pct = 0.25,only.pos = F,
+Wilcox.markers <- FindAllMarkers(object =rna, min.pct = 0.25,only.pos = T,
                                  test.use = "wilcox")
 saveRDS(Wilcox.markers,"./wilcox_DEGs.rds")
 
@@ -367,13 +367,13 @@ saveRDS(rna,paste0(SAMPLE.ID,"_scRNA_processed.rds"))
 
 # ###########################################################################################################
 # # Starting cells, PostQC cells, doublets, Post doublet/QC cells, Cluster #
-output.meta <- data.frame(TotalCells=length(colnames(rna)),
-                          NumClusters= length(levels(as.factor(Idents(rna)))),
-                          stringsAsFactors=FALSE)
-output <- as.data.frame(t(output.meta))
-colnames(output) <- SAMPLE.ID
-xlsx::write.xlsx(output, "scRNA_pipeline_summary.xlsx",
-                 row.names = T, col.names = TRUE)
+# output.meta <- data.frame(TotalCells=length(colnames(rna)),
+#                           NumClusters= length(levels(as.factor(Idents(rna)))),
+#                           stringsAsFactors=FALSE)
+# output <- as.data.frame(t(output.meta))
+# colnames(output) <- SAMPLE.ID
+# xlsx::write.xlsx(output, "scRNA_pipeline_summary.xlsx",
+#                  row.names = T, col.names = TRUE)
 
 #########################################################################################################
 # END OF SCRIPT
