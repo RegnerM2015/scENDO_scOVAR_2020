@@ -11,9 +11,9 @@ library(ggplot2)
 library(Seurat)
 library(scales)
 library(forcats)
-library(dplyr)
 library(tidyverse)
 library(tidyr)
+library(ArchR)
 
 # Make patient sample metadata and color assignments 
 
@@ -96,30 +96,13 @@ ggplot(atac.df,aes_string(x = "x",y="y",color = "Sample"))+
 rna.df <- as.data.frame(rna@reductions$umap@cell.embeddings)
 length(which(rownames(rna.df)==rownames(rna@meta.data)))
 rna.df$cell.type <- rna$cell.type
-
-rna.df$cell.type <- factor(rna.df$cell.type,levels = c("0-Epithelial cell",
-                                                       "2-Epithelial cell",
-                                                       "3-Epithelial cell",
-                                                       "7-Epithelial cell",
-                                                       "11-Epithelial cell",
-                                                       "15-Empty/Epithelial cell",
-                                                       "16-Epithelial cell",
-                                                       "19-Epithelial cell",
-                                                       "1-Fibroblast",
-                                                       "4-Fibroblast",
-                                                       "9-Fibroblast",
-                                                       "10-Fibroblast",
-                                                       "22-Fibroblast",
-                                                       "14-Endothelial cell",
-                                                       "5-T cell",
-                                                       "12-NK cell",
-                                                       "18-T cell",
-                                                       "21-T cell",
-                                                       "6-Macrophage",
-                                                       "8-Macrophage",
-                                                       "13-Macrophage" ,
-                                                       "20-Macrophage",
-                                                       "23-Macrophage","17-B cell" 
+rna.df$cluster <- rna$RNA_snn_res.0.7
+rna.df$cluster.new <- factor(rna.df$cluster,levels = c("0","2","3","7","11","15","16","19",
+                                                       "1","4","9","10","22",
+                                                       "14",
+                                                       "5","12","18","21",
+                                                       "6","8","13","20","23",
+                                                       "17"
                                                        ))
 
 
@@ -141,7 +124,7 @@ b.cols <- "#E41A1C"
 
 cols <- c(epithelial.cols,fibro.cols,endo.cols,t.cols,macro.cols,b.cols)
 
-rna.sample.plot <-ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color =cell.type))+
+rna.sample.plot <-ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color =cluster.new))+
   geom_point(size = .1)+
   theme_classic()+
   theme(plot.title = element_text(face = "bold"))+
@@ -151,36 +134,29 @@ rna.sample.plot <-ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color =cell.type))+
   scale_color_manual(values = cols)+
   guides(colour = guide_legend(override.aes = list(size=3)))
 rna.sample.plot +ggsave("Cell_type_RNA.pdf",width = 8,height = 6)
+p1 <- ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color = cluster.new))+
+  geom_point(size = .1)+
+  theme_classic()+
+  theme(plot.title = element_text(face = "bold"))+
+  xlab("UMAP_1")+
+  ylab("UMAP_2")+ 
+  theme(legend.key.size = unit(0.2, "cm"))+
+  scale_color_manual(values = cols)+
+  guides(colour = guide_legend(override.aes = list(size=6)))+NoLegend()
+LabelClusters(p1,id="cluster.new",color="black",repel = T,size=8)+ggsave("Cell_Type_RNA-labels.pdf",width = 8,height = 7)
 
 # ATAC UMAP second:
 atac.df <- plotEmbedding(atac,colorBy = "cellColData",name = "predictedGroup_ArchR",embedding = "UMAP")
 atac.df <- as.data.frame(atac.df$data)
 atac.df$cell.type <- sub(".*?-","",atac.df$color)
 
-
-atac.df$cell.type <- factor(atac.df$cell.type,levels = c("0-Epithelial cell",
-                                                       "2-Epithelial cell",
-                                                       "3-Epithelial cell",
-                                                       "7-Epithelial cell",
-                                                       "11-Epithelial cell",
-                                                       "15-Empty_Epithelial cell",
-                                                       "16-Epithelial cell",
-                                                       "19-Epithelial cell",
-                                                       "1-Fibroblast",
-                                                       "4-Fibroblast",
-                                                       "9-Fibroblast",
-                                                       "10-Fibroblast",
-                                                       "22-Fibroblast",
-                                                       "14-Endothelial cell",
-                                                       "5-T cell",
-                                                       "12-NK cell",
-                                                       "18-T cell",
-                                                       "21-T cell",
-                                                       "6-Macrophage",
-                                                       "8-Macrophage",
-                                                       "13-Macrophage" ,
-                                                       "20-Macrophage",
-                                                       "23-Macrophage","17-B cell" 
+atac.df$cluster <- sub("?-.*","",atac.df$cell.type)
+atac.df$cluster.new <- factor(atac.df$cluster,levels = c("0","2","3","7","11","15","16","19",
+                                                         "1","4","9","10","22",
+                                                         "14",
+                                                         "5","12","18","21",
+                                                         "6","8","13","20","23",
+                                                         "17" 
 ))
 
 
@@ -204,7 +180,7 @@ b.cols <- "#E41A1C"
 cols <- c(epithelial.cols,fibro.cols,endo.cols,t.cols,macro.cols,b.cols)
 
 
-ggplot(atac.df,aes_string(x = "x",y="y",color = "cell.type"))+
+ggplot(atac.df,aes_string(x = "x",y="y",color = "cluster.new"))+
   geom_point(size = .1)+
   theme_classic()+
   theme(plot.title = element_text(face = "bold"))+
@@ -214,9 +190,21 @@ ggplot(atac.df,aes_string(x = "x",y="y",color = "cell.type"))+
   scale_color_manual(values = cols)+
   guides(colour = guide_legend(override.aes = list(size=3)))+
   ggsave(paste0("Cell_type_ATAC.pdf"),width = 8,height = 6)
+
+p1 <- ggplot(atac.df,aes(x = x,y=y,color = cluster.new))+
+  geom_point(size = .1)+
+  theme_classic()+
+  theme(plot.title = element_text(face = "bold"))+
+  xlab("UMAP_1")+
+  ylab("UMAP_2")+ 
+  theme(legend.key.size = unit(0.2, "cm"))+
+  scale_color_manual(values = cols)+
+  guides(colour = guide_legend(override.aes = list(size=6)))+NoLegend()
+LabelClusters(p1,id="cluster.new",color="black",repel = T,size=8)+ggsave("Cell_Type_ATAC-labels.pdf",width = 8,height = 7)
+
 ###########################################################
 
-
+library(dplyr)
 # Patient proportion per subcluster in RNA:
 ###########################################################
 meta <- rna@meta.data
@@ -263,63 +251,6 @@ df %>%
   ggsave("Cell_Type_Prop_ATAC.pdf",width = 4,height = 11)
 ###########################################################
 
-
-
-
-# Immune cell proportion barcharts
-###########################################################
-# ATAC 
-meta.atac <- as.data.frame(atac@cellColData)
-
-meta.atac$predictedGroup_ArchR <- gsub(".*-","",meta.atac$predictedGroup_ArchR)
-
-
-meta.atac$immune <- ifelse(meta.atac$predictedGroup_ArchR == "T cell" |
-                             meta.atac$predictedGroup_ArchR == "B cell"|
-                             meta.atac$predictedGroup_ArchR == "NK cell" |
-                             meta.atac$predictedGroup_ArchR == "Macrophage","Immune","Non-immune")
-
-
-BAE2L.prop <- nrow(meta.atac[meta.atac$immune == "Immune" & meta.atac$Sample == '3BAE2L',])/nrow(meta.atac[meta.atac$Sample == '3BAE2L',])
-E5CFL.prop <- nrow(meta.atac[meta.atac$immune == "Immune" & meta.atac$Sample == '3E5CFL',])/nrow(meta.atac[meta.atac$Sample == '3E5CFL',])
-
-df <- data.frame(Sample = c("3BAE2L","3E5CFL"),
-                 Proportion = c(BAE2L.prop,E5CFL.prop))
-
-ggplot(df,aes(x= Sample,y = Proportion,fill = Sample))+
-  geom_bar(stat = "identity")+
-  scale_y_continuous(labels = scales::percent,limits = c(0,0.4))+
-  scale_fill_manual(values = sampleColors[c(8,11)])+
-  ylab("% immune cells")+
-  theme_classic()+ggsave("Immune_Prop_ATAC.pdf",width = 3,height = 4)
-  
-# RNA
-meta.rna <- as.data.frame(rna@meta.data)
-
-meta.rna$cell.type <- gsub(".*-","",meta.rna$cell.type)
-
-
-meta.rna$immune <- ifelse(meta.rna$cell.type == "T cell" |
-                            meta.rna$cell.type == "B cell"|
-                            meta.rna$cell.type == "NK cell" |
-                            meta.rna$cell.type == "Macrophage","Immune","Non-immune")
-
-
-BAE2L.prop <- nrow(meta.rna[meta.rna$immune == "Immune" & meta.rna$Sample == '3BAE2L',])/nrow(meta.rna[meta.rna$Sample == '3BAE2L',])
-E5CFL.prop <- nrow(meta.rna[meta.rna$immune == "Immune" & meta.rna$Sample == '3E5CFL',])/nrow(meta.rna[meta.rna$Sample == '3E5CFL',])
-
-df <- data.frame(Sample = c("3BAE2L","3E5CFL"),
-                 Proportion = c(BAE2L.prop,E5CFL.prop))
-
-ggplot(df,aes(x= Sample,y = Proportion,fill = Sample))+
-  geom_bar(stat = "identity")+
-  scale_y_continuous(labels = scales::percent,limits = c(0,0.4))+
-  scale_fill_manual(values = sampleColors[c(8,11)])+
-  ylab("% immune cells")+
-  theme_classic()+ggsave("Immune_Prop_RNA.pdf",width = 3,height = 4)
-###########################################################
-
-
 # Write cluster total # of cells to output files
 ###########################################################
 total.atac <- as.data.frame(table(atac$predictedGroup_ArchR))
@@ -335,433 +266,453 @@ WriteXLS::WriteXLS(total,"./Total_Cell_Numbers_per_Cluster.xlsx")
 
 
 
-# Plot peak2gene heatmap
-###########################################################
-atac.peaks <- readRDS("./final_archr_proj_archrGS.rds")
-p2g.HGSOC <- getPeak2GeneLinks(ArchRProj = atac.peaks,returnLoops = F,corCutOff = 0,FDRCutOff = 1)
 
+# Suppl. Figure CNV plot
+# Plot CNV box: 
+meta <- rna@meta.data
+meta$cluster <- factor(meta$RNA_snn_res.0.7,levels = rev(c("0","2","3","7","11","15","16","19",
+                                                           "1","4","9","10","22",
+                                                           "14",
+                                                           "5","12","18","21",
+                                                           "6","8","13","20","23",
+                                                           "17")))
 
-hist(p2g.HGSOC$EmpFDR)
-summary(p2g.HGSOC$EmpFDR)
-hist(p2g.HGSOC$FDR)
-summary(p2g.HGSOC$FDR)
-hist(p2g.HGSOC$Correlation)
-summary(p2g.HGSOC$Correlation)
+ggplot(meta,aes(x=cluster,y=Total_CNVs,fill=cluster))+geom_boxplot()+coord_flip()+
+  theme_classic()+scale_fill_manual(values = rev(cols))+NoLegend()+
+  ggsave("CNV_BoxPlot.pdf",width = 4,height = 8)
 
 
-#####################################################################################
-# Check to see if Peak to Gene links overlap with statistically significant P2G links 
-# in full cohort by EmpFDR:
-##################################################################################
-p2g.coords <- metadata(p2g.HGSOC)[[1]]
-ranges <- as.data.frame(p2g.coords@ranges)
-
-HGSOC <- data.frame(chrom = p2g.coords@seqnames , start = ranges$start,end = ranges$end)
-
-sig.distal <- readRDS("./Peak2GeneLinks_EmpFDR_Ranked_Distal_ArchR.rds")
-sig.distal <- dplyr::filter(sig.distal,EmpFDR <= 0.05)
-
-full <- data.frame(chrom = sig.distal$seqnames.x,start = sig.distal$start.x,end = sig.distal$end.x)
-full.gr <- makeGRangesFromDataFrame(full)
-
-# Use bedtoolsr to intersect Peak2Gene links with full cohort Peak2Gene links:
-intersect <- bedtoolsr::bt.intersect(HGSOC,full.gr,wa = T)
-colnames(intersect) <- c("seqnames","start","end")
-
-empirical.sig.HGSOC.peaks.from.full.cohort <- makeGRangesFromDataFrame(intersect)
-###################################################################################
-
-# Subset colors to new cell cluster labels
-names(cols) <- levels(atac.df$cell.type)
-cols <- cols[names(cols) %in% levels(factor(atac.peaks$predictedGroup_ArchR))]
-
-p2g <- plotPeak2GeneHeatmap.distal(atac.peaks,
-                            corCutOff = 0.45,
-                            FDRCutOff = 0.0001,
-                            groupBy = "predictedGroup_ArchR",
-                            k=length(cols),palGroup = cols,returnMatrices = F,nPlot = 25000,
-                            palRNA =  paletteContinuous("solarExtra"),
-                            palATAC =  paletteContinuous("solarExtra"))
-
-pdf("Peak2Gene_Heatmap_Legend.pdf",width = 14,height = 12)
-draw(p2g, heatmap_legend_side = "right", annotation_legend_side = "right")
-dev.off()
-
-pdf("Peak2Gene_Heatmap.pdf",width = 8,height = 10)
-draw(p2g, heatmap_legend_side = "bot", annotation_legend_side = "bot")
-dev.off()
-
-
-
-# For every gene in user defined list, plot P2G linkage browser track with 
-# 1) All ENCODE cCREs
-# 2) Distal ENCODE cCREs
-# 3) HGSOC statistically significant peaks that overlap with EmpFDR significant peaks from full cohort
-# 4) HGSOC statistically signiicant peaks (EmpFDR is calculated within HGSOC cohort only)
-# Next, plot matching scRNA-seq expression in violin plot
-########################################################################################################
-
-# Read in ENCODE cCRE information:
-encode.all <- read.delim("./GRCh38-ccREs.bed",header =F)
-colnames(encode.all)[1:3] <- c("seqnames","start","end")
-encode.all <- makeGRangesFromDataFrame(encode.all)
-
-encode.distal <- read.delim("./GRCh38-ccREs.dELS.bed",header =F)
-colnames(encode.distal)[1:3] <- c("seqnames","start","end")
-encode.distal <- makeGRangesFromDataFrame(encode.distal)
-
-# Read in ENCODE DN-ase epithelium 
-encode.epithelium <- read.delim("./ENCODE_Epithelium_DNase.bed",header = T,sep = "\t")
-colnames(encode.epithelium)[1:3] <- c("seqnames","start","end")
-encode.epithelium <- makeGRangesFromDataFrame(encode.epithelium)
-
-
-# Read in all P2G peaks 
-# Find HGSOC statistically signiicant peaks (EmpFDR is calculated within HGSOC cohort only)
-p2g <- plotPeak2GeneHeatmap.distal(atac.peaks,
-                            corCutOff = 0.45,
-                            FDRCutOff = 0.0001,
-                            groupBy = "predictedGroup_ArchR",
-                            k=length(cols),palGroup = cols,returnMatrices = T,nPlot = 500000)# Make Heatmap object with ALL P2Gs!
-
-mat <- p2g$RNA$matrix
-colnames(mat) <- make.unique(p2g$RNA$colData$groupBy)
-rownames(mat) <- make.unique(p2g$Peak2GeneLinks$gene)
-
-kmeans <- p2g$RNA$kmeansId
-
-# list genes of interest:
-
-genes.of.interest <- c("LAPTM4B","KLK6","RHOD","FOLR1","GAL")
-
-for (i in genes.of.interest){
-  
-  # Save P2G peaknames and Kmeans cluster for the gene being iterated
-  idx <- grep(i,rownames(mat))
-  kmeans.idx <- kmeans[idx]
-  
-  peaks.genes <- p2g$Peak2GeneLinks
-  peaks.genes <- peaks.genes[idx,]
-  
-  peaks.genes <- as.data.frame(peaks.genes)
-  peaks.genes$kmeans.group <- kmeans.idx
-  
-  saveRDS(peaks.genes,paste0("P2G_Hits_",i,"_data.rds"))
-  #peaks.genes <- dplyr::filter(peaks.genes,EmpFDR <= 0.05)
-  
-  sig.peaks <- as.data.frame(peaks.genes$peak)
-  sig.peaks$start <- sig.peaks$`peaks.genes$peak`
-  sig.peaks$end <- sig.peaks$`peaks.genes$peak`
-  colnames(sig.peaks) <- c("seqnames","start","end")
-  
-  sig.peaks$seqnames <- gsub(":.*","",sig.peaks$seqnames)
-  sig.peaks$start <- gsub(".*:","",sig.peaks$start)
-  sig.peaks <- sig.peaks[,-3]
-  
-  sig.peaks <- tidyr::separate(data = sig.peaks, col = start, into = c("start", "end"), sep = "\\-")
-  
-  sig.peaks <- makeGRangesFromDataFrame(sig.peaks)
-  ###########################################################
-  
-  
-  # Plot Peak2Gene links in browser track with the following annotations:
-  # 1) All ENCODE cCREs
-  # 2) Distal ENCODE cCREs
-  # 3) HGSOC statistically significant peaks that overlap with EmpFDR significant peaks from full cohort
-  # 4) HGSOC statistically signiicant peaks (EmpFDR is calculated within HGSOC cohort only)
-  ###########################################################
-  
-  # Annotation 1:
-  plot <- plotBrowserTrack(atac.peaks,geneSymbol =i, groupBy = "predictedGroup_ArchR",
-                           features = GRangesList(TrackA = encode.all,TrackB = encode.distal), 
-                           pal = cols,
-                           loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                     FDRCutOff = 0.0001))
-  
-  pdf(paste0("Peak2Gene_",i,"_cCREs_plus_Distal.pdf"),width = 6,height = 8)
-  grid::grid.draw(plot[[1]])
-  dev.off()
-  
-  
-  # Annotation 2:
-  plot <- plotBrowserTrack(atac.peaks,geneSymbol =i, groupBy = "predictedGroup_ArchR",
-                           features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = getPeakSet(atac.peaks),TrackD = empirical.sig.HGSOC.peaks.from.full.cohort,TrackE=sig.peaks), 
-                           pal = cols,
-                           loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                     FDRCutOff = 0.0001))
-  
-  pdf(paste0("Peak2Gene_",i,"_cCREs_plus_Distal_plus_HGSOC_sig_p2gs.pdf"),width = 6,height = 8)
-  grid::grid.draw(plot[[1]])
-  dev.off()
-  
-  
-  # Finally plot matching scRNA-seq expression in violin plots:
-  
-  # Plot violin plots for matching scRNA-seq expression:
-  ###########################################################
-  Idents(rna) <- "RNA_snn_res.0.7"
-  
-  my_levels <- rev(c(0,2,3,7,11,16,
-                     1,4,9,10,
-                     14,
-                     5,12,18,21,
-                     6,8,13,
-                     17,15,19,22,20,23
-  ))
-  
-  # Relevel object@ident
-  rna$cluster.new <- factor(x = rna$RNA_snn_res.0.7, levels = my_levels)
-  Idents(rna) <- "cluster.new"
-  
-  VlnPlot(rna,features = i,group.by = "cluster.new",pt.size = 0,
-          idents = c(0,2,3,7,11,16,
-                     1,4,9,10,
-                     14,
-                     5,12,18,21,
-                     6,8,13,
-                     17
-          ))+coord_flip()+NoLegend()+ggsave(paste0(i,"_vln.pdf"),width = 4,height = 8)
-  
-  
-  
-  
-}
-
-
-
-
-
-
-# Follow up and customize genomic coordinate view for each:
-#######################################################
-
-peaks.genes <- readRDS("./P2G_Hits_LAPTM4B_data.rds")
-sig.peaks <- as.data.frame(peaks.genes$peak)
-sig.peaks$start <- sig.peaks$`peaks.genes$peak`
-sig.peaks$end <- sig.peaks$`peaks.genes$peak`
-colnames(sig.peaks) <- c("seqnames","start","end")
-
-sig.peaks$seqnames <- gsub(":.*","",sig.peaks$seqnames)
-sig.peaks$start <- gsub(".*:","",sig.peaks$start)
-sig.peaks <- sig.peaks[,-3]
-
-sig.peaks <- tidyr::separate(data = sig.peaks, col = start, into = c("start", "end"), sep = "\\-")
-
-sig.peaks <- makeGRangesFromDataFrame(sig.peaks)
-plot <- plotBrowserTrack(atac.peaks,geneSymbol ="LAPTM4B", groupBy = "predictedGroup_ArchR",
-                         features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC=encode.epithelium), 
-                         pal = cols,upstream = 45000,downstream = 50000,
-                         loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                   FDRCutOff = 0.0001))
-
-pdf("LAPTM4B_final.pdf",width = 6,height = 8)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-
-# Annotation 2:
-plot <- plotBrowserTrack(atac.peaks,geneSymbol ="LAPTM4B", groupBy = "predictedGroup_ArchR",
-                         features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = getPeakSet(atac.peaks),TrackD = empirical.sig.HGSOC.peaks.from.full.cohort,TrackE=sig.peaks), 
-                         pal = cols,upstream = 45000,downstream = 50000,
-                         loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                   FDRCutOff = 0.0001))
-
-pdf("LAPTM4B_final_sig_peaks_anno.pdf",width = 6,height = 8)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-
-
-
-peaks.genes <- readRDS("./P2G_Hits_KLK11_data.rds")
-sig.peaks <- as.data.frame(peaks.genes$peak)
-sig.peaks$start <- sig.peaks$`peaks.genes$peak`
-sig.peaks$end <- sig.peaks$`peaks.genes$peak`
-colnames(sig.peaks) <- c("seqnames","start","end")
-
-sig.peaks$seqnames <- gsub(":.*","",sig.peaks$seqnames)
-sig.peaks$start <- gsub(".*:","",sig.peaks$start)
-sig.peaks <- sig.peaks[,-3]
-
-sig.peaks <- tidyr::separate(data = sig.peaks, col = start, into = c("start", "end"), sep = "\\-")
-
-sig.peaks <- makeGRangesFromDataFrame(sig.peaks)
-plot <- plotBrowserTrack(atac.peaks,geneSymbol ="KLK11", groupBy = "predictedGroup_ArchR",
-                         features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC=encode.epithelium), 
-                         pal = cols,upstream = 112000,downstream = 30000,
-                         loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                   FDRCutOff = 0.0001,resolution = 6))
-
-pdf("KLK_locus_final.pdf",width = 6,height = 8)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-
-# Annotation 2:
-plot <- plotBrowserTrack(atac.peaks,geneSymbol ="KLK11", groupBy = "predictedGroup_ArchR",
-                         features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = getPeakSet(atac.peaks),TrackD = empirical.sig.HGSOC.peaks.from.full.cohort,TrackE=sig.peaks), 
-                         pal = cols,upstream = 112000,downstream =30000,
-                         loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                   FDRCutOff = 0.0001,resolution = 6))
-
-pdf("KLK_locus_final_sig_peaks_anno.pdf",width = 6,height = 8)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-
-
-peaks.genes <- readRDS("./P2G_Hits_RHOD_data.rds")
-sig.peaks <- as.data.frame(peaks.genes$peak)
-sig.peaks$start <- sig.peaks$`peaks.genes$peak`
-sig.peaks$end <- sig.peaks$`peaks.genes$peak`
-colnames(sig.peaks) <- c("seqnames","start","end")
-
-sig.peaks$seqnames <- gsub(":.*","",sig.peaks$seqnames)
-sig.peaks$start <- gsub(".*:","",sig.peaks$start)
-sig.peaks <- sig.peaks[,-3]
-
-sig.peaks <- tidyr::separate(data = sig.peaks, col = start, into = c("start", "end"), sep = "\\-")
-
-sig.peaks <- makeGRangesFromDataFrame(sig.peaks)
-plot <- plotBrowserTrack(atac.peaks,geneSymbol ="RHOD", groupBy = "predictedGroup_ArchR",
-                         features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC=encode.epithelium),  
-                         pal = cols,upstream = 10000,downstream = 45000,
-                         loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                   FDRCutOff = 0.0001))
-
-pdf("RHOD_final.pdf",width = 6,height = 8)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-
-# Annotation 2:
-plot <- plotBrowserTrack(atac.peaks,geneSymbol ="RHOD", groupBy = "predictedGroup_ArchR",
-                         features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = getPeakSet(atac.peaks),TrackD = empirical.sig.HGSOC.peaks.from.full.cohort,TrackE=sig.peaks), 
-                         pal = cols,upstream = 10000,downstream = 45000,
-                         loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                   FDRCutOff = 0.0001))
-
-pdf("RHOD_final_sig_peaks_anno.pdf",width = 6,height = 8)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-
-
-
-peaks.genes <- readRDS("./P2G_Hits_FOLR1_data.rds")
-sig.peaks <- as.data.frame(peaks.genes$peak)
-sig.peaks$start <- sig.peaks$`peaks.genes$peak`
-sig.peaks$end <- sig.peaks$`peaks.genes$peak`
-colnames(sig.peaks) <- c("seqnames","start","end")
-
-sig.peaks$seqnames <- gsub(":.*","",sig.peaks$seqnames)
-sig.peaks$start <- gsub(".*:","",sig.peaks$start)
-sig.peaks <- sig.peaks[,-3]
-
-sig.peaks <- tidyr::separate(data = sig.peaks, col = start, into = c("start", "end"), sep = "\\-")
-
-sig.peaks <- makeGRangesFromDataFrame(sig.peaks)
-plot <- plotBrowserTrack(atac.peaks,geneSymbol ="FOLR1", groupBy = "predictedGroup_ArchR",
-                         features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC=encode.epithelium), 
-                         pal = cols,upstream = 60000,downstream = 30000,
-                         loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                   FDRCutOff = 0.0001))
-
-pdf("FOLR1_final.pdf",width = 6,height = 8)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-
-# Annotation 2:
-plot <- plotBrowserTrack(atac.peaks,geneSymbol ="FOLR1", groupBy = "predictedGroup_ArchR",
-                         features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = getPeakSet(atac.peaks),TrackD = empirical.sig.HGSOC.peaks.from.full.cohort,TrackE=sig.peaks), 
-                         pal = cols,upstream = 60000,downstream = 30000,
-                         loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                   FDRCutOff = 0.0001))
-
-pdf("FOLR1_final_sig_peaks_anno.pdf",width = 6,height = 8)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-
-
-peaks.genes <- readRDS("./P2G_Hits_GAL_data.rds")
-sig.peaks <- as.data.frame(peaks.genes$peak)
-sig.peaks$start <- sig.peaks$`peaks.genes$peak`
-sig.peaks$end <- sig.peaks$`peaks.genes$peak`
-colnames(sig.peaks) <- c("seqnames","start","end")
-
-sig.peaks$seqnames <- gsub(":.*","",sig.peaks$seqnames)
-sig.peaks$start <- gsub(".*:","",sig.peaks$start)
-sig.peaks <- sig.peaks[,-3]
-
-sig.peaks <- tidyr::separate(data = sig.peaks, col = start, into = c("start", "end"), sep = "\\-")
-
-sig.peaks <- makeGRangesFromDataFrame(sig.peaks)
-plot <- plotBrowserTrack(atac.peaks,geneSymbol ="GAL", groupBy = "predictedGroup_ArchR",
-                         features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC=encode.epithelium), 
-                         pal = cols,upstream = 60000,downstream = 25000,
-                         loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                   FDRCutOff = 0.0001))
-
-pdf("GAL_final.pdf",width = 6,height = 8)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-
-# Annotation 2:
-plot <- plotBrowserTrack(atac.peaks,geneSymbol ="GAL", groupBy = "predictedGroup_ArchR",
-                         features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = getPeakSet(atac.peaks),TrackD = empirical.sig.HGSOC.peaks.from.full.cohort,TrackE=sig.peaks), 
-                         pal = cols,upstream = 60000,downstream = 25000,
-                         loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                   FDRCutOff = 0.0001))
-
-pdf("GAL_final_sig_peaks_anno.pdf",width = 6,height = 8)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-
-
-rna@active.ident <- factor(rna$RNA_snn_res.0.7,levels = rev(c("0","2","3","7","11","15","16","19",
-                          "1","4","9","10","22",
-                          "14",
-                          "5","12","18","21",
-                          "6","8","13","20","23",
-                          "17")))
-
-VlnPlot(rna,features = "Total_CNVs",pt.size = 0)+coord_flip()+NoLegend()+ggsave("CNV_vln_new.pdf",width = 4,height = 8)
 
 
 
 # 
-# Idents(rna) <- "RNA_snn_res.0.7"
+# # Plot peak2gene heatmap
+# ###########################################################
+# atac.peaks <- readRDS("./final_archr_proj_archrGS.rds")
+# p2g.HGSOC <- getPeak2GeneLinks(ArchRProj = atac.peaks,returnLoops = F,corCutOff = 0,FDRCutOff = 1)
 # 
-# my_levels <- rev(c(0,2,3,7,11,16,
-#                    1,4,9,10,
-#                    14,
-#                    5,12,18,21,
-#                    6,8,13,
-#                    17,15,19,22,20,23
-# ))
 # 
-# # Relevel object@ident
-# rna$cluster.new <- factor(x = rna$RNA_snn_res.0.7, levels = my_levels)
-# Idents(rna) <- "cluster.new"
+# hist(p2g.HGSOC$EmpFDR)
+# summary(p2g.HGSOC$EmpFDR)
+# hist(p2g.HGSOC$FDR)
+# summary(p2g.HGSOC$FDR)
+# hist(p2g.HGSOC$Correlation)
+# summary(p2g.HGSOC$Correlation)
 # 
-# VlnPlot(rna,features = "KLK5",group.by = "cluster.new",pt.size = 0,
-#         idents = c(0,2,3,7,11,16,
-#                    1,4,9,10,
-#                    14,
-#                    5,12,18,21,
-#                    6,8,13,
-#                    17))+coord_flip()+NoLegend()+ggsave("KLK5.pdf",width = 4,height = 8)
 # 
-# VlnPlot(rna,features = "KLK6",group.by = "cluster.new",pt.size = 0,
-#         idents = c(0,2,3,7,11,16,
-#                    1,4,9,10,
-#                    14,
-#                    5,12,18,21,
-#                    6,8,13,
-#                    17))+coord_flip()+NoLegend()+ggsave("KLK6.pdf",width = 4,height = 8)
+# #####################################################################################
+# # Check to see if Peak to Gene links overlap with statistically significant P2G links 
+# # in full cohort by EmpFDR:
+# ##################################################################################
+# p2g.coords <- metadata(p2g.HGSOC)[[1]]
+# ranges <- as.data.frame(p2g.coords@ranges)
 # 
-#                            
+# HGSOC <- data.frame(chrom = p2g.coords@seqnames , start = ranges$start,end = ranges$end)
+# 
+# sig.distal <- readRDS("./Peak2GeneLinks_EmpFDR_Ranked_Distal_ArchR.rds")
+# sig.distal <- dplyr::filter(sig.distal,EmpFDR <= 0.05)
+# 
+# full <- data.frame(chrom = sig.distal$seqnames.x,start = sig.distal$start.x,end = sig.distal$end.x)
+# full.gr <- makeGRangesFromDataFrame(full)
+# 
+# # Use bedtoolsr to intersect Peak2Gene links with full cohort Peak2Gene links:
+# intersect <- bedtoolsr::bt.intersect(HGSOC,full.gr,wa = T)
+# colnames(intersect) <- c("seqnames","start","end")
+# 
+# empirical.sig.HGSOC.peaks.from.full.cohort <- makeGRangesFromDataFrame(intersect)
+# ###################################################################################
+# 
+# # Subset colors to new cell cluster labels
+# names(cols) <- levels(atac.df$cell.type)
+# cols <- cols[names(cols) %in% levels(factor(atac.peaks$predictedGroup_ArchR))]
+# 
+# p2g <- plotPeak2GeneHeatmap.distal(atac.peaks,
+#                             corCutOff = 0.45,
+#                             FDRCutOff = 0.0001,
+#                             groupBy = "predictedGroup_ArchR",
+#                             k=length(cols),palGroup = cols,returnMatrices = F,nPlot = 25000,
+#                             palRNA =  paletteContinuous("solarExtra"),
+#                             palATAC =  paletteContinuous("solarExtra"))
+# 
+# pdf("Peak2Gene_Heatmap_Legend.pdf",width = 14,height = 12)
+# draw(p2g, heatmap_legend_side = "right", annotation_legend_side = "right")
+# dev.off()
+# 
+# pdf("Peak2Gene_Heatmap.pdf",width = 8,height = 10)
+# draw(p2g, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+# dev.off()
+# 
+# 
+# 
+# # For every gene in user defined list, plot P2G linkage browser track with 
+# # 1) All ENCODE cCREs
+# # 2) Distal ENCODE cCREs
+# # 3) HGSOC statistically significant peaks that overlap with EmpFDR significant peaks from full cohort
+# # 4) HGSOC statistically signiicant peaks (EmpFDR is calculated within HGSOC cohort only)
+# # Next, plot matching scRNA-seq expression in violin plot
+# ########################################################################################################
+# 
+# # Read in ENCODE cCRE information:
+# encode.all <- read.delim("./GRCh38-ccREs.bed",header =F)
+# colnames(encode.all)[1:3] <- c("seqnames","start","end")
+# encode.all <- makeGRangesFromDataFrame(encode.all)
+# 
+# encode.distal <- read.delim("./GRCh38-ccREs.dELS.bed",header =F)
+# colnames(encode.distal)[1:3] <- c("seqnames","start","end")
+# encode.distal <- makeGRangesFromDataFrame(encode.distal)
+# 
+# # Read in ENCODE DN-ase epithelium 
+# encode.epithelium <- read.delim("./ENCODE_Epithelium_DNase.bed",header = T,sep = "\t")
+# colnames(encode.epithelium)[1:3] <- c("seqnames","start","end")
+# encode.epithelium <- makeGRangesFromDataFrame(encode.epithelium)
+# 
+# 
+# # Read in all P2G peaks 
+# # Find HGSOC statistically signiicant peaks (EmpFDR is calculated within HGSOC cohort only)
+# p2g <- plotPeak2GeneHeatmap.distal(atac.peaks,
+#                             corCutOff = 0.45,
+#                             FDRCutOff = 0.0001,
+#                             groupBy = "predictedGroup_ArchR",
+#                             k=length(cols),palGroup = cols,returnMatrices = T,nPlot = 500000)# Make Heatmap object with ALL P2Gs!
+# 
+# mat <- p2g$RNA$matrix
+# colnames(mat) <- make.unique(p2g$RNA$colData$groupBy)
+# rownames(mat) <- make.unique(p2g$Peak2GeneLinks$gene)
+# 
+# kmeans <- p2g$RNA$kmeansId
+# 
+# # list genes of interest:
+# 
+# genes.of.interest <- c("LAPTM4B","KLK6","RHOD","FOLR1","GAL")
+# 
+# for (i in genes.of.interest){
+#   
+#   # Save P2G peaknames and Kmeans cluster for the gene being iterated
+#   idx <- grep(i,rownames(mat))
+#   kmeans.idx <- kmeans[idx]
+#   
+#   peaks.genes <- p2g$Peak2GeneLinks
+#   peaks.genes <- peaks.genes[idx,]
+#   
+#   peaks.genes <- as.data.frame(peaks.genes)
+#   peaks.genes$kmeans.group <- kmeans.idx
+#   
+#   saveRDS(peaks.genes,paste0("P2G_Hits_",i,"_data.rds"))
+#   #peaks.genes <- dplyr::filter(peaks.genes,EmpFDR <= 0.05)
+#   
+#   sig.peaks <- as.data.frame(peaks.genes$peak)
+#   sig.peaks$start <- sig.peaks$`peaks.genes$peak`
+#   sig.peaks$end <- sig.peaks$`peaks.genes$peak`
+#   colnames(sig.peaks) <- c("seqnames","start","end")
+#   
+#   sig.peaks$seqnames <- gsub(":.*","",sig.peaks$seqnames)
+#   sig.peaks$start <- gsub(".*:","",sig.peaks$start)
+#   sig.peaks <- sig.peaks[,-3]
+#   
+#   sig.peaks <- tidyr::separate(data = sig.peaks, col = start, into = c("start", "end"), sep = "\\-")
+#   
+#   sig.peaks <- makeGRangesFromDataFrame(sig.peaks)
+#   ###########################################################
+#   
+#   
+#   # Plot Peak2Gene links in browser track with the following annotations:
+#   # 1) All ENCODE cCREs
+#   # 2) Distal ENCODE cCREs
+#   # 3) HGSOC statistically significant peaks that overlap with EmpFDR significant peaks from full cohort
+#   # 4) HGSOC statistically signiicant peaks (EmpFDR is calculated within HGSOC cohort only)
+#   ###########################################################
+#   
+#   # Annotation 1:
+#   plot <- plotBrowserTrack(atac.peaks,geneSymbol =i, groupBy = "predictedGroup_ArchR",
+#                            features = GRangesList(TrackA = encode.all,TrackB = encode.distal), 
+#                            pal = cols,
+#                            loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
+#                                                      FDRCutOff = 0.0001))
+#   
+#   pdf(paste0("Peak2Gene_",i,"_cCREs_plus_Distal.pdf"),width = 6,height = 8)
+#   grid::grid.draw(plot[[1]])
+#   dev.off()
+#   
+#   
+#   # Annotation 2:
+#   plot <- plotBrowserTrack(atac.peaks,geneSymbol =i, groupBy = "predictedGroup_ArchR",
+#                            features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = getPeakSet(atac.peaks),TrackD = empirical.sig.HGSOC.peaks.from.full.cohort,TrackE=sig.peaks), 
+#                            pal = cols,
+#                            loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
+#                                                      FDRCutOff = 0.0001))
+#   
+#   pdf(paste0("Peak2Gene_",i,"_cCREs_plus_Distal_plus_HGSOC_sig_p2gs.pdf"),width = 6,height = 8)
+#   grid::grid.draw(plot[[1]])
+#   dev.off()
+#   
+#   
+#   # Finally plot matching scRNA-seq expression in violin plots:
+#   
+#   # Plot violin plots for matching scRNA-seq expression:
+#   ###########################################################
+#   Idents(rna) <- "RNA_snn_res.0.7"
+#   
+#   my_levels <- rev(c(0,2,3,7,11,16,
+#                      1,4,9,10,
+#                      14,
+#                      5,12,18,21,
+#                      6,8,13,
+#                      17,15,19,22,20,23
+#   ))
+#   
+#   # Relevel object@ident
+#   rna$cluster.new <- factor(x = rna$RNA_snn_res.0.7, levels = my_levels)
+#   Idents(rna) <- "cluster.new"
+#   
+#   VlnPlot(rna,features = i,group.by = "cluster.new",pt.size = 0,
+#           idents = c(0,2,3,7,11,16,
+#                      1,4,9,10,
+#                      14,
+#                      5,12,18,21,
+#                      6,8,13,
+#                      17
+#           ))+coord_flip()+NoLegend()+ggsave(paste0(i,"_vln.pdf"),width = 4,height = 8)
+#   
+#   
+#   
+#   
+# }
+# 
+# 
+# 
+# 
+# 
+# 
+# # Follow up and customize genomic coordinate view for each:
+# #######################################################
+# 
+# peaks.genes <- readRDS("./P2G_Hits_LAPTM4B_data.rds")
+# sig.peaks <- as.data.frame(peaks.genes$peak)
+# sig.peaks$start <- sig.peaks$`peaks.genes$peak`
+# sig.peaks$end <- sig.peaks$`peaks.genes$peak`
+# colnames(sig.peaks) <- c("seqnames","start","end")
+# 
+# sig.peaks$seqnames <- gsub(":.*","",sig.peaks$seqnames)
+# sig.peaks$start <- gsub(".*:","",sig.peaks$start)
+# sig.peaks <- sig.peaks[,-3]
+# 
+# sig.peaks <- tidyr::separate(data = sig.peaks, col = start, into = c("start", "end"), sep = "\\-")
+# 
+# sig.peaks <- makeGRangesFromDataFrame(sig.peaks)
+# plot <- plotBrowserTrack(atac.peaks,geneSymbol ="LAPTM4B", groupBy = "predictedGroup_ArchR",
+#                          features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC=encode.epithelium), 
+#                          pal = cols,upstream = 45000,downstream = 50000,
+#                          loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
+#                                                    FDRCutOff = 0.0001))
+# 
+# pdf("LAPTM4B_final.pdf",width = 6,height = 8)
+# grid::grid.draw(plot[[1]])
+# dev.off()
+# 
+# 
+# # Annotation 2:
+# plot <- plotBrowserTrack(atac.peaks,geneSymbol ="LAPTM4B", groupBy = "predictedGroup_ArchR",
+#                          features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = getPeakSet(atac.peaks),TrackD = empirical.sig.HGSOC.peaks.from.full.cohort,TrackE=sig.peaks), 
+#                          pal = cols,upstream = 45000,downstream = 50000,
+#                          loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
+#                                                    FDRCutOff = 0.0001))
+# 
+# pdf("LAPTM4B_final_sig_peaks_anno.pdf",width = 6,height = 8)
+# grid::grid.draw(plot[[1]])
+# dev.off()
+# 
+# 
+# 
+# 
+# peaks.genes <- readRDS("./P2G_Hits_KLK11_data.rds")
+# sig.peaks <- as.data.frame(peaks.genes$peak)
+# sig.peaks$start <- sig.peaks$`peaks.genes$peak`
+# sig.peaks$end <- sig.peaks$`peaks.genes$peak`
+# colnames(sig.peaks) <- c("seqnames","start","end")
+# 
+# sig.peaks$seqnames <- gsub(":.*","",sig.peaks$seqnames)
+# sig.peaks$start <- gsub(".*:","",sig.peaks$start)
+# sig.peaks <- sig.peaks[,-3]
+# 
+# sig.peaks <- tidyr::separate(data = sig.peaks, col = start, into = c("start", "end"), sep = "\\-")
+# 
+# sig.peaks <- makeGRangesFromDataFrame(sig.peaks)
+# plot <- plotBrowserTrack(atac.peaks,geneSymbol ="KLK11", groupBy = "predictedGroup_ArchR",
+#                          features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC=encode.epithelium), 
+#                          pal = cols,upstream = 112000,downstream = 30000,
+#                          loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
+#                                                    FDRCutOff = 0.0001,resolution = 6))
+# 
+# pdf("KLK_locus_final.pdf",width = 6,height = 8)
+# grid::grid.draw(plot[[1]])
+# dev.off()
+# 
+# 
+# # Annotation 2:
+# plot <- plotBrowserTrack(atac.peaks,geneSymbol ="KLK11", groupBy = "predictedGroup_ArchR",
+#                          features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = getPeakSet(atac.peaks),TrackD = empirical.sig.HGSOC.peaks.from.full.cohort,TrackE=sig.peaks), 
+#                          pal = cols,upstream = 112000,downstream =30000,
+#                          loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
+#                                                    FDRCutOff = 0.0001,resolution = 6))
+# 
+# pdf("KLK_locus_final_sig_peaks_anno.pdf",width = 6,height = 8)
+# grid::grid.draw(plot[[1]])
+# dev.off()
+# 
+# 
+# 
+# peaks.genes <- readRDS("./P2G_Hits_RHOD_data.rds")
+# sig.peaks <- as.data.frame(peaks.genes$peak)
+# sig.peaks$start <- sig.peaks$`peaks.genes$peak`
+# sig.peaks$end <- sig.peaks$`peaks.genes$peak`
+# colnames(sig.peaks) <- c("seqnames","start","end")
+# 
+# sig.peaks$seqnames <- gsub(":.*","",sig.peaks$seqnames)
+# sig.peaks$start <- gsub(".*:","",sig.peaks$start)
+# sig.peaks <- sig.peaks[,-3]
+# 
+# sig.peaks <- tidyr::separate(data = sig.peaks, col = start, into = c("start", "end"), sep = "\\-")
+# 
+# sig.peaks <- makeGRangesFromDataFrame(sig.peaks)
+# plot <- plotBrowserTrack(atac.peaks,geneSymbol ="RHOD", groupBy = "predictedGroup_ArchR",
+#                          features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC=encode.epithelium),  
+#                          pal = cols,upstream = 10000,downstream = 45000,
+#                          loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
+#                                                    FDRCutOff = 0.0001))
+# 
+# pdf("RHOD_final.pdf",width = 6,height = 8)
+# grid::grid.draw(plot[[1]])
+# dev.off()
+# 
+# 
+# # Annotation 2:
+# plot <- plotBrowserTrack(atac.peaks,geneSymbol ="RHOD", groupBy = "predictedGroup_ArchR",
+#                          features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = getPeakSet(atac.peaks),TrackD = empirical.sig.HGSOC.peaks.from.full.cohort,TrackE=sig.peaks), 
+#                          pal = cols,upstream = 10000,downstream = 45000,
+#                          loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
+#                                                    FDRCutOff = 0.0001))
+# 
+# pdf("RHOD_final_sig_peaks_anno.pdf",width = 6,height = 8)
+# grid::grid.draw(plot[[1]])
+# dev.off()
+# 
+# 
+# 
+# 
+# peaks.genes <- readRDS("./P2G_Hits_FOLR1_data.rds")
+# sig.peaks <- as.data.frame(peaks.genes$peak)
+# sig.peaks$start <- sig.peaks$`peaks.genes$peak`
+# sig.peaks$end <- sig.peaks$`peaks.genes$peak`
+# colnames(sig.peaks) <- c("seqnames","start","end")
+# 
+# sig.peaks$seqnames <- gsub(":.*","",sig.peaks$seqnames)
+# sig.peaks$start <- gsub(".*:","",sig.peaks$start)
+# sig.peaks <- sig.peaks[,-3]
+# 
+# sig.peaks <- tidyr::separate(data = sig.peaks, col = start, into = c("start", "end"), sep = "\\-")
+# 
+# sig.peaks <- makeGRangesFromDataFrame(sig.peaks)
+# plot <- plotBrowserTrack(atac.peaks,geneSymbol ="FOLR1", groupBy = "predictedGroup_ArchR",
+#                          features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC=encode.epithelium), 
+#                          pal = cols,upstream = 60000,downstream = 30000,
+#                          loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
+#                                                    FDRCutOff = 0.0001))
+# 
+# pdf("FOLR1_final.pdf",width = 6,height = 8)
+# grid::grid.draw(plot[[1]])
+# dev.off()
+# 
+# 
+# # Annotation 2:
+# plot <- plotBrowserTrack(atac.peaks,geneSymbol ="FOLR1", groupBy = "predictedGroup_ArchR",
+#                          features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = getPeakSet(atac.peaks),TrackD = empirical.sig.HGSOC.peaks.from.full.cohort,TrackE=sig.peaks), 
+#                          pal = cols,upstream = 60000,downstream = 30000,
+#                          loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
+#                                                    FDRCutOff = 0.0001))
+# 
+# pdf("FOLR1_final_sig_peaks_anno.pdf",width = 6,height = 8)
+# grid::grid.draw(plot[[1]])
+# dev.off()
+# 
+# 
+# 
+# peaks.genes <- readRDS("./P2G_Hits_GAL_data.rds")
+# sig.peaks <- as.data.frame(peaks.genes$peak)
+# sig.peaks$start <- sig.peaks$`peaks.genes$peak`
+# sig.peaks$end <- sig.peaks$`peaks.genes$peak`
+# colnames(sig.peaks) <- c("seqnames","start","end")
+# 
+# sig.peaks$seqnames <- gsub(":.*","",sig.peaks$seqnames)
+# sig.peaks$start <- gsub(".*:","",sig.peaks$start)
+# sig.peaks <- sig.peaks[,-3]
+# 
+# sig.peaks <- tidyr::separate(data = sig.peaks, col = start, into = c("start", "end"), sep = "\\-")
+# 
+# sig.peaks <- makeGRangesFromDataFrame(sig.peaks)
+# plot <- plotBrowserTrack(atac.peaks,geneSymbol ="GAL", groupBy = "predictedGroup_ArchR",
+#                          features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC=encode.epithelium), 
+#                          pal = cols,upstream = 60000,downstream = 25000,
+#                          loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
+#                                                    FDRCutOff = 0.0001))
+# 
+# pdf("GAL_final.pdf",width = 6,height = 8)
+# grid::grid.draw(plot[[1]])
+# dev.off()
+# 
+# 
+# # Annotation 2:
+# plot <- plotBrowserTrack(atac.peaks,geneSymbol ="GAL", groupBy = "predictedGroup_ArchR",
+#                          features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = getPeakSet(atac.peaks),TrackD = empirical.sig.HGSOC.peaks.from.full.cohort,TrackE=sig.peaks), 
+#                          pal = cols,upstream = 60000,downstream = 25000,
+#                          loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
+#                                                    FDRCutOff = 0.0001))
+# 
+# pdf("GAL_final_sig_peaks_anno.pdf",width = 6,height = 8)
+# grid::grid.draw(plot[[1]])
+# dev.off()
+# 
+# 
+# 
+# rna@active.ident <- factor(rna$RNA_snn_res.0.7,levels = rev(c("0","2","3","7","11","15","16","19",
+#                           "1","4","9","10","22",
+#                           "14",
+#                           "5","12","18","21",
+#                           "6","8","13","20","23",
+#                           "17")))
+# 
+# VlnPlot(rna,features = "Total_CNVs",pt.size = 0)+coord_flip()+NoLegend()+ggsave("CNV_vln_new.pdf",width = 4,height = 8)
+# 
+# 
+# 
+# # 
+# # Idents(rna) <- "RNA_snn_res.0.7"
+# # 
+# # my_levels <- rev(c(0,2,3,7,11,16,
+# #                    1,4,9,10,
+# #                    14,
+# #                    5,12,18,21,
+# #                    6,8,13,
+# #                    17,15,19,22,20,23
+# # ))
+# # 
+# # # Relevel object@ident
+# # rna$cluster.new <- factor(x = rna$RNA_snn_res.0.7, levels = my_levels)
+# # Idents(rna) <- "cluster.new"
+# # 
+# # VlnPlot(rna,features = "KLK5",group.by = "cluster.new",pt.size = 0,
+# #         idents = c(0,2,3,7,11,16,
+# #                    1,4,9,10,
+# #                    14,
+# #                    5,12,18,21,
+# #                    6,8,13,
+# #                    17))+coord_flip()+NoLegend()+ggsave("KLK5.pdf",width = 4,height = 8)
+# # 
+# # VlnPlot(rna,features = "KLK6",group.by = "cluster.new",pt.size = 0,
+# #         idents = c(0,2,3,7,11,16,
+# #                    1,4,9,10,
+# #                    14,
+# #                    5,12,18,21,
+# #                    6,8,13,
+# #                    17))+coord_flip()+NoLegend()+ggsave("KLK6.pdf",width = 4,height = 8)
+# # 
+# #                            
