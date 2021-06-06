@@ -4,4 +4,4 @@
 2. Plot scATAC-seq browser track for gene of interest and corresponding scRNA-seq expression in violin plot
 3. Plot violin plot for pathway expression signature calculated by Seurat's *AddModuleScore()*
 
-**NOTE:** the peak-to-gene link heatmap and venn diagram were generated from 
+**NOTE:** the peak-to-gene link heatmap and venn diagram were generated from https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/PeaktoGeneLink_Analysis/FullCohort_P2G.R
