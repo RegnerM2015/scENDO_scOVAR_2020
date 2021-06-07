@@ -263,13 +263,15 @@ grid::grid.draw(plot[[1]])
 dev.off()
 
 
+names <- gsub(".*_","",atac.sub$predictedGroup_ArchR)
+saveRDS(names,"names.rds")
 
 ####################################################################
 # PART 4: plot matching violin plots for RHEB expression and mTOR
 ####################################################################
+names <- readRDS("./names.rds")
 rna <- readRDS("./endo_ovar_All_scRNA_processed.rds")
-atac.sub$predictedGroup_ArchR <- gsub(".*_","",atac.sub$predictedGroup_ArchR)
-rna.sub <- rna[,rna$cell.type %in% intersect(levels(factor(rna$cell.type)),levels(factor(atac.sub$predictedGroup_ArchR)))]
+rna.sub <- rna[,rna$cell.type %in% intersect(levels(factor(rna$cell.type)),levels(factor(names)))]
 
 my_levels <- as.character(c(3,9,10,16,17,
                             11,20,21,22,31,19,34,
@@ -281,11 +283,8 @@ my_levels <- as.character(c(3,9,10,16,17,
 # Make violin plots for RHEB expression and mTOR pathway expression
 # Relevel object@ident
 rna.sub@active.ident <- factor(x =rna.sub$RNA_snn_res.0.7, levels = rev(my_levels))
-p1 <- VlnPlot(rna.sub,features = "RHEB",pt.size = 0)+coord_flip()+NoLegend()+ggsave("RHEB_vln_new.pdf",width = 4,height = 8)
+p1 <- VlnPlot(rna.sub,features = "RHEB",pt.size = 0)+coord_flip()+NoLegend()
 
-p1 <- p1$data
-colnames(p1)
-kruskal.test(RHEB~ident,data = p1)
 
 # Compute mTOR pathway member expression
 gset <- read.delim("./BIOCARTA_MTOR_PATHWAY.txt",header = T)
@@ -293,12 +292,15 @@ gset <- as.character(gset$BIOCARTA_MTOR_PATHWAY[2:length(gset$BIOCARTA_MTOR_PATH
 rna.sub <- AddModuleScore(rna.sub,features = list(gset),name = "mTOR_members",search = T)
 
 
-p1 <- VlnPlot(rna.sub,features = "mTOR_members1",pt.size = 0)+coord_flip()+NoLegend()+
-  ggsave("mTOR_pathway_vln_new.pdf",width = 4,height = 8)
+p2 <- VlnPlot(rna.sub,features = "mTOR_members1",pt.size = 0)+coord_flip()+NoLegend()
+
+CombinePlots(list(p1,p2),ncol=2)+ggsave("VlnPlots.pdf",width = 6,height = 8)
+
 
 p1 <- p1$data
 colnames(p1)
-kruskal.test(mTOR_members1~ident,data = p1)
- 
-
+kruskal.test(RHEB~ident,data = p1)
+p2 <- p1$data
+colnames(p2)
+kruskal.test(mTOR_members1~ident,data = p2)
 
