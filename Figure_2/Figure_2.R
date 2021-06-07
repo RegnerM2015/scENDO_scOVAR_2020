@@ -1,11 +1,13 @@
 ###################################################
 # Matt Regner
 # Franco Lab 
-# Nov 2020
-# Description: plot patient UMAPs, cell type UMAPs,
-# histology UMAPs, patient proportion per cluster
+# 2020-2021
+# Description: plot P2G histograms, plot P2G heatmap,
+# re-run overlap analysis, plot browser track
 ###################################################
-source("./P2G_Heatmap_Distal.R")
+source("P2G_Heatmap_Distal.R")
+source("Archr_Peak_RawPval.R")
+source("Archr_Peak_Null_Permute.R")
 library(ggplot2)
 library(Seurat)
 library(scales)
@@ -15,479 +17,351 @@ library(ArchR)
 library(stringr)
 library(stringi)
 library(dplyr)
-library(bedtoolsr)
 library(tidyr)
-# Make patient sample metadata and color assignments 
-
-sampleColors <- RColorBrewer::brewer.pal(11,"Paired")
-sampleColors[11] <- "#8c8b8b"
-pie(rep(1,11), col=sampleColors) 
-
-
-# Color patient tumors to resemble the cancer ribbon color 
-sampleColors <- c(sampleColors[5],sampleColors[7],sampleColors[6],sampleColors[8],sampleColors[10],sampleColors[9],sampleColors[4],sampleColors[3],sampleColors[2],sampleColors[11],sampleColors[1])
-
-
-
-sampleAnnot <- data.frame(Sample = c("3533EL","3571DL","36186L","36639L",
-                                     "366C5L","37EACL","38FE7L","3BAE2L","3CCF1L","3E4D1L","3E5CFL"),
-                          Color = sampleColors,
-                          Cancer = c("endometrial","endometrial","endometrial","endometrial","endometrial","endometrial",
-                                     "ovarian","ovarian","ovarian","ovarian","ovarian"),
-                          Histology = c("endometrioid","endometrioid","endometrioid","endometrioid","endometrioid",
-                                        "serous","endometrioid","serous","carcinosarcoma","GIST","serous"),
-                          BMI = c(39.89,30.5,38.55,55.29,49.44,29.94,34.8,22.13,23.72,33.96,22.37),
-                          Age = c(70,70,70,49,62,74,76,61,69,59,59),
-                          Race = c("AA","CAU","CAU","CAU","CAU","CAU","CAU","CAU","CAU","CAU","AS"),
-                          Stage = c("IA","IA","IA","IA","IA","IIIA","IA","IIB","IVB","IV","IIIC"),
-                          Site = c("Endometrium","Endometrium","Endometrium","Endometrium","Endometrium","Ovary","Ovary","Ovary","Ovary","Ovary","Ovary"),
-                          Type = c("Endometrial","Endometrial","Endometrial","Endometrial","Endometrial","Endometrial","Ovarian","Ovarian","Ovarian","Gastric","Ovarian"))
-
-
-
-# Read in RNA data for full cohort
-rna <- readRDS("endo_ovar_All_scRNA_processed.rds")
-
-
-# Read in matching ATAC data for full cohort (ArchR project after label transfer)
-atac <- readRDS("proj_LSI_GeneScores_Annotations_Int.rds")
-
-
-
-
-# Plot Patient UMAPs for RNA/ATAC
-
-# RNA UMAP first
-rna.df <- as.data.frame(rna@reductions$umap@cell.embeddings)
-length(which(rownames(rna.df)==rownames(rna@meta.data)))
-rna.df$Sample <- rna$Sample
-
-rna.sample.plot <-ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color = Sample))+
-  geom_point(size = .1)+
-  theme_classic()+
-  theme(plot.title = element_text(face = "bold"))+
-  xlab("UMAP_1")+
-  ylab("UMAP_2")+ 
-  theme(legend.key.size = unit(0.2, "cm"))+
-  scale_color_manual(values = sampleColors)+
-  guides(colour = guide_legend(override.aes = list(size=6)))
-rna.sample.plot +ggsave("Sample_RNA.pdf",width = 8,height = 6)
-
-# ATAC UMAP second:
-atac.df <- plotEmbedding(atac,colorBy = "cellColData",name = "Sample",embedding = "UMAP")
-atac.df <- as.data.frame(atac.df$data)
-atac.df$Sample <- gsub(".*-","",atac.df$color)
-
-ggplot(atac.df,aes_string(x = "x",y="y",color = "Sample"))+
-  geom_point(size = .1)+
-  theme_classic()+
-  theme(plot.title = element_text(face = "bold"))+
-  xlab("UMAP_1")+
-  ylab("UMAP_2")+
-  theme(legend.key.size = unit(0.2, "cm"))+
-  scale_color_manual(values = sampleColors)+
-  guides(colour = guide_legend(override.aes = list(size=6)))+
-ggsave(paste0("Sample_ATAC.pdf"),width = 8,height = 6)
-
-
-
-
-# Plot Histology UMAPs for RNA/ATAC
-
-# Add Histology variable to RNA data
-rna.df$Histology <- rna.df$Sample
-rna.df$Histology <- str_replace_all(rna.df$Histology, "3533EL", "Endometrioid")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "3571DL", "Endometrioid")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "36186L", "Endometrioid")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "36639L", "Endometrioid")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "366C5L", "Endometrioid")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "37EACL", "Serous")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "38FE7L", "Endometrioid")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "3BAE2L", "Serous")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "3E5CFL", "Serous")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "3E4D1L", "GIST")
-rna.df$Histology <- str_replace_all(rna.df$Histology, "3CCF1L", "Carcinosarcoma")
-
-
-rna.sample.plot <-ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color = Histology))+
-  geom_point(size = .1)+
-  theme_classic()+
-  theme(plot.title = element_text(face = "bold"))+
-  xlab("UMAP_1")+
-  ylab("UMAP_2")+ 
-  theme(legend.key.size = unit(0.2, "cm"))+
-  scale_color_manual(values = c("gray60","coral2","mediumpurple1","#00CED1"))+
-  guides(colour = guide_legend(override.aes = list(size=6)))
-rna.sample.plot +ggsave("Histology_RNA.pdf",width = 8,height = 6)
-
-
-# Add Histology variable to ATAC data
-atac.df$Histology <- atac.df$Sample
-atac.df$Histology <- str_replace_all(atac.df$Histology, "3533EL", "Endometrioid")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "3571DL", "Endometrioid")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "36186L", "Endometrioid")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "36639L", "Endometrioid")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "366C5L", "Endometrioid")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "37EACL", "Serous")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "38FE7L", "Endometrioid")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "3BAE2L", "Serous")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "3E5CFL", "Serous")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "3E4D1L", "GIST")
-atac.df$Histology <- str_replace_all(atac.df$Histology, "3CCF1L", "Carcinosarcoma")
-
-
-atac.sample.plot <-ggplot(atac.df,aes(x = x,y=y,color = Histology))+
-  geom_point(size = .1)+
-  theme_classic()+
-  theme(plot.title = element_text(face = "bold"))+
-  xlab("UMAP_1")+
-  ylab("UMAP_2")+ 
-  theme(legend.key.size = unit(0.2, "cm"))+
-  scale_color_manual(values = c("gray60","coral2","mediumpurple1","#00CED1"))+
-  guides(colour = guide_legend(override.aes = list(size=6)))
-atac.sample.plot +ggsave("Histology_ATAC.pdf",width = 8,height = 6)
-
-
-
-
-
-# Plot cell type UMAPs for RNA/ATAC
-
-# RNA
-levels(factor(rna$cell.type))
-rna.df$cell.type <- rna$RNA_snn_res.0.7
-
-
-my_levels <-c(1,9,10,11,18,19,21,22,23,32,35,0,7,8,12,14,15,16,17,24,25,26,27,29,30,4,6,20,34,2,3,31,5,13,33,28,36
-)
-
-# Relevel object@ident
-rna.df$cluster.new <- factor(x = rna.df$cell.type, levels = my_levels)
-
-
-epithelial.cols <- colorRampPalette(c("#A0E989", "#337B24"))
-epithelial.cols <- epithelial.cols(11)
-
-fibro.cols <-colorRampPalette(c("#FABFD2", "#B1339E"))
-fibro.cols <- fibro.cols(14)
-
-smooth.cols <- c("#b47fe5")
-
-endo.cols <- c("#93CEFF","#4A99FF","#01579B")
-
-t.cols <- c("gray60","gray20","gray40")
-
-macro.cols <- c("#ff6600","#ff9d5c")
-
-mast.cols <- "gold3"
-
-b.cols <- c("#B22222","#CD5C5C")
-
-
-cols <- c(epithelial.cols,fibro.cols,smooth.cols,endo.cols,t.cols,macro.cols,mast.cols,b.cols)
-
-ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color = cluster.new))+
-  geom_point(size = .1)+
-  theme_classic()+
-  theme(plot.title = element_text(face = "bold"))+
-  xlab("UMAP_1")+
-  ylab("UMAP_2")+ 
-  theme(legend.key.size = unit(0.2, "cm"))+
-  scale_color_manual(values = cols)+
-  guides(colour = guide_legend(override.aes = list(size=6)))+ggsave("Cell_Type_RNA.pdf",width = 8,height = 6)
-
-
-
-# ATAC
-levels(factor(atac$predictedGroup_ArchR))
-
-
-atac.df <- plotEmbedding(atac,colorBy = "cellColData",name = "predictedGroup_ArchR",embedding = "UMAP")
-atac.df <- atac.df$data
-
-atac.df$cell.type <- sub(".*?-","",atac.df$color)
-atac.df$cell.type <- as.factor(atac.df$cell.type)
-atac.df$cell.type <- gsub("-.*","",atac.df$cell.type)
-
-
-my_levels <-c(1,9,10,11,18,19,21,22,23,32,35,0,7,8,12,14,15,16,17,24,25,26,27,29,30,4,6,20,34,2,3,31,5,13,33,28,36
-)
-
-# Relevel object@ident
-atac.df$cluster.new <- factor(x = atac.df$cell.type, levels = my_levels)
-
-
-epithelial.cols <- colorRampPalette(c("#A0E989", "#337B24"))
-epithelial.cols <- epithelial.cols(11)
-
-fibro.cols <-colorRampPalette(c("#FABFD2", "#B1339E"))
-fibro.cols <- fibro.cols(14)
-
-smooth.cols <- c("#b47fe5")
-
-endo.cols <- c("#93CEFF","#4A99FF","#01579B")
-
-t.cols <- c("gray60","gray20","gray40")
-
-macro.cols <- c("#ff6600","#ff9d5c")
-
-mast.cols <- "gold3"
-
-b.cols <- c("#B22222","#CD5C5C")
-
-
-cols <- c(epithelial.cols,fibro.cols,smooth.cols,endo.cols,t.cols,macro.cols,mast.cols,b.cols)
-
-ggplot(atac.df,aes(x = x,y=y,color = cluster.new))+
-  geom_point(size = .1)+
-  theme_classic()+
-  theme(plot.title = element_text(face = "bold"))+
-  xlab("UMAP_1")+
-  ylab("UMAP_2")+ 
-  theme(legend.key.size = unit(0.2, "cm"))+
-  scale_color_manual(values = cols)+
-  guides(colour = guide_legend(override.aes = list(size=6)))+ggsave("Cell_Type_ATAC.pdf",width = 8,height = 6)
-
-
-#########################################################################################################
-
-# Patient proportion per subcluster in RNA:
-meta <- rna@meta.data
-
-df <- meta %>% group_by(RNA_snn_res.0.7) %>% count(Sample)
-colnames(df) <- c("Cluster","Sample","Cells")
-
-# Reorder cluster factor levels to group by cell type 
-levels(factor(rna$cell.type))
-df %>% 
-  dplyr::mutate(cell.type = factor(Cluster,levels = c("1","9","10","11","18","19","21","22","23","32","35",
-                                                      "0","7","8","12","14","15","16","17","24","25","26","27","29","30",
-                                                      "4",
-                                                      "6","20","34",
-                                                      "2","3","31",
-                                                      "5","13",
-                                                      "33",
-                                                      "28","36"))) %>% 
-  ggplot(aes(fill=Sample, y=Cells, x= fct_rev(cell.type))) + 
-  geom_bar(position="fill", stat="identity")+
-  coord_flip()+theme_classic()+xlab("Clusters")+ylab("# of cells")+
-  scale_fill_manual(values = sampleColors)+ggsave("Cell_Type_Prop_RNA.pdf",width = 4,height = 8)
-
-
-# Patient proportion per subcluster in ATAC:
-meta <- as.data.frame(atac@cellColData)
-meta$predictedGroup_ArchR <- gsub("-.*", "", meta$predictedGroup_ArchR)
-
-df <- meta %>% group_by(predictedGroup_ArchR) %>% count(Sample)
-colnames(df) <- c("Cluster","Sample","Cells")
-
-# Reorder cluster factor levels to group by cell type 
-levels(factor(atac$predictedGroup_ArchR))
-df %>% 
-  dplyr::mutate(cell.type = factor(Cluster,levels = c("1","9","10","11","18","19","21","22","23","32","35",
-                                                      "0","7","8","12","14","15","16","17","24","25","26","27","29","30",
-                                                      "4",
-                                                      "6","20","34",
-                                                      "2","3","31",
-                                                      "5","13",
-                                                      "33",
-                                                      "28","36"))) %>% 
-  ggplot(aes(fill=Sample, y=Cells, x= fct_rev(cell.type))) + 
-  geom_bar(position="fill", stat="identity")+
-  coord_flip()+theme_classic()+xlab("Clusters")+ylab("# of cells")+
-  scale_fill_manual(values = sampleColors)+ggsave("Cell_Type_Prop_ATAC.pdf",width = 4,height = 8)
-
-
-
-# Write cluster total # of cells to output files
-total.atac <- as.data.frame(table(atac$predictedGroup_ArchR))
-colnames(total.atac) <- c("Cluster","ATAC cells")
-
-total.rna <- as.data.frame(table(rna$cell.type))
-colnames(total.rna) <- c("Cluster","RNA cells")
-
-
-total <- merge(total.rna,total.atac,by = "Cluster")
-WriteXLS::WriteXLS(total,"./Total_Cell_Numbers_per_Cluster.xlsx")
-
-
-
-
-
-# Plot peak2gene heatmap
-###########################################################
-atac.peaks <- readRDS("./final_archr_proj_archrGS.rds")
-
-sig.distal <- readRDS("./Peak2GeneLinks_EmpFDR_Ranked_Distal_ArchR.rds")
-sig.distal <- dplyr::filter(sig.distal,EmpFDR <= 0.05)
-
-full <- data.frame(chrom = sig.distal$seqnames.x,start = sig.distal$start.x,end = sig.distal$end.x)
-full.gr <- makeGRangesFromDataFrame(full)
-empirical.sig.All.peaks.from.full.cohort <- makeGRangesFromDataFrame(full.gr)
-###################################################################################
-
-# Subset colors to new cell cluster labels
-
-atac.peaks@cellColData$cluster.num <- gsub("-.*","",atac.peaks@cellColData$predictedGroup_ArchR)
-
-my_levels <-c(1,9,10,11,18,19,21,22,23,32,35,0,7,8,12,14,15,16,17,24,25,26,27,29,30,4,6,20,34,2,3,31,5,13,33,28,36
-  )
-
-# Relevel object@ident
-atac.peaks@cellColData$cluster.new <- factor(x = as.numeric(atac.peaks@cellColData$cluster.num), levels = my_levels)
-#atac.peaks@cellColData$cluster.new <- as.character(atac.peaks@cellColData$cluster.new)
-names(cols) <- levels(factor(atac.peaks@cellColData$cluster.new))
-
-
-# For every gene in user defined list, plot P2G linkage browser track with 
-# 1) All ENCODE cCREs
-# 2) Distal ENCODE cCREs
-# 3) All statistically significant peaks that overlap with EmpFDR significant peaks from full cohort
-# 4) All statistically signiicant peaks (EmpFDR is calculated within All cohort only)
-# Next, plot matching scRNA-seq expression in violin plot
-########################################################################################################
-
-# Read in ENCODE cCRE information:
+addArchRThreads(32)
+
+####################################################################
+# PART 1: summary distribution histograms (correlation and p-values)
+# 1) Observed data
+# 2) Null data example
+####################################################################
+# Read in P2G data
+p2g <- readRDS("./All_P2G_Observed.rds")
+p2g$RawPVal <- as.numeric(p2g$RawPVal)
+p2g$Correlation <- as.numeric(p2g$Correlation)
+
+# Plot correlation histogram
+p1 <- ggplot(p2g,aes(x=Correlation))+geom_histogram(color="black",fill="gray90",size=0.3,boundary = 0,bins=15)+
+  theme_bw()+
+  scale_y_continuous(expand = c(0,0),limits=c(0,1500000)) +
+  scale_x_continuous(expand= c(0,0),limits = c(-1,1))
+
+# Plot p-value histogram
+p2 <- ggplot(p2g,aes(x=RawPVal))+geom_histogram(color="black",fill="gray90",size=0.3,boundary = 0,bins=15)+
+  theme_bw()+
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,1.75e+06)) +
+  scale_x_continuous(expand = c(0,0),
+                     limits = c(0,1))
+
+
+# Read in P2G data (null example)
+p2g <- readRDS("./All_P2G_Null_example.rds")
+p2g$RawPVal <- as.numeric(p2g$RawPVal)
+p2g$Correlation <- as.numeric(p2g$Correlation)
+
+# Plot correlation histogram
+p3 <- ggplot(p2g,aes(x=Correlation))+geom_histogram(color="black",fill="gray90",size=0.3,boundary = 0,bins=15)+
+  theme_bw()+
+  scale_y_continuous(limits=c(0,1500000),expand=c(0,0)) +
+  scale_x_continuous(expand = c(0,0),limits = c(-1,1))
+
+# Plot p-value histogram
+p4 <- ggplot(p2g,aes(x=RawPVal))+geom_histogram(color="black",fill="gray90",size=0.3,boundary = 0,bins=15)+
+  theme_bw()+
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,1.75e+06)) +
+  scale_x_continuous(expand = c(0,0),limits = c(0,1))
+# Plot side-by-side
+CombinePlots(list(p1,p2,p3,p4),ncol=2)+ggsave("Histograms_obs_null.pdf",height =3,width = 4)
+
+
+####################################################################
+# PART 2: Plot histograms for number of genes regulated by peaks
+####################################################################
+# Number of peaks per number of genes
+p2g <- readRDS("./Cancer_specific_P2G_table.rds")
+p2g$RawPVal <- as.numeric(p2g$RawPVal)
+p2g$Correlation <- as.numeric(p2g$Correlation)
+
+df <- data.frame(num.genes = table(p2g$peakName))
+
+df$cat <- ifelse(df$num.genes.Freq < 3,"1to2",df$num.genes.Freq)
+df$cat <- ifelse(df$num.genes.Freq < 6 &df$num.genes.Freq >2,"3to5",df$cat)
+df$cat <- ifelse(df$num.genes.Freq < 50 &df$num.genes.Freq >5,"6plus",df$cat)
+
+df <- data.frame(table(df$cat))
+
+p1 <- ggplot(df,aes(x=Var1,y=Freq))+geom_bar(stat = "identity")+theme_classic()+
+  geom_text(aes(label=Freq), vjust=-0.3, size=3.5)
+
+
+
+# Number of genes per number of peaks
+df <- data.frame(num.peaks = table(p2g$geneName))
+
+df$cat <- ifelse(df$num.peaks.Freq < 3,"1to2",df$num.peaks.Freq)
+df$cat <- ifelse(df$num.peaks.Freq < 6 &df$num.peaks.Freq >2,"3to5",df$cat)
+df$cat <- ifelse(df$num.peaks.Freq < 50 &df$num.peaks.Freq >5,"6plus",df$cat)
+
+df <- data.frame(table(df$cat))
+
+p2 <- ggplot(df,aes(x=Var1,y=Freq))+geom_bar(stat = "identity")+theme_classic()+
+  geom_text(aes(label=Freq), vjust=-0.3, size=3.5)
+
+CombinePlots(list(p1,p2))+ggsave("GenesPer_PeaksPer_Histograms.pdf",width = 10,height = 4)
+
+####################################################################
+# PART 3: browser track for RHEB enhancers
+# 1) Plot browser track
+# 2) Verify cancer-specific enhancers have differential accessibility
+####################################################################
+
+# Read in other annotation features:
 encode.all <- read.delim("./GRCh38-ccREs.bed",header =F)
 colnames(encode.all)[1:3] <- c("seqnames","start","end")
 encode.all <- makeGRangesFromDataFrame(encode.all)
 
-encode.distal <- read.delim("./GRCh38-ccREs.dELS.bed",header =F)
-colnames(encode.distal)[1:3] <- c("seqnames","start","end")
-encode.distal <- makeGRangesFromDataFrame(encode.distal)
+ft.peaks <- readRDS("./Fallopian_Tube_Cell_line_Peaks.rds")
+ft.peaks <- ft.peaks[,3:5]
+colnames(ft.peaks)[1:3] <- c("seqnames","start","end")
+ft.peaks <- makeGRangesFromDataFrame(ft.peaks)
 
-# Read in ENCODE DN-ase epithelium 
-encode.epithelium <- read.delim("./ENCODE_Epithelium_DNase.bed",header = T,sep = "\t")
-colnames(encode.epithelium)[1:3] <- c("seqnames","start","end")
-encode.epithelium <- makeGRangesFromDataFrame(encode.epithelium)
+ov.peaks <- readRDS("./Ovarian_Epithelial_Cell_line_Peaks.rds")
+ov.peaks <- ov.peaks[,3:5]
+colnames(ov.peaks)[1:3] <- c("seqnames","start","end")
+ov.peaks <- makeGRangesFromDataFrame(ov.peaks)
+
+atac <- readRDS("final_archr_proj_archrGS-P2Gs.rds")
+# ATAC
+levels(factor(atac$predictedGroup_ArchR))
+my_levels <- as.character(c(11,20,21,22,31,
+               19,34,
+               3,
+               9,10,
+               16,17,
+               0,27,
+               6,8,12,14,15,18,24,25,26,29,
+               7,23,
+               1,33,
+               2,4,30,
+               5,13,
+               32,
+               28,35))
+
+for ( i in levels(factor(atac$predictedGroup_ArchR))){
+  num <-  gsub("-.*","",i)
+  idx <- match(num,my_levels)
+  atac$predictedGroup_ArchR <- str_replace(atac$predictedGroup_ArchR,pattern = i,replacement = paste0(idx,"_",atac$predictedGroup_ArchR))
+  print("iter complete")
+}
+test <- as.data.frame(atac@cellColData)
+test <- test[test$Sample == "38FE7L",]
+levels(factor(test$predictedGroup_ArchR))
+
+new.idents <- setdiff(levels(factor(atac$predictedGroup_ArchR)),
+        c("16_8-Stromal fibroblasts",
+          "17_12-Stromal fibroblasts",
+          "18_14-Stromal fibroblasts",
+          "19_15-Stromal fibroblasts",
+          "20_18-Fibroblast",
+          "21_24-Fibroblast",
+          "23_215_23_26-Fibroblast",
+          "24_29-Fibroblast",
+          "26_23-Stromal fibroblasts",
+          "31_30-T cell",
+          "30_4-Lymphocytes",
+          "34_32-Mast cell",
+          "33_13-Macrophages",
+          "36_35-B cell",
+          "32_5-Macrophage",
+          "35_28-B cell" ))
+
+idxSample <- BiocGenerics::which(atac$predictedGroup_ArchR %in% new.idents)
+cellsSample <- atac$cellNames[idxSample]
+atac.sub <- atac[cellsSample, ]
+
+#########################################################################
+# Make modified getP2G function:
+getPeak2GeneLinks.mod <- function(
+  ArchRProj = NULL, 
+  corCutOff = 0.45, 
+  PValCutOff = 0.0001,
+  varCutOffATAC = 0.25,
+  varCutOffRNA = 0.25,
+  resolution = 1, 
+  returnLoops = TRUE
+){
+  
+  .validInput(input = ArchRProj, name = "ArchRProj", valid = "ArchRProject")
+  .validInput(input = corCutOff, name = "corCutOff", valid = "numeric")
+  .validInput(input = PValCutOff, name = "PValCutOff", valid = "numeric")
+  .validInput(input = varCutOffATAC, name = "varCutOffATAC", valid = "numeric")
+  .validInput(input = varCutOffRNA, name = "varCutOffRNA", valid = "numeric")
+  .validInput(input = resolution, name = "resolution", valid = c("integer", "null"))
+  .validInput(input = returnLoops, name = "returnLoops", valid = "boolean")
+  
+  if(is.null(ArchRProj@peakSet)){
+    return(NULL)
+  }
+  
+  if(is.null(metadata(ArchRProj@peakSet)$Peak2GeneLinks)){
+    
+    return(NULL)
+    
+  }else{
+    
+    p2g <- metadata(ArchRProj@peakSet)$Peak2GeneLinks
+    p2g <- p2g[which(p2g$Correlation >= corCutOff & p2g$RawPVal <= PValCutOff), ,drop=FALSE]
+    
+    if(!is.null(varCutOffATAC)){
+      p2g <- p2g[which(p2g$VarQATAC > varCutOffATAC),]
+    }
+    
+    if(!is.null(varCutOffRNA)){
+      p2g <- p2g[which(p2g$VarQRNA > varCutOffRNA),]
+    }
+    
+    if(returnLoops){
+      
+      peakSummits <- resize(metadata(p2g)$peakSet, 1, "center")
+      geneStarts <- resize(metadata(p2g)$geneSet, 1, "start")
+      
+      if(!is.null(resolution)){
+        summitTiles <- floor(start(peakSummits) / resolution) * resolution + floor(resolution / 2)
+        geneTiles <- floor(start(geneStarts) / resolution) * resolution + floor(resolution / 2)
+      }else{
+        summitTiles <- start(peakSummits)
+        geneTiles <- start(geneTiles)
+      }
+      
+      loops <- .constructGR(
+        seqnames = seqnames(peakSummits[p2g$idxATAC]),
+        start = summitTiles[p2g$idxATAC],
+        end = geneTiles[p2g$idxRNA]
+      )
+      mcols(loops)$value <- p2g$Correlation
+      mcols(loops)$FDR <- p2g$FDR
+      
+      loops <- loops[order(mcols(loops)$value, decreasing=TRUE)]
+      loops <- unique(loops)
+      loops <- loops[width(loops) > 0]
+      loops <- sort(sortSeqlevels(loops))
+      
+      loops <- SimpleList(Peak2GeneLinks = loops)
+      
+      return(loops)
+      
+    }else{
+      
+      return(p2g)
+      
+    }
+    
+  }
+  
+}
 
 
 
+#########################################################################
 
+plot <- plotBrowserTrack(atac.sub,geneSymbol ="RHEB", groupBy = "predictedGroup_ArchR",
+                         features = GRangesList(TrackA = encode.all,TrackB = ft.peaks,TrackC = ov.peaks), 
+                         loops = getPeak2GeneLinks.mod(atac,corCutOff = 0.45,
+                                                   PValCutOff = 1e-12,varCutOffATAC = 0,
+                                                   varCutOffRNA = 0),upstream = 7000,downstream = 35000)
 
-# Annotation 1:
-sig.peaks <- readRDS("./P2G_Hits_RHEB_data.rds")
-sig.peaks <- as.data.frame(sig.peaks$peak)
-sig.peaks$start <- sig.peaks$`sig.peaks$peak`
-sig.peaks$end <- sig.peaks$`sig.peaks$peak`
-colnames(sig.peaks) <- c("seqnames","start","end")
-
-sig.peaks$seqnames <- gsub(":.*","",sig.peaks$seqnames)
-sig.peaks$start <- gsub(".*:","",sig.peaks$start)
-sig.peaks <- sig.peaks[,-3]
-
-sig.peaks <- tidyr::separate(data = sig.peaks, col = start, into = c("start", "end"), sep = "\\-")
-
-sig.peaks <- makeGRangesFromDataFrame(sig.peaks)
-
-
-       
-
-levels(factor(atac.peaks$predictedGroup_ArchR))
-levels(factor(atac.peaks$cluster.new))
-levels(factor(atac.peaks@cellColData$cluster.new))# Order that we want 
-cols# also order that we want 
-
-# library(plyr)
-# atac.peaks@cellColData$cluster.new <- revalue(atac.peaks@cellColData$cluster.new, c(
-#   "1"="1-1", 
-#   "9"="2-9",
-#   "10"="3-10",
-#   "11"="4-11",
-#   "18"="5-18",
-#   "19"="6-19",
-#   "21"="7-21",
-#   "22"="8-22",
-#   "23"="9-23",
-#   "32"="10-32",
-#   "35"="11-35",
-#   "0"="12-0",
-#   "7"="13-7",
-#   "8"="14-8",
-#   "12"="15-12",
-#   "14"="16-14",
-#   "15"="17-15",
-#   "16"="18-16",
-#   "17"="19-17",
-#   "24"="20-24",
-#   "25"="21-25",
-#   "26"="22-26",
-#   "27"="23-27",
-#   "29"="24-29",
-#   "30"="25-30",
-#   "4"="26-4",
-#   "6"="27-6",
-#   "20"="28-20",
-#   "34"="29-34",
-#   "2"="30-2",
-#   "3"="31-3",
-#   "31"="32-31",
-#   "5"="33-5",
-#   "13"="34-13",
-#   "33"="35-33",
-#   "28"="36-28",
-#   "36"="37-36"
-#   ))
-
-plot <- plotBrowserTrack(atac.peaks,geneSymbol ="RHEB", groupBy = "cluster.new",
-                         features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = encode.epithelium), 
-                         loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                   FDRCutOff = 0.0001),pal=cols,upstream = 20000,downstream = 50000)
-
-pdf("RHEB_final.pdf",width = 6,height = 12)
+pdf("RHEB_final.pdf",width = 6,height = 8)
 grid::grid.draw(plot[[1]])
 dev.off()
 
+# 
+# # Make violin plots for RHEB expression and mTOR pathway expression
+# # Relevel object@ident
+# rna@active.ident <- factor(x =rna$RNA_snn_res.0.7, levels = rev(my_levels))
+# p1 <- VlnPlot(rna,features = "RHEB",pt.size = 0)+coord_flip()+NoLegend()+ggsave("RHEB_vln_new.pdf",width = 4,height = 8)
+# 
+# p1 <- p1$data
+# colnames(p1)
+# kruskal.test(RHEB~ident,data = p1)
+# 
+# 
+# gset <- read.delim("./BIOCARTA_MTOR_PATHWAY.txt",header = T)
+# gset <- as.character(gset$BIOCARTA_MTOR_PATHWAY[2:length(gset$BIOCARTA_MTOR_PATHWAY)])
+# rna <- AddModuleScore(rna,features = list(gset),name = "mTOR_members",search = T)
+# 
+# 
+# p1 <- VlnPlot(rna,features = "mTOR_members1",pt.size = 0)+coord_flip()+NoLegend()+
+#   ggsave("mTOR_pathway_vln_new.pdf",width = 4,height = 8)
+# 
+# p1 <- p1$data
+# colnames(p1)
+# kruskal.test(mTOR_members1~ident,data = p1)
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# ###########################################################
+# #############################################################
+# # Read in P2G data
+# p2g <- readRDS("./All_P2G_Observed.rds")
+# p2g$RawPVal <- as.numeric(p2g$RawPVal)
+# p2g$Correlation <- as.numeric(p2g$Correlation)
+# 
+# # Plot histogram of Correlations and Pvalues
+# sub <- p2g[p2g$RawPVal <=1e-12,]
+# sub.neg <- sub[sub$Correlation < 0,]
+# lower <- last(sort(sub.neg$Correlation))
+# sub.pos <- sub[sub$Correlation > 0,]
+# upper <- first(sort(sub.pos$Correlation))
+# 
+# min.obs.cor <- min(p2g$Correlation)
+# max.obs.cor <- max(p2g$Correlation)
+# 
+# p1 <- ggplot(sub,aes(x=Correlation))+geom_histogram(color="black",fill="gray90",size=0.3,boundary = 0,bins = 12)+
+#   theme_bw()+geom_vline(xintercept = c(lower,upper),linetype="dashed",size=0.3,color="red")+
+#   scale_y_continuous(expand = c(0,0),limits=c(0,1.5e+06)) +
+#   scale_x_continuous(expand= c(0,0),limits = c(min.obs.cor,max.obs.cor))
+# 
+# min.obs.p <- min(sub$RawPVal)
+# max.obs.p <- max(sub$RawPVal)
+# 
+# p2 <- ggplot(sub,aes(x=RawPVal))+geom_histogram(color="black",fill="gray90",size=0.3,boundary = 0,bins=10)+
+#   theme_bw()+geom_vline(xintercept = 1e-12,linetype="dashed",color="red")+
+#   scale_y_continuous(expand = c(0,0),
+#                      limits = c(0,3.5e+05)) +
+#   scale_x_continuous(expand = c(0,0),
+#                      limits = c(min.obs.p,max.obs.p))
+# 
+# CombinePlots(list(p1,p2),ncol=2)+ggsave("Histrograms.pdf",height =2,width = 6)
+# 
+# # Read in P2G data (null example)
+# # Read in P2G data
+# p2g <- readRDS("./All_P2G_Null_example.rds")
+# p2g$RawPVal <- as.numeric(p2g$RawPVal)
+# p2g$Correlation <- as.numeric(p2g$Correlation)
+# 
+# # Plot histogram of Correlations and Pvalues
+# sub <- p2g[p2g$RawPVal <=1e-12,]
+# sub.neg <- sub[sub$Correlation < 0,]
+# lower <- last(sort(sub.neg$Correlation))
+# sub.pos <- sub[sub$Correlation > 0,]
+# upper <- first(sort(sub.pos$Correlation))
+# 
+# p1 <- ggplot(sub,aes(x=Correlation))+geom_histogram(color="black",fill="gray90",size=0.3,boundary = 0,bins = 12)+
+#   theme_bw()+geom_vline(xintercept = c(lower,upper),linetype="dashed",size=0.3,color="red")+
+#   scale_y_continuous(expand = c(0,0),limits=c(0,100)) +
+#   scale_x_continuous(expand= c(0,0),limits = c(min.obs.cor,max.obs.cor))
+# 
+# p2 <- ggplot(sub,aes(x=RawPVal))+geom_histogram(color="black",fill="gray90",size=0.3,boundary = 0,bins=10)+
+#   theme_bw()+geom_vline(xintercept = 1e-12,linetype="dashed",color="red")+
+#   scale_y_continuous(expand = c(0,0),
+#                      limits = c(0,100)) +
+#   scale_x_continuous(expand = c(0,0),
+#                      limits = c(0,1e-12))
+# 
+# CombinePlots(list(p1,p2),ncol=2)+ggsave("Histrograms-null.pdf",height =2,width = 6)
+# 
 
-# Annotation 2:
-plot <- plotBrowserTrack(atac.peaks,geneSymbol ="PRKAG2", groupBy = "cluster.new",
-                         features = GRangesList(TrackA = encode.all,TrackB = encode.distal,TrackC = getPeakSet(atac.peaks),TrackD = empirical.sig.All.peaks.from.full.cohort,TrackE=sig.peaks), 
-                         loops = getPeak2GeneLinks(atac.peaks,corCutOff = 0.45,
-                                                   FDRCutOff = 0.0001),pal=cols,upstream = 500000,downstream = 20000)
 
-pdf("RHEB_final_sig_peaks_anno.pdf",width = 6,height = 12)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-
-
-
-# Differential peak check:
-
-markersPeaks <- getMarkerFeatures(
-  ArchRProj = atac.peaks,
-  useMatrix = "PeakMatrix",
-  groupBy = "predictedGroup_ArchR",
-  bias = c("TSSEnrichment", "log10(nFrags)"),
-  testMethod = "wilcoxon"
-)
-
-markerList.atac <- getMarkers(markersPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1.25")
-
-markerList.atac <- as.data.frame(markerList.atac)
-markerList.atac$peak <- paste0(markerList.atac$seqnames,":",markerList.atac$start,"-",markerList.atac$end)
-
-
-
-
-# Make violin plots for RHEB expression and mTOR pathway expression
-# Relevel object@ident
-rna@active.ident <- factor(x =rna$RNA_snn_res.0.7, levels = rev(my_levels))
-p1 <- VlnPlot(rna,features = "RHEB",pt.size = 0)+coord_flip()+NoLegend()+ggsave("RHEB_vln_new.pdf",width = 4,height = 8)
-
-p1 <- p1$data
-colnames(p1)
-kruskal.test(RHEB~ident,data = p1)
-
-
-gset <- read.delim("./BIOCARTA_MTOR_PATHWAY.txt",header = T)
-gset <- as.character(gset$BIOCARTA_MTOR_PATHWAY[2:length(gset$BIOCARTA_MTOR_PATHWAY)])
-rna <- AddModuleScore(rna,features = list(gset),name = "mTOR_members",search = T)
-
-
-p1 <- VlnPlot(rna,features = "mTOR_members1",pt.size = 0)+coord_flip()+NoLegend()+
-  ggsave("mTOR_pathway_vln_new.pdf",width = 4,height = 8)
-
-p1 <- p1$data
-colnames(p1)
-kruskal.test(mTOR_members1~ident,data = p1)
