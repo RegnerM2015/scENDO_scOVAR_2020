@@ -5,6 +5,7 @@
 # Description: plot P2G histograms, plot P2G heatmap,
 # re-run overlap analysis, plot browser track
 ###################################################
+h5disableFileLocking()
 source("P2G_Heatmap_Distal.R")
 source("Archr_Peak_RawPval.R")
 source("Archr_Peak_Null_Permute.R")
@@ -304,3 +305,5 @@ p2 <- p1$data
 colnames(p2)
 kruskal.test(mTOR_members1~ident,data = p2)
 
+
+writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
