@@ -301,7 +301,7 @@ CombinePlots(list(p1,p2),ncol=2)+ggsave("VlnPlots.pdf",width = 6,height = 8)
 p1 <- p1$data
 colnames(p1)
 kruskal.test(RHEB~ident,data = p1)
-p2 <- p1$data
+p2 <- p2$data
 colnames(p2)
 kruskal.test(mTOR_members1~ident,data = p2)
 
