@@ -5,7 +5,7 @@
 # Description: plot P2G histograms, plot P2G heatmap,
 # re-run overlap analysis, plot browser track
 ###################################################
-h5disableFileLocking()
+
 source("P2G_Heatmap_Distal.R")
 source("Archr_Peak_RawPval.R")
 source("Archr_Peak_Null_Permute.R")
@@ -20,7 +20,7 @@ library(stringi)
 library(dplyr)
 library(tidyr)
 addArchRThreads(32)
-
+h5disableFileLocking()
 ####################################################################
 # PART 1: summary distribution histograms (correlation and p-values)
 # 1) Observed data
@@ -79,7 +79,7 @@ df <- data.frame(num.genes = table(p2g$peakName))
 
 df$cat <- ifelse(df$num.genes.Freq < 3,"1to2",df$num.genes.Freq)
 df$cat <- ifelse(df$num.genes.Freq < 6 &df$num.genes.Freq >2,"3to5",df$cat)
-df$cat <- ifelse(df$num.genes.Freq < 50 &df$num.genes.Freq >5,"6plus",df$cat)
+df$cat <- ifelse(df$num.genes.Freq >5,"6plus",df$cat)
 
 df <- data.frame(table(df$cat))
 
@@ -93,7 +93,7 @@ df <- data.frame(num.peaks = table(p2g$geneName))
 
 df$cat <- ifelse(df$num.peaks.Freq < 3,"1to2",df$num.peaks.Freq)
 df$cat <- ifelse(df$num.peaks.Freq < 6 &df$num.peaks.Freq >2,"3to5",df$cat)
-df$cat <- ifelse(df$num.peaks.Freq < 50 &df$num.peaks.Freq >5,"6plus",df$cat)
+df$cat <- ifelse(df$num.peaks.Freq >5,"6plus",df$cat)
 
 df <- data.frame(table(df$cat))
 
