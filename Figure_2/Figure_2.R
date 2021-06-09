@@ -312,7 +312,8 @@ dev.off()
 
 names <- gsub(".*_","",atac.sub$predictedGroup_ArchR)
 saveRDS(names,"names.rds")
-
+rm(atac.sub)
+rm(atac)
 ####################################################################
 # PART 4: plot matching violin plots for RHEB expression and mTOR
 ####################################################################
