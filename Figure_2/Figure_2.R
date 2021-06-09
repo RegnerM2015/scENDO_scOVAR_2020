@@ -71,36 +71,82 @@ CombinePlots(list(p1,p2,p3,p4),ncol=2)+ggsave("Histograms_obs_null.pdf",height =
 # PART 2: Plot histograms for number of genes regulated by peaks
 ####################################################################
 # Number of peaks per number of genes
-p2g <- readRDS("./Cancer_specific_P2G_table.rds")
-p2g$RawPVal <- as.numeric(p2g$RawPVal)
-p2g$Correlation <- as.numeric(p2g$Correlation)
+p2g.cancer <- readRDS("./Cancer_specific_P2G_table.rds")
+p2g.normal <- readRDS("./All_P2G_Observed.rds")
+p2g.normal <- p2g.normal[p2g.normal$Correlation >= 0.45,]
+p2g.normal <- p2g.normal[p2g.normal$RawPVal <= 1e-12,]
+p2g.normal <- p2g.normal[p2g.normal$peakType == "Distal",]
+p2g.normal <- p2g.normal[p2g.normal$peakName %ni% p2g.cancer$peakName,]
 
-df <- data.frame(num.genes = table(p2g$peakName))
+df.cancer <- data.frame(num.genes = table(p2g.cancer$peakName))
+df.cancer$cat <- ifelse(df.cancer$num.genes.Freq < 3,"1to2",df.cancer$num.genes.Freq)
+df.cancer$cat <- ifelse(df.cancer$num.genes.Freq < 6 &df.cancer$num.genes.Freq >2,"3to5",df.cancer$cat)
+df.cancer$cat <- ifelse(df.cancer$num.genes.Freq >5,"6plus",df.cancer$cat)
+print(nrow(df.cancer))
+print(mean(df.cancer$num.genes.Freq))
+df.cancer <- data.frame(table(df.cancer$cat))
 
-df$cat <- ifelse(df$num.genes.Freq < 3,"1to2",df$num.genes.Freq)
-df$cat <- ifelse(df$num.genes.Freq < 6 &df$num.genes.Freq >2,"3to5",df$cat)
-df$cat <- ifelse(df$num.genes.Freq >5,"6plus",df$cat)
-
-df <- data.frame(table(df$cat))
-
-p1 <- ggplot(df,aes(x=Var1,y=Freq))+geom_bar(stat = "identity")+theme_classic()+
-  geom_text(aes(label=Freq), vjust=-0.3, size=3.5)
-
+df.normal <- data.frame(num.genes = table(p2g.normal$peakName))
+df.normal$cat <- ifelse(df.normal$num.genes.Freq < 3,"1to2",df.normal$num.genes.Freq)
+df.normal$cat <- ifelse(df.normal$num.genes.Freq < 6 &df.normal$num.genes.Freq >2,"3to5",df.normal$cat)
+df.normal$cat <- ifelse(df.normal$num.genes.Freq >5,"6plus",df.normal$cat)
+print(nrow(df.normal))
+print(mean(df.normal$num.genes.Freq))
+df.normal <- data.frame(table(df.normal$cat))
 
 
-# Number of genes per number of peaks
-df <- data.frame(num.peaks = table(p2g$geneName))
+# df.normal$type <- "normal"
+# df.cancer$type <- "cancer"
+# df<- rbind(df.normal,df.cancer)
+# p1 <- ggplot(df, aes(x=fct_rev(Var1), y=Freq, fill=type)) + 
+#   geom_bar (stat="identity", position = position_dodge(width=1))+
+#   geom_text(aes(label=Freq), vjust=-0.4, size=3.5)+ylim(c(0,26000))+
+#   theme_classic()+NoLegend()+coord_flip()
 
-df$cat <- ifelse(df$num.peaks.Freq < 3,"1to2",df$num.peaks.Freq)
-df$cat <- ifelse(df$num.peaks.Freq < 6 &df$num.peaks.Freq >2,"3to5",df$cat)
-df$cat <- ifelse(df$num.peaks.Freq >5,"6plus",df$cat)
+p1 <- ggplot(df.cancer, aes(x=Var1, y=Freq)) +
+  geom_bar (stat="identity", position = position_dodge(width=1))+
+  geom_text(aes(label=Freq), vjust=-0.4, size=3.5)+
+  theme_classic()+NoLegend()
 
-df <- data.frame(table(df$cat))
+p2 <- ggplot(df.normal, aes(x=Var1, y=Freq)) +
+  geom_bar (stat="identity", position = position_dodge(width=1))+
+  geom_text(aes(label=Freq), vjust=-0.4, size=3.5)+
+  theme_classic()+NoLegend()
+CombinePlots(list(p1,p2),ncol=2)+ggsave("Genes_Peaks_Histograms.pdf",width=8,height = 3)
 
-p2 <- ggplot(df,aes(x=Var1,y=Freq))+geom_bar(stat = "identity")+theme_classic()+
-  geom_text(aes(label=Freq), vjust=-0.3, size=3.5)
 
-CombinePlots(list(p1,p2))+ggsave("GenesPer_PeaksPer_Histograms.pdf",width = 10,height = 4)
+
+# p2g.cancer <- readRDS("./Cancer_specific_P2G_table.rds")
+# p2g.normal <- readRDS("./All_P2G_Observed.rds")
+# p2g.normal <- p2g.normal[p2g.normal$Correlation >= 0.45,]
+# p2g.normal <- p2g.normal[p2g.normal$RawPVal <= 1e-12,]
+# p2g.normal <- p2g.normal[p2g.normal$peakType == "Distal",]
+# p2g.normal <- p2g.normal[p2g.normal$peakName %ni% p2g.cancer$peakName,]
+# 
+# df.cancer <- data.frame(num.peaks = table(p2g.cancer$geneName))
+# df.cancer$cat <- ifelse(df.cancer$num.peaks.Freq < 3,"1to2",df.cancer$num.peaks.Freq)
+# df.cancer$cat <- ifelse(df.cancer$num.peaks.Freq < 6 &df.cancer$num.peaks.Freq >2,"3to5",df.cancer$cat)
+# df.cancer$cat <- ifelse(df.cancer$num.peaks.Freq >5,"6plus",df.cancer$cat)
+# 
+# 
+# df.normal <- data.frame(num.peaks = table(p2g.normal$geneName))
+# df.normal$cat <- ifelse(df.normal$num.peaks.Freq < 3,"1to2",df.normal$num.peaks.Freq)
+# df.normal$cat <- ifelse(df.normal$num.peaks.Freq < 6 &df.normal$num.peaks.Freq >2,"3to5",df.normal$cat)
+# df.normal$cat <- ifelse(df.normal$num.peaks.Freq >5,"6plus",df.normal$cat)
+# 
+# df.cancer <- data.frame(table(df.cancer$cat))
+# df.normal <- data.frame(table(df.normal$cat))
+# 
+# df.normal$type <- "normal"
+# df.cancer$type <- "cancer"
+# df<- rbind(df.normal,df.cancer)
+# 
+# p2 <- ggplot(df, aes(x=fct_rev(Var1), y=Freq, fill=type)) + 
+#   geom_bar (stat="identity", position = position_dodge(width = 1))+
+#   geom_text(aes(label=Freq), vjust=-0.4, size=3.5)+ylim(c(0,5000))+
+#   theme_classic()+NoLegend()+coord_flip()
+# 
+# CombinePlots(list(p1,p2),ncol=2)+ggsave("Genes_Peaks_Histograms.pdf",width=8,height = 3)
 
 ####################################################################
 # PART 3: browser track for RHEB enhancers
