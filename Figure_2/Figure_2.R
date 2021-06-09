@@ -82,19 +82,25 @@ df.cancer <- data.frame(num.genes = table(p2g.cancer$peakName))
 df.cancer$cat <- ifelse(df.cancer$num.genes.Freq < 3,"1to2",df.cancer$num.genes.Freq)
 df.cancer$cat <- ifelse(df.cancer$num.genes.Freq < 6 &df.cancer$num.genes.Freq >2,"3to5",df.cancer$cat)
 df.cancer$cat <- ifelse(df.cancer$num.genes.Freq >5,"6plus",df.cancer$cat)
-print(nrow(df.cancer))
-print(mean(df.cancer$num.genes.Freq))
-df.cancer <- data.frame(table(df.cancer$cat))
 
 df.normal <- data.frame(num.genes = table(p2g.normal$peakName))
 df.normal$cat <- ifelse(df.normal$num.genes.Freq < 3,"1to2",df.normal$num.genes.Freq)
 df.normal$cat <- ifelse(df.normal$num.genes.Freq < 6 &df.normal$num.genes.Freq >2,"3to5",df.normal$cat)
 df.normal$cat <- ifelse(df.normal$num.genes.Freq >5,"6plus",df.normal$cat)
+
+# Print mean of distributions and compute wilcox test
+print(nrow(df.cancer))
+print(mean(df.cancer$num.genes.Freq))
+
 print(nrow(df.normal))
 print(mean(df.normal$num.genes.Freq))
+
+wilcox <- wilcox.test(df.cancer$num.genes.Freq,df.normal$num.genes.Freq)
+print(wilcox)
+
 df.normal <- data.frame(table(df.normal$cat))
 
-
+df.cancer <- data.frame(table(df.cancer$cat))
 # df.normal$type <- "normal"
 # df.cancer$type <- "cancer"
 # df<- rbind(df.normal,df.cancer)
