@@ -904,7 +904,11 @@ pdf
 > gset <- as.character(gset$BIOCARTA_MTOR_PATHWAY[2:length(gset$BIOCARTA_MTOR_PATHWAY)])
 > rna.sub <- AddModuleScore(rna.sub,features = list(gset),name = "mTOR_members",search = T)
 Warning: The following features are not present in the object: SHLD2P3, attempting to find updated synonyms
-  |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
+
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%
 Warning: No updated symbols found
 Warning: The following features are still not present in the object: SHLD2P3
 > 
