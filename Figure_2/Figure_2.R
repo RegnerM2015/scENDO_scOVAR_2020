@@ -2,8 +2,7 @@
 # Matt Regner
 # Franco Lab 
 # 2020-2021
-# Description: plot P2G histograms, plot P2G heatmap,
-# re-run overlap analysis, plot browser track
+# Description: plot figures for Fig. 2
 ###################################################
 
 source("P2G_Heatmap_Distal.R")
@@ -67,8 +66,150 @@ p4 <- ggplot(p2g,aes(x=RawPVal))+geom_histogram(color="black",fill="gray90",size
 CombinePlots(list(p1,p2,p3,p4),ncol=2)+ggsave("Histograms_obs_null.pdf",height =3,width = 4)
 
 
+
+
+############################################################################
+# PART 1.5.0.5: How many cancer specific peaks are deferentially accessible?
+############################################################################
+
+# Marker Peaks for malignant clusters with 100% patient specificity 
+atac <- readRDS("final_archr_proj_archrGS-P2Gs.rds")
+markersPeaks <- getMarkerFeatures(
+  ArchRProj = atac, 
+  useMatrix = "PeakMatrix", 
+  groupBy = "predictedGroup_ArchR",
+  bias = c("TSSEnrichment", "log10(nFrags)"),
+  testMethod = "wilcoxon"
+)
+levels(factor(atac$predictedGroup_ArchR))
+labels <- c("0-Fibroblast",
+            "10-Epithelial cell" ,
+            "11-Unciliated epithelia 1",
+            "16-Fibroblast",
+            "17-Epithelial cell" ,
+            "19-Epithelial cell" ,
+            "20-Ciliated",
+            "21-Unciliated epithelia 1",
+            "22-Unciliated epithelia 2",
+            "3-Epithelial cell",
+            "31-Unciliated epithelia 1",
+            "34-Epithelial cell",
+            "9-Epithelial cell",
+            "27-Fibroblast" 
+            
+            )
+
+markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
+markerList.sub <- markerList[names(markerList) %in% labels]
+markers.peaks <- unlist(markerList.sub)
+markers.peaks <- paste0(markers.peaks$seqnames,":",markers.peaks$start,"-",markers.peaks$end)
+markers.peaks <- unique(markers.peaks)
+
+p2g.cancer <- readRDS("./Cancer_specific_P2G_table.rds")
+p2g.cancer.diff <- p2g.cancer[p2g.cancer$peakName %in% markers.peaks,]
+print(paste0(round(nrow(p2g.cancer.diff)/nrow(p2g.cancer)*100,3),"% of cancer-specifc P2Gs have differentially accessible peaks in the malignant cell populations! (FDR <= 0.1 & Log2FC >= 0.5)"))
+print(paste0(round(length(unique(p2g.cancer.diff$peakName))/length(unique(p2g.cancer$peakName))*100,3),"% of cancer-specific peaks are differentially accessible in the malignant cell populations! (FDR <= 0.1 & Log2FC >= 0.5)"))
+
+p2g.cancer <- readRDS("./Cancer_enriched_P2G_table.rds")
+p2g.cancer.diff <- p2g.cancer[p2g.cancer$peakName %in% markers.peaks,]
+print(paste0(round(nrow(p2g.cancer.diff)/nrow(p2g.cancer)*100,3),"% of cancer-enriched P2Gs have differentially accessible peaks in the malignant cell populations! (FDR <= 0.1 & Log2FC >= 0.5)"))
+print(paste0(round(length(unique(p2g.cancer.diff$peakName))/length(unique(p2g.cancer$peakName))*100,3),"% of cancer-enriched peaks are differentially accessible in the malignant cell populations! (FDR <= 0.1 & Log2FC >= 0.5)"))
+
+
 ####################################################################
-# PART 2: Plot histograms for number of genes regulated by peaks
+# PART 1.5.1: Investigate the near neighboring gene rule in P2Gs:
+####################################################################
+p2g <- readRDS("./All_P2G_Observed.rds")
+p2g <- p2g[p2g$Correlation >= 0.45,]
+p2g <- p2g[p2g$RawPVal <= 1e-12,]
+p2g <- p2g[p2g$peakType == "Distal",]# Subset to distal P2Gs
+p2g$idx <- paste0(p2g$idxATAC,"-",p2g$idxRNA)
+p2g.cancer <- readRDS("./Cancer_specific_P2G_table.rds")
+p2g$Cancer.Specific <- ifelse(p2g$idx %in% p2g.cancer$idx,"Cancer","Normal")
+
+p2g$p2g.pair <- paste0(p2g$peakName,"::",p2g$geneName)
+
+atac <- readRDS("final_archr_proj_archrGS-P2Gs.rds")
+peak.info <- getPeakSet(atac)
+p2g.nearest.pair <- paste0(peak.info@seqnames,":",peak.info@ranges,"::",peak.info$nearestGene)
+
+p2g$Nearest <- ifelse(p2g$p2g.pair %in% p2g.nearest.pair,"Yes","No")
+
+
+p2g.norm <- p2g[p2g$Cancer.Specific == "Normal",]
+p2g.cancer <- p2g[p2g$Cancer.Specific == "Cancer",]
+
+
+p2g.yes <- p2g[p2g$Nearest == "Yes",]
+print(length(unique(p2g.yes$peakName))/length(unique(p2g$peakName)))
+print(nrow(p2g.yes)/nrow(p2g))
+
+ggplot(p2g) +
+  aes(x = Cancer.Specific, fill = factor(Nearest),boundary=0) +
+  geom_bar(position = "fill")+
+  scale_y_continuous(expand = c(0,0))+
+  scale_x_discrete(expand=c(0,0))+
+  theme_classic()+ggsave("ProportionofP2Gs_predicted_by_NearestRule.pdf",width = 4,height = 3)
+
+# Proportions differ significantly by fisher exact test:
+
+cancer.nearest <- p2g.cancer[p2g.cancer$Nearest == "Yes",]
+norm.nearest <- p2g.norm[p2g.norm$Nearest == "Yes",]
+
+res <- fisher.test(matrix(c(nrow(cancer.nearest), nrow(norm.nearest), 
+                            nrow(p2g.cancer)-nrow(cancer.nearest), nrow(p2g.norm)-nrow(norm.nearest)),
+                            ncol = 2))
+print(res)
+print(paste0("The proportion of cancer-specific P2Gs predictable by nearest neighboring rule is significantly less relative to the normal P2Gs (p=",res$p.value,")"))
+####################################################################
+# PART 1.5.2: Investigate the distances between peaks and linked genes
+####################################################################
+# p2g <- readRDS("./All_P2G_Observed.rds")
+# p2g <- p2g[p2g$Correlation >= 0.45,]
+# p2g <- p2g[p2g$RawPVal <= 1e-12,]
+# p2g <- p2g[p2g$peakType == "Distal",]# Subset to distal P2Gs
+# p2g$idx <- paste0(p2g$idxATAC,"-",p2g$idxRNA)
+# p2g.cancer <- readRDS("./Cancer_specific_P2G_table.rds")
+# p2g$Cancer.Specific <- ifelse(p2g$idx %in% p2g.cancer$idx,"Cancer","Normal")
+# 
+# p2g$p2g.pair <- paste0(p2g$peakName,"::",p2g$geneName)
+# 
+# atac <- readRDS("final_archr_proj_archrGS-P2Gs.rds")
+# gene.info <- getGenes(atac)
+# gene.info <- data.frame(geneName=gene.info$symbol,
+#                         geneCoord=paste0(gene.info@seqnames,":",gene.info@ranges))
+# 
+# p2g <- merge(p2g,gene.info,by="geneName")
+# p2g.check.trans <- tidyr::separate(p2g, col="peakName",into=c("chrom.peak","ranges.peak"),sep=":")
+# p2g.check.trans <- tidyr::separate(p2g.check.trans, col="geneCoord",into=c("chrom.gene","ranges.gene"),sep=":")
+# length(which(p2g.check.trans$chrom.gene == p2g.check.trans$chrom.peak))# No trans interactions are in the data
+# 
+# peak.gr <- GRanges(p2g$peakName)
+# gene.gr <- GRanges(p2g$geneCoord)
+# distance.gr <- GenomicRanges::distance(peak.gr,gene.gr)
+# 
+# p2g$p2g.distance <- distance.gr
+# 
+# 
+# p2g.norm <- p2g[p2g$Cancer.Specific == "Normal",]
+# p2g.cancer <- p2g[p2g$Cancer.Specific == "Cancer",]
+# 
+# 
+# p <- ggplot(p2g,aes(x=p2g.distance))
+# p+geom_histogram(aes(fill=Cancer.Specific),position = "identity",alpha=0.5)+
+#   scale_fill_manual(values = c("orange", "gray"))+
+#   geom_vline( aes(xintercept=mean(p2g.cancer$p2g.distance)),
+#               linetype="dashed",col="orange")+
+#   geom_vline( aes(xintercept=mean(p2g.norm$p2g.distance)),
+#               linetype="dashed",col="gray")+
+#   theme_classic()
+# 
+# test <- wilcox.test(p2g.norm$p2g.distance,p2g.cancer$p2g.distance)
+# test <- wilcox.test(p2g.cancer$p2g.distance,p2g.norm$p2g.distance)
+
+##################################################################
+# PART 2: Plot proportion of peaks per number of peaks and 
+# average number of target genes per cancer and normal groups
 ####################################################################
 # Number of peaks per number of genes
 p2g.cancer <- readRDS("./Cancer_specific_P2G_table.rds")
@@ -79,80 +220,61 @@ p2g.normal <- p2g.normal[p2g.normal$peakType == "Distal",]
 p2g.normal <- p2g.normal[p2g.normal$peakName %ni% p2g.cancer$peakName,]
 
 df.cancer <- data.frame(num.genes = table(p2g.cancer$peakName))
-df.cancer$cat <- ifelse(df.cancer$num.genes.Freq < 3,"1to2",df.cancer$num.genes.Freq)
-df.cancer$cat <- ifelse(df.cancer$num.genes.Freq < 6 &df.cancer$num.genes.Freq >2,"3to5",df.cancer$cat)
-df.cancer$cat <- ifelse(df.cancer$num.genes.Freq >5,"6plus",df.cancer$cat)
+df.cancer$cat <- ifelse(df.cancer$num.genes.Freq < 3,"1-2",df.cancer$num.genes.Freq)
+df.cancer$cat <- ifelse(df.cancer$num.genes.Freq >2,"3+",df.cancer$cat)
 
 df.normal <- data.frame(num.genes = table(p2g.normal$peakName))
-df.normal$cat <- ifelse(df.normal$num.genes.Freq < 3,"1to2",df.normal$num.genes.Freq)
-df.normal$cat <- ifelse(df.normal$num.genes.Freq < 6 &df.normal$num.genes.Freq >2,"3to5",df.normal$cat)
-df.normal$cat <- ifelse(df.normal$num.genes.Freq >5,"6plus",df.normal$cat)
+df.normal$cat <- ifelse(df.normal$num.genes.Freq < 3,"1-2",df.normal$num.genes.Freq)
+df.normal$cat <- ifelse(df.normal$num.genes.Freq >2,"3+",df.normal$cat)
 
-# Print mean of distributions and compute wilcox test
-print(nrow(df.cancer))
-print(mean(df.cancer$num.genes.Freq))
+head(df.normal)
+head(df.cancer)
 
-print(nrow(df.normal))
-print(mean(df.normal$num.genes.Freq))
+df.normal$type <- "normal"
+df.cancer$type <- "cancer"
 
-wilcox <- wilcox.test(df.cancer$num.genes.Freq,df.normal$num.genes.Freq)
-print(wilcox)
-
-df.normal <- data.frame(table(df.normal$cat))
-
-df.cancer <- data.frame(table(df.cancer$cat))
-# df.normal$type <- "normal"
-# df.cancer$type <- "cancer"
-# df<- rbind(df.normal,df.cancer)
-# p1 <- ggplot(df, aes(x=fct_rev(Var1), y=Freq, fill=type)) + 
-#   geom_bar (stat="identity", position = position_dodge(width=1))+
-#   geom_text(aes(label=Freq), vjust=-0.4, size=3.5)+ylim(c(0,26000))+
-#   theme_classic()+NoLegend()+coord_flip()
-
-p1 <- ggplot(df.cancer, aes(x=Var1, y=Freq)) +
-  geom_bar (stat="identity", position = position_dodge(width=1))+
-  geom_text(aes(label=Freq), vjust=-0.4, size=3.5)+
-  theme_classic()+NoLegend()
-
-p2 <- ggplot(df.normal, aes(x=Var1, y=Freq)) +
-  geom_bar (stat="identity", position = position_dodge(width=1))+
-  geom_text(aes(label=Freq), vjust=-0.4, size=3.5)+
-  theme_classic()+NoLegend()
-CombinePlots(list(p1,p2),ncol=2)+ggsave("Genes_Peaks_Histograms.pdf",width=8,height = 3)
+df<- rbind(df.normal,df.cancer)
 
 
+p1 <- ggplot(df, aes(x=type, y=num.genes.Freq, fill = type)) +
+  stat_summary(geom = "bar", fun.y = mean, position = "dodge",width=0.3) +
+  stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge",width=0.15)+
+  theme_classic()+  coord_cartesian(ylim=c(1.44,1.65))+NoLegend()
 
-# p2g.cancer <- readRDS("./Cancer_specific_P2G_table.rds")
-# p2g.normal <- readRDS("./All_P2G_Observed.rds")
-# p2g.normal <- p2g.normal[p2g.normal$Correlation >= 0.45,]
-# p2g.normal <- p2g.normal[p2g.normal$RawPVal <= 1e-12,]
-# p2g.normal <- p2g.normal[p2g.normal$peakType == "Distal",]
-# p2g.normal <- p2g.normal[p2g.normal$peakName %ni% p2g.cancer$peakName,]
-# 
-# df.cancer <- data.frame(num.peaks = table(p2g.cancer$geneName))
-# df.cancer$cat <- ifelse(df.cancer$num.peaks.Freq < 3,"1to2",df.cancer$num.peaks.Freq)
-# df.cancer$cat <- ifelse(df.cancer$num.peaks.Freq < 6 &df.cancer$num.peaks.Freq >2,"3to5",df.cancer$cat)
-# df.cancer$cat <- ifelse(df.cancer$num.peaks.Freq >5,"6plus",df.cancer$cat)
-# 
-# 
-# df.normal <- data.frame(num.peaks = table(p2g.normal$geneName))
-# df.normal$cat <- ifelse(df.normal$num.peaks.Freq < 3,"1to2",df.normal$num.peaks.Freq)
-# df.normal$cat <- ifelse(df.normal$num.peaks.Freq < 6 &df.normal$num.peaks.Freq >2,"3to5",df.normal$cat)
-# df.normal$cat <- ifelse(df.normal$num.peaks.Freq >5,"6plus",df.normal$cat)
-# 
-# df.cancer <- data.frame(table(df.cancer$cat))
-# df.normal <- data.frame(table(df.normal$cat))
-# 
-# df.normal$type <- "normal"
-# df.cancer$type <- "cancer"
-# df<- rbind(df.normal,df.cancer)
-# 
-# p2 <- ggplot(df, aes(x=fct_rev(Var1), y=Freq, fill=type)) + 
-#   geom_bar (stat="identity", position = position_dodge(width = 1))+
-#   geom_text(aes(label=Freq), vjust=-0.4, size=3.5)+ylim(c(0,5000))+
-#   theme_classic()+NoLegend()+coord_flip()
-# 
-# CombinePlots(list(p1,p2),ncol=2)+ggsave("Genes_Peaks_Histograms.pdf",width=8,height = 3)
+df.cancer %>% 
+  count(cat) %>% 
+  mutate(perc = (n / nrow(df.cancer)*100)) -> cancer
+df.normal %>% 
+  count(cat) %>% 
+  mutate(perc = (n / nrow(df.normal)*100)) -> normal
+
+cancer$type <- "cancer"
+normal$type <- "normal"
+
+comb <- rbind(cancer,normal)
+print(comb)
+p2 <- ggplot(comb,aes(x=cat,y=perc,fill=type))+
+  geom_bar(stat="identity",position = position_dodge(width=0.75),width=0.6)+
+  theme_classic()+
+  geom_text(aes(label=round(perc,3)), vjust=-0.4, size=3.5,position = position_dodge(width=0.75))+
+  scale_y_continuous(expand = c(0,0),limits=c(0,100))+NoLegend()
+
+
+CombinePlots(list(p2,p1),ncol=2)+ggsave("Barcharts_P2G_plots.pdf",width=6,height=3)
+
+# Cancer specific peaks link to more genes on average with statistical significance:
+test <- wilcox.test(df.cancer$num.genes.Freq,df.normal$num.genes.Freq,correct = F)
+print(test)
+print(test$p.value)
+print(paste0("Cancer-specific peaks link to more genes on average (1.57 v. 1.44 genes, p=",test$p.value,")"))
+
+# Proportion of 3+ peaks is greater in cancer-specific peaks relative to normal peaks:
+res <- fisher.test(matrix(c(414, 1979, 
+                            3274, 20187),
+                          ncol = 2))
+print(res)
+print(res$p.value)
+print(paste0("The proportion of cancer-specific peaks linking to 3 or more genes is significantly greater relative to the normal peaks (p=",res$p.value,")"))
 
 ####################################################################
 # PART 3: browser track for RHEB enhancers
@@ -316,6 +438,16 @@ grid::grid.draw(plot[[1]])
 dev.off()
 
 
+plot <- plotBrowserTrack(atac.sub,geneSymbol ="MUC16", groupBy = "predictedGroup_ArchR",
+                         features = GRangesList(TrackA = encode.all,TrackB = ft.peaks,TrackC = ov.peaks), 
+                         loops = getPeak2GeneLinks.mod(atac,corCutOff = 0.45,
+                                                       PValCutOff = 1e-12,varCutOffATAC = 0,
+                                                       varCutOffRNA = 0),upstream = 300000,downstream = 80000)
+
+pdf("MUC16_final.pdf",width = 6,height = 8)
+grid::grid.draw(plot[[1]])
+dev.off()
+
 names <- gsub(".*_","",atac.sub$predictedGroup_ArchR)
 saveRDS(names,"names.rds")
 rm(atac.sub)
@@ -338,6 +470,8 @@ my_levels <- as.character(c(3,9,10,16,17,
 # Relevel object@ident
 rna.sub@active.ident <- factor(x =rna.sub$RNA_snn_res.0.7, levels = rev(my_levels))
 p1 <- VlnPlot(rna.sub,features = "RHEB",pt.size = 0)+coord_flip()+NoLegend()
+p1 <- ggplot(p1$data,aes(y=ident,x=RHEB))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+  theme_classic()+NoLegend()+ylab("Cluster #")+xlab("RHEB expression")
 
 
 # Compute mTOR pathway member expression
@@ -347,16 +481,24 @@ rna.sub <- AddModuleScore(rna.sub,features = list(gset),name = "mTOR_members",se
 
 
 p2 <- VlnPlot(rna.sub,features = "mTOR_members1",pt.size = 0)+coord_flip()+NoLegend()
-
+p2 <- ggplot(p2$data,aes(y=ident,x=mTOR_members1))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+  theme_classic()+NoLegend()+ylab("Cluster #")+xlab("mTOR member expression")
 CombinePlots(list(p1,p2),ncol=2)+ggsave("VlnPlots.pdf",width = 6,height = 8)
 
-
-p1 <- p1$data
-colnames(p1)
-kruskal.test(RHEB~ident,data = p1)
-p2 <- p2$data
-colnames(p2)
-kruskal.test(mTOR_members1~ident,data = p2)
-
+# Differential enrichment of mTOR pathway members
+res <- kruskal.test(data=p2$data,mTOR_members1 ~ ident)
+print(res)
+print(res$p.value)
+# Differential expression of RHEB in cluster 3
+grouped.markers <- FindMarkers(rna.sub,ident.1 = "3",
+                               ident.2 = as.character(c(9,10,16,17,
+                                           11,20,21,22,31,19,34,
+                                           0,27,
+                                           6,25,7,
+                                           1,33,
+                                           2)),only.pos = T)
+grouped.markers$gene <- rownames(grouped.markers)
+grouped.markers.RHEB <- grouped.markers[grouped.markers$gene == "RHEB",]
+print(grouped.markers.RHEB)# Significant up-regulation in cluster 3
 
 writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
