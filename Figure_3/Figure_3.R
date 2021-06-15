@@ -7,12 +7,15 @@
 # RNA and ATAC data
 ###########################################################
 source("./P2G_Heatmap_Distal.R")
+source("./Archr_Peak_Null_Permute.R")
 library(ggplot2)
 library(Seurat)
 library(scales)
 library(forcats)
 library(bedtoolsr)
 library(ArchR)
+library(stringr)
+library(stringi)
 
 # Make patient sample metadata and color assignments 
 
@@ -359,26 +362,9 @@ ggplot(meta,aes(x=cluster,y=Total_CNVs,fill=cluster))+geom_boxplot()+coord_flip(
   theme_classic()+scale_fill_manual(values = rev(cols))+NoLegend()+
   ggsave("CNV_BoxPlot.pdf",width = 4,height = 8)
 
-
-# Overlap kmeans group 15 P2Gs with DEGs:
-wilcox.degs <- readRDS("./wilcox_DEGs.rds")
-cancer.p2gs <- readRDS("./Cancer_specific_P2G_table.rds")
-
-cancer.p2gs.sub <- cancer.p2gs[cancer.p2gs$kmeans == 15,]
-wilcox.degs.sub <- dplyr::filter(wilcox.degs,avg_logFC > 1.25 & p_val_adj < 0.01,)
-
-genes <- intersect(wilcox.degs.sub$gene,cancer.p2gs.sub$geneName)
-
-
-wilcox <- wilcox.degs[wilcox.degs$gene %in% genes,]
-
-pdf("catch.pdf")
-for ( i in genes){
-  VlnPlot(endo_EEC_scRNA_processed,features = i,pt.size = 0)+NoLegend()
-}
-dev.off()
-
-
+# clear up memory:
+rm(atac)
+rm(rna)
 
 
 # Make modified getP2G function:
@@ -462,6 +448,43 @@ getPeak2GeneLinks.mod <- function(
 }
 
 # Read in other annotation features:
+cancer.specific <- readRDS("Cancer_specific_P2G_table.rds")
+
+
+
+atac <- readRDS("final_archr_proj_archrGS-P2Gs.rds")
+# ATAC
+levels(factor(atac$predictedGroup_ArchR))
+my_levels <- c("6",
+               "8",
+               "10",
+               "14",
+               "15",
+               "19",
+               "21",
+               "22",
+               "1",
+               "2",
+               "9",
+               "13",
+               "16",
+               "17",
+               "23",
+               "4" ,"5","12",
+               "3","11","26",
+               "0","18",
+               "24","7",
+               "25",
+               "27","28")
+
+for ( i in levels(factor(atac$predictedGroup_ArchR))){
+  num <-  gsub("-.*","",i)
+  idx <- match(num,my_levels)
+  atac$predictedGroup_ArchR <- str_replace(atac$predictedGroup_ArchR,pattern = i,replacement = paste0(idx,"_",atac$predictedGroup_ArchR))
+  print("iter complete")
+}
+
+
 encode.all <- read.delim("./GRCh38-ccREs.bed",header =F)
 colnames(encode.all)[1:3] <- c("seqnames","start","end")
 encode.all <- makeGRangesFromDataFrame(encode.all)
@@ -475,45 +498,79 @@ ov.peaks <- readRDS("./Ovarian_Epithelial_Cell_line_Peaks.rds")
 ov.peaks <- ov.peaks[,3:5]
 colnames(ov.peaks)[1:3] <- c("seqnames","start","end")
 ov.peaks <- makeGRangesFromDataFrame(ov.peaks)
-
-atac <- readRDS("./final_archr_proj_archrGS-P2Gs.rds")
-plot <- plotBrowserTrack(atac,geneSymbol = "KRT19", groupBy = "predictedGroup_ArchR",
-                         loops = getPeak2GeneLinks(atac,FDRCutOff = 1,varCutOffATAC = 0,
-                                                   varCutOffRNA = 0),upstream = 20000,downstream = 4000,
-                         features=GRangesList(TrackA=encode.all,TrackB=ft.peaks,TrackC=ov.peaks))
-
-pdf("KRT19_final.pdf",width = 6,height = 8)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-plot <- plotBrowserTrack(atac,geneSymbol = "CLDN4", groupBy = "predictedGroup_ArchR",
-                         loops = getPeak2GeneLinks(atac,FDRCutOff = 1,varCutOffATAC = 0,
-                                                   varCutOffRNA = 0),upstream = 5000,downstream = 175000,
-                         features=GRangesList(TrackA=encode.all,TrackB=ft.peaks,TrackC=ov.peaks))
-
-pdf("CLDN4_final.pdf",width = 6,height = 8)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-
-
-plot <- plotBrowserTrack(atac,geneSymbol = "S100A14", groupBy = "predictedGroup_ArchR",
-                         loops = getPeak2GeneLinks(atac,FDRCutOff = 1,varCutOffATAC = 0,
-                                                   varCutOffRNA = 0),upstream = 150000,downstream =5000,
-                         features=GRangesList(TrackA=encode.all,TrackB=ft.peaks,TrackC=ov.peaks))
-
-pdf("S100A14_final.pdf",width = 6,height = 8)
-grid::grid.draw(plot[[1]])
-dev.off()
-
-
-
+# 28 B cell has too few cells to plot
 plot <- plotBrowserTrack(atac,geneSymbol = "SOX9", groupBy = "predictedGroup_ArchR",
                          loops = getPeak2GeneLinks(atac,FDRCutOff = 1,varCutOffATAC = 0,
-                                                   varCutOffRNA = 0),upstream = 8000,downstream =204000,
+                                                   varCutOffRNA = 0),upstream = 9000,downstream =202000,
                          features=GRangesList(TrackA=encode.all,TrackB=ft.peaks,TrackC=ov.peaks))
 
 pdf("SOX9_final.pdf",width = 6,height = 8)
 grid::grid.draw(plot[[1]])
 dev.off()
+
+# Note: excluding 28-B cell b/c it has too few cells in ATAC browser track
+# Plot matching scRNA-seq data:
+rna <- readRDS("endo_EEC_scRNA_processed.rds")
+
+my_levels <- rev(c("6",
+                                "8",
+                                "10",
+                                "14",
+                                "15",
+                                "19",
+                                "21",
+                                "22",
+                                "1",
+                                "2",
+                                "9",
+                                "13",
+                                "16",
+                                "17",
+                                "23",
+                                "4" ,"5","12",
+                                "3","11","26",
+                                "0","18",
+                                "24","7",
+                                "25",
+                                "27"))
+
+
+# Relevel object@ident
+rna.sub <- rna[,rna$RNA_snn_res.0.7 %in% my_levels]
+rna.sub@active.ident <- factor(x =rna.sub$RNA_snn_res.0.7, levels =my_levels)
+
+
+p1 <- VlnPlot(rna.sub,features = "SOX9",pt.size = 0)+coord_flip()+NoLegend()
+p1 <- ggplot(p1$data,aes(y=ident,x=SOX9))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+  theme_classic()+NoLegend()+ylab("Cluster #")+xlab("SOX9 expression")+ggsave("Vln.pdf",width=3,height = 8)
+
+
+# Check SOX9 statistical significance:
+test <- FindMarkers(rna.sub,ident.1 = c("6",
+                                     "8",
+                                     "10",
+                                     "14",
+                                     "15",
+                                     "19",
+                                     "21",
+                                     "22"),
+                    ident.2 = c("1",
+                                 "2",
+                                 "9",
+                                 "13",
+                                 "16",
+                                 "17",
+                                 "23",
+                                 "4" ,"5","12",
+                                 "3","11","26",
+                                 "0","18",
+                                 "24","7",
+                                 "25",
+                                 "27"),only.pos = T)
+test$genes <- rownames(test)
+test <- test[test$gene == "SOX9",]
+print(test)
+
+
+writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
 
