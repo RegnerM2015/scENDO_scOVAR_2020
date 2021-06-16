@@ -502,7 +502,8 @@ ov.peaks <- makeGRangesFromDataFrame(ov.peaks)
 plot <- plotBrowserTrack(atac,geneSymbol = "SOX9", groupBy = "predictedGroup_ArchR",
                          loops = getPeak2GeneLinks(atac,FDRCutOff = 1,varCutOffATAC = 0,
                                                    varCutOffRNA = 0),upstream = 9000,downstream =202000,
-                         features=GRangesList(TrackA=encode.all,TrackB=ft.peaks,TrackC=ov.peaks))
+                         features=GRangesList(TrackA=encode.all,TrackB=ft.peaks,TrackC=ov.peaks),
+                         pal= cols[-c(15,29)])
 
 pdf("SOX9_final.pdf",width = 6,height = 8)
 grid::grid.draw(plot[[1]])
