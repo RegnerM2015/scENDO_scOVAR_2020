@@ -366,3 +366,4 @@ ggplot(meta,aes(x=cluster,y=Total_CNVs,fill=cluster))+geom_boxplot()+coord_flip(
   theme_classic()+scale_fill_manual(values = rev(cols))+NoLegend()+
   ggsave("CNV_BoxPlot.pdf",width = 4,height = 8)
 
+writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
