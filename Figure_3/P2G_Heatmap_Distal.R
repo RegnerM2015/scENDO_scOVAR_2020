@@ -2,6 +2,7 @@ plotPeak2GeneHeatmap.distal <- function(
   ArchRProj = NULL, 
   corCutOff = 0.45, 
   FDRCutOff = 0.0001,
+  peaks,
   varCutOffATAC = 0.25,
   varCutOffRNA = 0.25,
   k = 25,
@@ -49,37 +50,29 @@ plotPeak2GeneHeatmap.distal <- function(
   #########################################
   ccd <- getCellColData(ArchRProj, select = groupBy)
   p2g <- metadata(ArchRProj@peakSet)$Peak2GeneLinks
-  p2g <- p2g[which(p2g$Correlation >= corCutOff & p2g$FDR <= FDRCutOff), ,drop=FALSE]
-  
-  if(!is.null(varCutOffATAC)){
-    p2g <- p2g[which(p2g$VarQATAC > varCutOffATAC),]
-  }
-  
-  if(!is.null(varCutOffRNA)){
-    p2g <- p2g[which(p2g$VarQRNA > varCutOffRNA),]
-  }
+  p2g$idx <- paste0(p2g$idxATAC,"-",p2g$idxRNA)
+  p2g <- p2g[p2g$idx %in% peaks$idx,]
+  # if(!is.null(varCutOffATAC)){
+  #   p2g <- p2g[which(p2g$VarQATAC > varCutOffATAC),]
+  # }
+  # 
+  # if(!is.null(varCutOffRNA)){
+  #   p2g <- p2g[which(p2g$VarQRNA > varCutOffRNA),]
+  # }
   
   if(nrow(p2g) == 0){
     stop("No peak2genelinks found with your cutoffs!")
   }
   
-  # if(!file.exists(readRDS("/datastore/nextgenout5/share/labs/francolab/scENDO_scOVAR_Proj/scATAC-seq_Processing/EEC_ATAC/EEC/Peak2GeneLinks/seATAC-Group-KNN.rds"))){
-  #   stop("seATAC does not exist! Did you change paths? If this does not work, please try re-running addPeak2GeneLinks!")
-  # }
-  # if(!file.exists(readRDS("/datastore/nextgenout5/share/labs/francolab/scENDO_scOVAR_Proj/scATAC-seq_Processing/EEC_ATAC/EEC/Peak2GeneLinks/seRNA-Group-KNN.rds"))){
-  #   stop("seRNA does not exist! Did you change paths? If this does not work, please try re-running addPeak2GeneLinks!")
-  # }
-  
-  mATAC <- readRDS("/datastore/nextgenout5/share/labs/francolab/scENDO_scOVAR_Proj/scATAC-seq_Processing/EEC_ATAC/EEC/Peak2GeneLinks/seATAC-Group-KNN.rds")[p2g$idxATAC, ]
+  if(!file.exists(metadata(p2g)$seATAC)){
+    stop("seATAC does not exist! Did you change paths? If this does not work, please try re-running addPeak2GeneLinks!")
+  }
+  if(!file.exists(metadata(p2g)$seRNA)){
+    stop("seRNA does not exist! Did you change paths? If this does not work, please try re-running addPeak2GeneLinks!")
+  }
+  mATAC <- readRDS(metadata(p2g)$seATAC)[p2g$idxATAC, ]
+  mRNA <- readRDS(metadata(p2g)$seRNA)[p2g$idxRNA, ]
   p2g$peak <- paste0(rowRanges(mATAC))
-  meta.atac <- rowRanges(mATAC)
-  p2g$type <- paste0(meta.atac$peakType)
-  
-  p2g <- p2g[which(p2g$type == "Distal"), ,drop=FALSE]
-  
-  mATAC <- SummarizedExperiment::subset(mATAC,peakType == "Distal")
-  
-  mRNA <- readRDS("/datastore/nextgenout5/share/labs/francolab/scENDO_scOVAR_Proj/scATAC-seq_Processing/EEC_ATAC/EEC/Peak2GeneLinks/seRNA-Group-KNN.rds")[p2g$idxRNA, ]
   p2g$gene <- rowData(mRNA)$name
   gc()
   
@@ -90,7 +83,7 @@ plotPeak2GeneHeatmap.distal <- function(
   # Determine Groups from KNN
   #########################################
   .logDiffTime(main="Determining KNN Groups!", t1=tstart, verbose=verbose, logFile=logFile)
-  KNNList <- as(metadata(readRDS("/datastore/nextgenout5/share/labs/francolab/scENDO_scOVAR_Proj/scATAC-seq_Processing/EEC_ATAC/EEC/Peak2GeneLinks/seRNA-Group-KNN.rds"))$KNNList, "list")
+  KNNList <- as(metadata(readRDS(metadata(p2g)$seRNA))$KNNList, "list")
   KNNGroups <- lapply(seq_along(KNNList), function(x){
     KNNx <- KNNList[[x]]
     names(sort(table(ccd[KNNx, 1, drop = TRUE]), decreasing = TRUE))[1]
@@ -209,7 +202,4 @@ plotPeak2GeneHeatmap.distal <- function(
   htATAC + htRNA
   
 }
-
-
-
 
