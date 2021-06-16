@@ -426,12 +426,36 @@ getPeak2GeneLinks.mod <- function(
 
 
 #########################################################################
+# Color rows:
 
+epithelial.cols <- colorRampPalette(c("#A0E989", "#245719"))
+epithelial.cols <- epithelial.cols(14)
+
+fibro.cols <-colorRampPalette(c("#FABFD2", "#B1339E"))
+fibro.cols <- fibro.cols(10)
+
+smooth.cols <- c("#b47fe5","#d8b7e8")
+
+endo.cols <- c("#93CEFF","#4A99FF")
+
+t.cols <- c("gray60","gray20","gray40")
+
+macro.cols <- c("#ff6600","#ff9d5c")
+
+mast.cols <- "gold3"
+
+b.cols <- c("#B22222","#CD5C5C")
+
+
+cols <- c(epithelial.cols,fibro.cols,smooth.cols,endo.cols,t.cols,macro.cols,mast.cols,b.cols)
+cols <- cols[-c(16:21,23:24,26,30:36)]
+cols <- cols[c(8:12,1:7,13:20)]
 plot <- plotBrowserTrack(atac.sub,geneSymbol ="RHEB", groupBy = "predictedGroup_ArchR",
                          features = GRangesList(TrackA = encode.all,TrackB = ft.peaks,TrackC = ov.peaks), 
                          loops = getPeak2GeneLinks.mod(atac,corCutOff = 0.45,
                                                    PValCutOff = 1e-12,varCutOffATAC = 0,
-                                                   varCutOffRNA = 0),upstream = 6000,downstream = 35000)
+                                                   varCutOffRNA = 0),upstream = 6000,downstream = 35000,
+                         pal=cols)
 
 pdf("RHEB_final.pdf",width = 6,height = 8)
 grid::grid.draw(plot[[1]])
@@ -442,7 +466,8 @@ plot <- plotBrowserTrack(atac.sub,geneSymbol ="MUC16", groupBy = "predictedGroup
                          features = GRangesList(TrackA = encode.all,TrackB = ft.peaks,TrackC = ov.peaks), 
                          loops = getPeak2GeneLinks.mod(atac,corCutOff = 0.45,
                                                        PValCutOff = 1e-12,varCutOffATAC = 0,
-                                                       varCutOffRNA = 0),upstream = 300000,downstream = 80000)
+                                                       varCutOffRNA = 0),upstream = 300000,downstream = 80000,
+                         pal=cols)
 
 pdf("MUC16_final.pdf",width = 6,height = 8)
 grid::grid.draw(plot[[1]])
