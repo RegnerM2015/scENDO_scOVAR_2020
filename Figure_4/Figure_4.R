@@ -430,13 +430,19 @@ cancer.p2gs <- readRDS("Cancer_specific_P2G_table.rds")
 # grid::grid.draw(plot[[1]])
 # dev.off()
 
-plot <- plotBrowserTrack(atac,region=GRanges("chr8:97734000-97790000"), groupBy = "predictedGroup_ArchR",
+plot <- plotBrowserTrack(atac,geneSymbol = "LAPTM4B", groupBy = "predictedGroup_ArchR",
                          features = GRangesList(TrackA = encode.all,TrackB = ft.peaks,TrackC = ov.peaks), 
                          loops = getPeak2GeneLinks.mod(atac,corCutOff = 0.45,
                                                        PValCutOff = 1e-12,varCutOffATAC = 0,
-                                                       varCutOffRNA = 0))
+                                                       varCutOffRNA = 0),
+                         pal=cols[-c(6,8,13,22,23)],
+                         upstream = 41500,
+                         downstream = 10000
+                         )
+
+
 pdf("LAPTM4B_final.pdf",width = 6,height = 8)
-grid::grid.draw(plot)
+grid::grid.draw(plot[[1]])
 dev.off()
 
 # Plot matching scRNA-seq data
@@ -452,12 +458,29 @@ rna.sub <- rna[,rna$RNA_snn_res.0.7 %in% my_levels]
 # Make violin plots for LAPTM4B
 # Relevel object@ident
 rna.sub@active.ident <- factor(x =rna.sub$RNA_snn_res.0.7, levels = rev(my_levels))
+
 p1 <- VlnPlot(rna.sub,features = "LAPTM4B",pt.size = 0)+coord_flip()+NoLegend()
-p1+ggsave("Vln_LAPTM4B.pdf",width = 6,height = 8)
+p1 <- ggplot(p1$data,aes(y=ident,x=LAPTM4B))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+  theme_classic()+NoLegend()+ylab("Cluster #")+xlab("LAPTM4B expression")+ggsave("Vln.pdf",width=3,height = 8)
+
 
 p1 <- p1$data
 colnames(p1)
-kruskal.test(LAPTM4B~ident,data = p1)
+test <- kruskal.test(LAPTM4B~ident,data = p1)
+print(test)
+print(test$p.value)
+
+
+# Check LAPTM4B statistical significance:
+test <- FindMarkers(rna.sub,ident.1 = as.character(c(0,2,3,7,11,16)),
+                    ident.2 = as.character(c(1,4,9,10,
+                                14,
+                                5,12,18,21,
+                                6,8,13,
+                                17)),only.pos = T)
+test$genes <- rownames(test)
+test <- test[test$gene == "LAPTM4B",]
+print(test)
 
 
 writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
