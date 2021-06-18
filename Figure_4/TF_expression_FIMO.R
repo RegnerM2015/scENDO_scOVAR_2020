@@ -1,8 +1,13 @@
+library(Seurat)
+library(dplyr)
+
 
 ovar_HGSOC_scRNA_processed <- readRDS("../ovar_HGSOC_scRNA_processed.rds")
 
+labels <- c("0-Epithelial cell","7-Epithelial cell","11-Epithelial cell","16-Epithelial cell")
 
-hgsoc <-subset(ovar_HGSOC_scRNA_processed,cell.type == "11-Epithelial cell")
+
+hgsoc <- ovar_HGSOC_scRNA_processed[,ovar_HGSOC_scRNA_processed$cell.type %in% labels] 
 
 counts <- hgsoc@assays$RNA@data
 counts.bulk <- as.data.frame(rowSums(counts))
@@ -35,6 +40,6 @@ VlnPlot(ovar_HGSOC_scRNA_processed,features = c("KLF6","KLF6","YY1","IRF1"),
 VlnPlot(ovar_HGSOC_scRNA_processed,features = c("CEBPD","YY1","YY1","ATF4"),ncol = 4,pt.size = 0,
         idents = "11-Epithelial cell",same.y.lims = T)+
   ggsave("Enhancer_2_vln.pdf",width = 8,height = 4)
-  
-  
-  
+
+
+
