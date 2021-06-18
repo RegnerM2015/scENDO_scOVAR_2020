@@ -35,17 +35,17 @@ for (i in fimo_outs){
 
 # Make boxplot for enhancer 2 TF expression levels:
 enh.2.tfs.1 <- data.frame(Data = hgsoc@assays$RNA@data[12582,],
-                        TF ="KLF6")
+                          TF ="KLF6")
 print(rownames(hgsoc)[12582])
 enh.2.tfs.2 <- data.frame(Data = hgsoc@assays$RNA@data[15548,],
-                        TF="YY1")
+                          TF="YY1")
 print(rownames(hgsoc)[15548])
 enh.2.tfs.3 <- data.frame(Data = hgsoc@assays$RNA@data[6857,],
                           TF="TFAP2A")
 print(rownames(hgsoc)[6857])
 enh.2.tfs <- rbind(enh.2.tfs.1,enh.2.tfs.2,enh.2.tfs.3)
 ggplot(enh.2.tfs,aes(x=reorder(TF,-Data, na.rm = TRUE),y=Data))+
-  geom_boxplot()+theme_classic()+
+  geom_boxplot()+theme_classic()+ylim(c(0,4))+
   ggsave("Enhancer_2_vln.pdf",width =5,height = 4)
 
 # Make boxplot for enhancer 4 TF expression levels:
@@ -60,26 +60,26 @@ enh.4.tfs.3 <- data.frame(Data = hgsoc@assays$RNA@data[6857,],
 print(rownames(hgsoc)[6857])
 enh.4.tfs <- rbind(enh.4.tfs.1,enh.4.tfs.2,enh.4.tfs.3)
 ggplot(enh.4.tfs,aes(x=reorder(TF,-Data, na.rm = TRUE),y=Data))+
-  geom_boxplot()+theme_classic()+
+  geom_boxplot()+theme_classic()+ylim(c(0,4))+
   ggsave("Enhancer_4_vln.pdf",width =5,height = 4)
 
 # Make boxplot for promoter TF expression levels:
 prom.tfs.1 <- data.frame(Data = hgsoc@assays$RNA@data[12582,],
-                          TF ="KLF6")
+                         TF ="KLF6")
 print(rownames(hgsoc)[12582])
 prom.tfs.2 <- data.frame(Data = hgsoc@assays$RNA@data[15260,],
-                          TF="HIF1A")
+                         TF="HIF1A")
 print(rownames(hgsoc)[15260])
 prom.tfs.3 <- data.frame(Data = hgsoc@assays$RNA@data[6925,],
-                          TF="SOX4")
+                         TF="SOX4")
 print(rownames(hgsoc)[6925])
 prom.tfs.4 <- data.frame(Data = hgsoc@assays$RNA@data[15548,],
                          TF="YY1")
 print(rownames(hgsoc)[15548])
 prom.tfs <- rbind(prom.tfs.1,prom.tfs.2,prom.tfs.3,prom.tfs.4)
 ggplot(prom.tfs,aes(x=reorder(TF,-Data, na.rm = TRUE),y=Data))+
-  geom_boxplot()+theme_classic()+
-  ggsave("Promoter_vln.pdf",width =6,height = 4)
+  geom_boxplot()+theme_classic()+ylim(c(0,4))+
+  ggsave("Promoter_vln.pdf",width =5,height = 4)
 
 
 writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
