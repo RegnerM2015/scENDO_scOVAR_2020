@@ -11,6 +11,9 @@
 #     4) Scaling of each matrix from 0-1
 #     5) TFSEE matrix operations 
 #################################################################
+library(ArchR)
+
+library(DESeq2)
 
 ###############################################
 # Part 1: Read in TF motif prediction matrix 
@@ -61,6 +64,14 @@ rownames(rna.pseudobulk) <- rna.pseudobulk[,1]
 rna.pseudobulk <- rna.pseudobulk[,-1]
 dim(rna.pseudobulk)
 
+# Remove any features/rows that have zero counts in ANY sample
+dim(rna.pseudobulk)
+rna.pseudobulk[rna.pseudobulk == 0] <- NA
+rna.pseudobulk <- rna.pseudobulk[complete.cases(rna.pseudobulk),]
+dim(rna.pseudobulk)
+
+
+# rlog normalize data
 library(DESeq2)
 dds.rna <- DESeqDataSetFromMatrix(countData = rna.pseudobulk,
                               colData = data.frame(meta=colnames(rna.pseudobulk)),design = ~ 1)
@@ -72,13 +83,11 @@ rlog.rna <- rlog(dds.rna,blind = T)
 #saveRDS(rlog.rna,"rlog_rna.rds")
 
 
-
 ###############################################
 # Part 3: Pseudobulk enhancer activity
 ###############################################
 
 # Pseudobulk ATAC enhancer matrix
-distal <- colnames(enhancer.motifs)[-1]
 
 atac <- readRDS("./final_archr_proj_archrGS.rds")
 peaks.mat <- getMatrixFromProject(atac,useMatrix = "PeakMatrix")
@@ -97,7 +106,7 @@ colnames(peaks.mat) <- cell.names
 rownames(peaks.mat) <- peak.names
 head(peaks.mat[,1:4])
 
-
+# Construct pseudobulk peak/enhancer matrix
 peaks.pseudobulk <- data.frame(rownames(peaks.mat))
 for (i in labels){
   cells <- rownames(dplyr::filter(as.data.frame(atac@cellColData),predictedGroup_ArchR == i))
@@ -113,6 +122,8 @@ for (i in labels){
 }
 rownames(peaks.pseudobulk) <- peaks.pseudobulk$rownames.peaks.
 peaks.pseudobulk <- peaks.pseudobulk[,-1]
+
+# Remove features/peaks that have zero counts in ANY sample
 dim(peaks.pseudobulk)
 peaks.pseudobulk[peaks.pseudobulk == 0] <- NA
 peaks.pseudobulk <- peaks.pseudobulk[complete.cases(peaks.pseudobulk),]
@@ -134,7 +145,7 @@ rlog.atac <- rlog(dds.atac,blind = T)
 
 
 ###############################################
-# Part 4: Scaling of each matrix from 0-1 and subsetting
+# Part 4: Subsetting and scaling from 0 to 1
 ###############################################
 
 # Subset and reorder motif matrix, peak matrix and expression matrix
