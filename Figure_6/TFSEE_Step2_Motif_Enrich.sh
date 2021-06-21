@@ -10,7 +10,7 @@ export PATH=/home/regnerm/Software/tabix:$PATH
 export PATH=$HOME/meme/bin:$HOME/meme/libexec/meme-4.12.0:$PATH
 export PATH=/share/apps/install-compute/bin/bcftools:$PATH
 
-dir=/datastore/nextgenout5/share/labs/francolab/scENDO_scOVAR_Proj/Figure_Making/Figure_5
+dir=/datastore/nextgenout5/share/labs/francolab/scENDO_scOVAR_Proj/Figure_Making/Figure_6
 
 
 for i in *-updated.bed
@@ -24,8 +24,3 @@ meme enhancers_${i}.fa -dna -mod zoops -nmotifs 15 -minw 8 -maxw 15 -revcomp -oc
 tomtom -evalue -thresh 10 -oc enhancers_${i}_tomtom ./enhancers_${i}_meme/meme.txt ${dir}/JASPAR2020_CORE_vertebrates_non-redundant_pfms_meme.meme
 
 done 	
-
-
-
-
-
