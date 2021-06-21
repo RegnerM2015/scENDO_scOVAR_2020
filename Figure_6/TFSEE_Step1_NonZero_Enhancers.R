@@ -14,6 +14,7 @@ library(stringr)
 library(utils)
 library(dplyr)
 ArchR::addArchRThreads(threads = 32)
+h5disableFileLocking()
 # ONlY USE 100% patient-specfic 
 labels <- list.files(pattern = "Marker_Enhancers_ArchR")
 labels <- str_remove(labels,"Marker_Enhancers_ArchR_")
@@ -83,3 +84,7 @@ for ( i in 1:length(labels)){
   
   write.table(bed.new,paste0("Marker_Enhancers_ArchR_",labels[i],"-updated.bed"),row.names = F,col.names = F,quote = F,sep = "\t")
 }
+
+
+
+writeLines(capture.output(sessionInfo()), "sessionInfo_TFSEE_Step1_NonZero_Enhancers.txt")
