@@ -1,67 +1,41 @@
-getMatrixFromProject <- function(
-  ArchRProj = NULL,
-  useMatrix = "GeneScoreMatrix",
-  useSeqnames = NULL,
-  verbose = TRUE,
-  binarize = FALSE,
-  threads = getArchRThreads(),
-  logFile = createLogFile("getMatrixFromProject")
-){
-  
+getMatrixFromProject.mod <- function(ArchRProj = NULL, useMatrix = "GeneScoreMatrix", useSeqnames = NULL, 
+          verbose = TRUE, binarize = FALSE, threads = getArchRThreads(), 
+          logFile = createLogFile("getMatrixFromProject")) 
+{
   .validInput(input = ArchRProj, name = "ArchRProj", valid = c("ArchRProj"))
   .validInput(input = useMatrix, name = "useMatrix", valid = c("character"))
-  .validInput(input = useSeqnames, name = "useSeqnames", valid = c("character","null"))
+  .validInput(input = useSeqnames, name = "useSeqnames", valid = c("character", 
+                                                                   "null"))
   .validInput(input = verbose, name = "verbose", valid = c("boolean"))
   .validInput(input = binarize, name = "binarize", valid = c("boolean"))
   .validInput(input = threads, name = "threads", valid = c("integer"))
-  
   tstart <- Sys.time()
   .startLogging(logFile = logFile)
-  .logThis(mget(names(formals()),sys.frame(sys.nframe())), "getMatrixFromProject Input-Parameters", logFile = logFile)
-  
+  .logThis(mget(names(formals()), sys.frame(sys.nframe())), 
+           "getMatrixFromProject Input-Parameters", logFile = logFile)
   ArrowFiles <- getArrowFiles(ArchRProj)
-  
   cellNames <- ArchRProj$cellNames
-  
-  avMat <- getAvailableMatrices(ArchRProj)
-  if(useMatrix %ni% avMat){
-    stop("useMatrix is not in Available Matrices see getAvailableMatrices")
-  }
-  
-  seL <- .safelapply(seq_along(ArrowFiles), function(x){
-    
-    .logDiffTime(paste0("Reading ", useMatrix," : ", names(ArrowFiles)[x], "(",x," of ",length(ArrowFiles),")"), 
-                 t1 = tstart, verbose = FALSE, logFile = logFile)
-    
-    allCells <- .availableCells(ArrowFile = ArrowFiles[x], subGroup = useMatrix)
+  seL <- .safelapply(seq_along(ArrowFiles), function(x) {
+    .logDiffTime(paste0("Reading ", useMatrix, " : ", names(ArrowFiles)[x], 
+                        "(", x, " of ", length(ArrowFiles), ")"), t1 = tstart, 
+                 verbose = FALSE, logFile = logFile)
+    allCells <- .availableCells(ArrowFile = ArrowFiles[x], 
+                                subGroup = useMatrix)
     allCells <- allCells[allCells %in% cellNames]
-    
-    if(length(allCells) != 0){
-      
-      o <- getMatrixFromArrow(
-        ArrowFile = ArrowFiles[x],
-        useMatrix = useMatrix,
-        useSeqnames = useSeqnames,
-        cellNames = allCells, 
-        ArchRProj = ArchRProj,
-        verbose = FALSE,
-        binarize = binarize,
-        logFile = logFile
-      )
-      
-      .logDiffTime(paste0("Completed ", useMatrix," : ", names(ArrowFiles)[x], "(",x," of ",length(ArrowFiles),")"), 
-                   t1 = tstart, verbose = FALSE, logFile = logFile)
-      
+    if (length(allCells) != 0) {
+      o <- getMatrixFromArrow(ArrowFile = ArrowFiles[x], 
+                              useMatrix = useMatrix, useSeqnames = useSeqnames, 
+                              cellNames = allCells, ArchRProj = ArchRProj, 
+                              verbose = FALSE, binarize = binarize, logFile = logFile)
+      .logDiffTime(paste0("Completed ", useMatrix, " : ", 
+                          names(ArrowFiles)[x], "(", x, " of ", length(ArrowFiles), 
+                          ")"), t1 = tstart, verbose = FALSE, logFile = logFile)
       o
-      
-    }else{
-      
-      NULL
-      
     }
-    
-  }, threads = threads) 
-  
+    else {
+      NULL
+    }
+  }, threads = threads)
   #ColData
   .logDiffTime("Organizing colData", t1 = tstart, verbose = verbose, logFile = logFile)
   cD <- lapply(seq_along(seL), function(x){
@@ -111,5 +85,4 @@ getMatrixFromProject <- function(
   .logDiffTime("Finished Matrix Creation", t1 = tstart, verbose = verbose, logFile = logFile)
   
   se
-  
 }
