@@ -10,6 +10,9 @@
 #         2) Subset Marker Enhancer BED files to new enhancers
 ###########################################################
 library(ArchR)
+source("./Archr_Peak_Null_Permute.R")
+source("./Archr_Peak_RawPval.R")
+source("./getMatrixFromProject.R")
 library(stringr)
 library(utils)
 library(dplyr)
@@ -26,23 +29,16 @@ enhancers <- read.delim("Marker_Enhancers_ArchR-nodups.bed",header = F)
 enhancers <- paste0(enhancers$V1,":",enhancers$V2,"-",enhancers$V3)
 
 # Pseudobulk ATAC enhancer matrix
-
-proj.archr <- readRDS("./final_archr_proj_archrGS.rds")
-peaks <- getPeakSet(proj.archr)
-
-peak.mat <- getMatrixFromProject(proj.archr,useMatrix = "PeakMatrix")
-peak.names <- paste0(peaks@seqnames,":",peaks@ranges)
-
-
+proj.archr <- readRDS("./final_archr_proj_archrGS-P2Gs.rds")
+peak.mat <- getMatrixFromProject.mod(proj.archr,useMatrix = "PeakMatrix")
 cell.names <- colnames(assay(peak.mat))
-peak.names <-peak.names
+peak.names <- paste0(seqnames(rowRanges(peak.mat)),":", start(ranges(rowRanges(peak.mat))),"-", end(ranges(rowRanges(peak.mat))))
 
 
 peak.mat <- assay(peak.mat)
 colnames(peak.mat) <- cell.names
 rownames(peak.mat) <- peak.names
 head(peak.mat[,1:4])
-
 
 
 peaks.pseudobulk <- data.frame(rownames(peak.mat))
