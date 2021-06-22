@@ -5,6 +5,7 @@ library(stats)
 ArchR::addArchRThreads(threads = 32)
 source("./Archr_Peak_Null_Permute.R")
 source("./Archr_Peak_RawPval.R")
+source("./getMatrixFromProject.R")
 h5disableFileLocking()
 SAMPLE.ID <- "All"
 key.word.1 <- "pithelia"
@@ -47,7 +48,7 @@ names(markerList.sub)
 
 df <- as.data.frame(proj@cellColData) %>% dplyr::group_by(predictedGroup_ArchR) %>% 
   dplyr::count(Sample) 
-  
+
 idents <- table(df$predictedGroup_ArchR)
 idents.sub <- idents[idents ==1 & names(idents) %in% names(markerList.sub)]
 
@@ -72,3 +73,6 @@ markers.int <- stringr::str_replace(string=markers.int,pattern = ":",replacement
 bed <- data.frame(do.call(rbind, strsplit(markers.int, "-", fixed=TRUE)))
 write.table(bed,"Marker_Enhancers_ArchR-nodups.bed",row.names = F,col.names = F,quote = F,sep = "\t")
 
+
+
+writeLines(capture.output(sessionInfo()), "sessionInfo_Intersect_DiffPeaks_P2Gs.txt")
