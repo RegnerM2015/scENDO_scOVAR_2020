@@ -1,0 +1,389 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> ###########################################################
+> # Matt Regner
+> # Franco Lab
+> # Date: May 2020-May 2021
+> # 
+> # Sample: All 
+> # Description: This script performs the following tasks  
+> #         1) Find distal enhancer elements that have 
+> #            nonzero counts across all samples (clusters)
+> #         2) Subset Marker Enhancer BED files to new enhancers
+> ###########################################################
+> library(ArchR)
+Loading required package: ggplot2
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+Loading required package: data.table
+
+Attaching package: ‘data.table’
+
+The following object is masked from ‘package:SummarizedExperiment’:
+
+    shift
+
+The following object is masked from ‘package:GenomicRanges’:
+
+    shift
+
+The following object is masked from ‘package:IRanges’:
+
+    shift
+
+The following objects are masked from ‘package:S4Vectors’:
+
+    first, second
+
+Loading required package: Matrix
+
+Attaching package: ‘Matrix’
+
+The following object is masked from ‘package:S4Vectors’:
+
+    expand
+
+Loading required package: rhdf5
+Loading required package: magrittr
+
+Attaching package: ‘ArchR’
+
+The following objects are masked _by_ ‘.GlobalEnv’:
+
+    addArchRDebugging, addArchRLogging, addCoAccessibility,
+    addPeak2GeneLinks, correlateMatrices, correlateTrajectories,
+    createLogFile, getArchRDebugging, getArchRLogging,
+    getCoAccessibility, getFragmentsFromArrow, getMatrixFromArrow,
+    getMatrixFromProject, getPeak2GeneLinks, peak2GeneHeatmap,
+    plotPeak2GeneHeatmap, validBSgenome
+
+> source("./Archr_Peak_Null_Permute.R")
+> source("./Archr_Peak_RawPval.R")
+> source("./getMatrixFromProject.R")
+> library(stringr)
+> library(utils)
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:data.table’:
+
+    between, first, last
+
+The following object is masked from ‘package:Biobase’:
+
+    combine
+
+The following objects are masked from ‘package:GenomicRanges’:
+
+    intersect, setdiff, union
+
+The following object is masked from ‘package:GenomeInfoDb’:
+
+    intersect
+
+The following objects are masked from ‘package:IRanges’:
+
+    collapse, desc, intersect, setdiff, slice, union
+
+The following objects are masked from ‘package:S4Vectors’:
+
+    first, intersect, rename, setdiff, setequal, union
+
+The following objects are masked from ‘package:BiocGenerics’:
+
+    combine, intersect, setdiff, union
+
+The following object is masked from ‘package:matrixStats’:
+
+    count
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> ArchR::addArchRThreads(threads = 32)
+Setting default number of Parallel threads to 32.
+> h5disableFileLocking()
+> # ONlY USE 100% patient-specfic 
+> labels <- list.files(pattern = "Marker_Enhancers_ArchR")
+> labels <- str_remove(labels,"Marker_Enhancers_ArchR_")
+> labels <- str_remove(labels,".bed")
+> labels <- labels[-12]# Remove extra
+> print(labels)
+ [1] "0-Fibroblast"              "10-Epithelial_cell"       
+ [3] "16-Fibroblast"             "17-Epithelial_cell"       
+ [5] "19-Epithelial_cell"        "21-Unciliated_epithelia_1"
+ [7] "27-Fibroblast"             "3-Epithelial_cell"        
+ [9] "31-Unciliated_epithelia_1" "34-Epithelial_cell"       
+[11] "9-Epithelial_cell"        
+> 
+> enhancers <- read.delim("Marker_Enhancers_ArchR-nodups.bed",header = F)
+> enhancers <- paste0(enhancers$V1,":",enhancers$V2,"-",enhancers$V3)
+> 
+> # Pseudobulk ATAC enhancer matrix
+> proj.archr <- readRDS("./final_archr_proj_archrGS-P2Gs.rds")
+> peak.mat <- getMatrixFromProject.mod(proj.archr,useMatrix = "PeakMatrix")
+ArchR logging to : ArchRLogs/ArchR-getMatrixFromProject-279d125e75b2-Date-2021-06-23_Time-15-39-42.log
+If there is an issue, please report to github with logFile!
+2021-06-23 15:41:01 : Organizing colData, 1.32 mins elapsed.
+2021-06-23 15:41:01 : Organizing rowData, 1.326 mins elapsed.
+2021-06-23 15:41:01 : Organizing rowRanges, 1.327 mins elapsed.
+2021-06-23 15:41:01 : Organizing Assays (1 of 1), 1.327 mins elapsed.
+2021-06-23 15:42:27 : Constructing SummarizedExperiment, 2.756 mins elapsed.
+2021-06-23 15:42:30 : Finished Matrix Creation, 2.806 mins elapsed.
+> cell.names <- colnames(assay(peak.mat))
+> peak.names <- paste0(seqnames(rowRanges(peak.mat)),":", start(ranges(rowRanges(peak.mat))),"-", end(ranges(rowRanges(peak.mat))))
+> 
+> 
+> peak.mat <- assay(peak.mat)
+> 
+> dim(peak.mat)
+[1] 519525  72507
+> length(cell.names)
+[1] 72507
+> length(peak.names)
+[1] 519525
+> 
+> colnames(peak.mat) <- cell.names
+> rownames(peak.mat) <- peak.names
+> head(peak.mat[,1:4])
+6 x 4 sparse Matrix of class "dgCMatrix"
+                   3571DL#CGCACAGTCTATCTAC-1 3571DL#GCACCTTTCACTTACT-1
+chr1:794811-795311                         .                         .
+chr1:804261-804761                         .                         .
+chr1:817104-817604                         .                         .
+chr1:817941-818441                         .                         .
+chr1:818780-819280                         .                         .
+chr1:822939-823439                         .                         .
+                   3571DL#GTAATCGAGCGTTAGG-1 3571DL#CTGGCAGGTATTCGAC-1
+chr1:794811-795311                         .                         .
+chr1:804261-804761                         .                         .
+chr1:817104-817604                         .                         .
+chr1:817941-818441                         .                         .
+chr1:818780-819280                         .                         .
+chr1:822939-823439                         .                         .
+> 
+> 
+> peaks.pseudobulk <- data.frame(rownames(peak.mat))
+> # Run twice to hit both whitespaces 
+> proj.archr$predictedGroup_ArchR <- str_replace(proj.archr$predictedGroup_ArchR," ","_")
+> proj.archr$predictedGroup_ArchR <- str_replace(proj.archr$predictedGroup_ArchR," ","_")
+> for (i in labels){
++   cells <- rownames(dplyr::filter(as.data.frame(proj.archr@cellColData),predictedGroup_ArchR == i))
++   
++   peak.mat.sub <- peak.mat[,colnames(peak.mat) %in% cells]
++   
++   peaks.bulk <- Matrix::rowSums(peak.mat.sub)
++   
++   peaks.pseudobulk$i <- peaks.bulk
++   colnames(peaks.pseudobulk)[dim(peaks.pseudobulk)[2]] <- i
++   
++   print("Iteration complete")
++ }
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+> 
+> rownames(peaks.pseudobulk) <- peaks.pseudobulk[,1]
+> peaks.pseudobulk <- peaks.pseudobulk[,-1]
+> 
+> print(labels)
+ [1] "0-Fibroblast"              "10-Epithelial_cell"       
+ [3] "16-Fibroblast"             "17-Epithelial_cell"       
+ [5] "19-Epithelial_cell"        "21-Unciliated_epithelia_1"
+ [7] "27-Fibroblast"             "3-Epithelial_cell"        
+ [9] "31-Unciliated_epithelia_1" "34-Epithelial_cell"       
+[11] "9-Epithelial_cell"        
+> print(colnames(peaks.pseudobulk))
+ [1] "0-Fibroblast"              "10-Epithelial_cell"       
+ [3] "16-Fibroblast"             "17-Epithelial_cell"       
+ [5] "19-Epithelial_cell"        "21-Unciliated_epithelia_1"
+ [7] "27-Fibroblast"             "3-Epithelial_cell"        
+ [9] "31-Unciliated_epithelia_1" "34-Epithelial_cell"       
+[11] "9-Epithelial_cell"        
+> dim(peaks.pseudobulk)
+[1] 519525     11
+> head(peaks.pseudobulk[,1:6])
+                   0-Fibroblast 10-Epithelial_cell 16-Fibroblast
+chr1:794811-795311            1                  5            29
+chr1:804261-804761           10                 31             7
+chr1:817104-817604          176                 33            96
+chr1:817941-818441           76                  8            18
+chr1:818780-819280          240                 21            21
+chr1:822939-823439           26                 15             8
+                   17-Epithelial_cell 19-Epithelial_cell
+chr1:794811-795311                  0                  3
+chr1:804261-804761                  6                  5
+chr1:817104-817604                  2                  1
+chr1:817941-818441                  0                  0
+chr1:818780-819280                  2                  5
+chr1:822939-823439                  0                  0
+                   21-Unciliated_epithelia_1
+chr1:794811-795311                         2
+chr1:804261-804761                         3
+chr1:817104-817604                        32
+chr1:817941-818441                         7
+chr1:818780-819280                         6
+chr1:822939-823439                         1
+> 
+> 
+> 
+> peaks.pseudobulk <- peaks.pseudobulk[rownames(peaks.pseudobulk) %in% unique(enhancers),]
+> dim(peaks.pseudobulk)
+[1] 9831   11
+> # Remove enhancer peaks that have ANY zero counts in ANY sample (no replicates)
+> peaks.pseudobulk[peaks.pseudobulk == 0] <- NA
+> peaks.pseudobulk <- peaks.pseudobulk[complete.cases(peaks.pseudobulk),]
+> dim(peaks.pseudobulk)
+[1] 4932   11
+> head(peaks.pseudobulk[,1:6])
+                     0-Fibroblast 10-Epithelial_cell 16-Fibroblast
+chr1:1067672-1068172           72                494            19
+chr1:1144397-1144897          145                182            36
+chr1:1150051-1150551           18                315            17
+chr1:1164733-1165233            5                958           218
+chr1:2014945-2015445           26                351            54
+chr1:2534783-2535283           62                880            44
+                     17-Epithelial_cell 19-Epithelial_cell
+chr1:1067672-1068172                 44                 36
+chr1:1144397-1144897                126                 77
+chr1:1150051-1150551                 83                 58
+chr1:1164733-1165233                207                248
+chr1:2014945-2015445                 54                 37
+chr1:2534783-2535283                114                142
+                     21-Unciliated_epithelia_1
+chr1:1067672-1068172                       114
+chr1:1144397-1144897                        81
+chr1:1150051-1150551                       104
+chr1:1164733-1165233                       173
+chr1:2014945-2015445                       110
+chr1:2534783-2535283                        91
+> 
+> 
+> # Subset original Marker enhancer lists to new updated nonzero enhancers
+> for ( i in 1:length(labels)){
++   file <- paste0("Marker_Enhancers_ArchR_",labels[i],".bed")
++   
++   bed <- read.delim(file,header = F)
++   rownames(bed) <- paste0(bed$V1,":",bed$V2,"-",bed$V3)
++   
++   bed.new <- bed[rownames(bed) %in% rownames(peaks.pseudobulk),]
++   
++   write.table(bed.new,paste0("Marker_Enhancers_ArchR_",labels[i],"-updated.bed"),row.names = F,col.names = F,quote = F,sep = "\t")
++ }
+> 
+> 
+> 
+> writeLines(capture.output(sessionInfo()), "sessionInfo_TFSEE_Step1_NonZero_Enhancers.txt")
+> 
+> proc.time()
+   user  system elapsed 
+519.174 281.430 299.504 
