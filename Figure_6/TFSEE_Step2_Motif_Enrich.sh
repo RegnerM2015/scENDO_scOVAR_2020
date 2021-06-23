@@ -15,7 +15,7 @@ dir=/datastore/nextgenout5/share/labs/francolab/scENDO_scOVAR_Proj/Figure_Making
 
 for i in *-updated.bed
 do 
-
+# FASTA: https://ondemand.bioinf.unc.edu/pun/sys/files/fs/datastore/lbcfs/labs/francolab/Data/refdata-cellranger-atac-GRCh38-1.2.0/fasta
 # Get sequence of marker enhancers for that cluster
 bedtools getfasta -fi ${dir}/genome_hg38.fa -fo enhancers_${i}.fa -bed ${i}
 	
