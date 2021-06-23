@@ -1,0 +1,285 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> library(ArchR)
+Loading required package: ggplot2
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+Loading required package: data.table
+
+Attaching package: ‘data.table’
+
+The following object is masked from ‘package:SummarizedExperiment’:
+
+    shift
+
+The following object is masked from ‘package:GenomicRanges’:
+
+    shift
+
+The following object is masked from ‘package:IRanges’:
+
+    shift
+
+The following objects are masked from ‘package:S4Vectors’:
+
+    first, second
+
+Loading required package: Matrix
+
+Attaching package: ‘Matrix’
+
+The following object is masked from ‘package:S4Vectors’:
+
+    expand
+
+Loading required package: rhdf5
+Loading required package: magrittr
+> library(ChIPpeakAnno)
+> library(stats)
+> ArchR::addArchRThreads(threads = 32)
+Setting default number of Parallel threads to 32.
+> source("./Archr_Peak_Null_Permute.R")
+> source("./Archr_Peak_RawPval.R")
+> source("./getMatrixFromProject.R")
+> h5disableFileLocking()
+> SAMPLE.ID <- "All"
+> key.word.1 <- "pithelia"
+> key.word.2 <- "-Ciliated"
+> proj <- readRDS("./final_archr_proj_archrGS.rds")
+> 
+> p2g.df.obs <- readRDS("./All_P2G_Observed.rds")
+> #Subset to postive correlation P2Gs
+> p2g.df.sub <- dplyr::filter(p2g.df.obs,RawPVal <=1e-12 & Correlation >= 0.45& peakType == "Distal")
+> 
+> 
+> # Marker Peaks for malignant clusters with 100% patient specificity 
+> markersPeaks <- getMarkerFeatures(
++   ArchRProj = proj, 
++   useMatrix = "PeakMatrix", 
++   groupBy = "predictedGroup_ArchR",
++   bias = c("TSSEnrichment", "log10(nFrags)"),
++   testMethod = "wilcoxon"
++ )
+ArchR logging to : ArchRLogs/ArchR-getMarkerFeatures-71637ca37b6b-Date-2021-06-23_Time-13-53-08.log
+If there is an issue, please report to github with logFile!
+2021-06-23 13:53:10 : Matching Known Biases, 0.026 mins elapsed.
+2021-06-23 13:53:40 : Computing Pairwise Tests (1 of 36), 0.541 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (2 of 36), 0.541 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (3 of 36), 0.542 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (4 of 36), 0.542 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (5 of 36), 0.543 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (6 of 36), 0.543 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (7 of 36), 0.544 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (8 of 36), 0.545 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (9 of 36), 0.546 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (10 of 36), 0.547 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (11 of 36), 0.547 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (12 of 36), 0.548 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (13 of 36), 0.549 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (14 of 36), 0.549 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (15 of 36), 0.55 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (16 of 36), 0.551 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (17 of 36), 0.552 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (18 of 36), 0.553 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (19 of 36), 0.553 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (20 of 36), 0.554 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (21 of 36), 0.555 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (22 of 36), 0.556 mins elapsed.
+2021-06-23 13:53:41 : Computing Pairwise Tests (23 of 36), 0.557 mins elapsed.
+2021-06-23 13:53:42 : Computing Pairwise Tests (24 of 36), 0.558 mins elapsed.
+2021-06-23 13:53:42 : Computing Pairwise Tests (25 of 36), 0.558 mins elapsed.
+2021-06-23 13:53:42 : Computing Pairwise Tests (26 of 36), 0.559 mins elapsed.
+2021-06-23 13:53:42 : Computing Pairwise Tests (27 of 36), 0.56 mins elapsed.
+2021-06-23 13:53:42 : Computing Pairwise Tests (28 of 36), 0.561 mins elapsed.
+2021-06-23 13:53:42 : Computing Pairwise Tests (29 of 36), 0.562 mins elapsed.
+2021-06-23 13:53:42 : Computing Pairwise Tests (30 of 36), 0.563 mins elapsed.
+2021-06-23 13:53:42 : Computing Pairwise Tests (31 of 36), 0.564 mins elapsed.
+2021-06-23 13:53:42 : Computing Pairwise Tests (32 of 36), 0.565 mins elapsed.
+2021-06-23 13:57:14 : Computing Pairwise Tests (33 of 36), 4.105 mins elapsed.
+2021-06-23 13:57:20 : Computing Pairwise Tests (34 of 36), 4.196 mins elapsed.
+2021-06-23 13:57:20 : Computing Pairwise Tests (35 of 36), 4.199 mins elapsed.
+2021-06-23 13:57:20 : Computing Pairwise Tests (36 of 36), 4.2 mins elapsed.
+###########
+2021-06-23 13:59:00 : Completed Pairwise Tests, 5.862 mins elapsed.
+###########
+ArchR logging successful to : ArchRLogs/ArchR-getMarkerFeatures-71637ca37b6b-Date-2021-06-23_Time-13-53-08.log
+> 
+> markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1.25")
+> saveRDS(markerList,"markerspeaks.rds")
+> 
+> 
+> print(names(markerList))
+ [1] "0-Fibroblast"              "1-Endothelia"             
+ [3] "2-T cell"                  "3-Epithelial cell"        
+ [5] "4-Lymphocytes"             "5-Macrophage"             
+ [7] "6-Fibroblast"              "7-Smooth muscle cells"    
+ [9] "8-Stromal fibroblasts"     "9-Epithelial cell"        
+[11] "10-Epithelial cell"        "11-Unciliated epithelia 1"
+[13] "12-Stromal fibroblasts"    "13-Macrophages"           
+[15] "14-Stromal fibroblasts"    "15-Stromal fibroblasts"   
+[17] "16-Fibroblast"             "17-Epithelial cell"       
+[19] "18-Fibroblast"             "19-Epithelial cell"       
+[21] "20-Ciliated"               "21-Unciliated epithelia 1"
+[23] "22-Unciliated epithelia 2" "23-Stromal fibroblasts"   
+[25] "24-Fibroblast"             "25-Fibroblast"            
+[27] "26-Fibroblast"             "27-Fibroblast"            
+[29] "28-B cell"                 "29-Fibroblast"            
+[31] "30-T cell"                 "31-Unciliated epithelia 1"
+[33] "32-Mast cell"              "33-Endothelia"            
+[35] "34-Epithelial cell"        "35-B cell"                
+> 
+> idx.1 <- grep(key.word.1,names(markerList))
+> idx.2 <- grep(key.word.2,names(markerList))
+> idx.3 <- grep("16-Fibroblast",names(markerList))
+> idx.4 <- grep("0-Fibroblast",names(markerList))
+> idx.5 <- grep("27-Fibroblast",names(markerList))
+> 
+> idx <- c(idx.1,idx.2,idx.3,idx.4,idx.5)
+> 
+> markerList.sub <- markerList[idx]
+> 
+> print(names(markerList.sub))
+ [1] "3-Epithelial cell"         "9-Epithelial cell"        
+ [3] "10-Epithelial cell"        "11-Unciliated epithelia 1"
+ [5] "17-Epithelial cell"        "19-Epithelial cell"       
+ [7] "21-Unciliated epithelia 1" "22-Unciliated epithelia 2"
+ [9] "31-Unciliated epithelia 1" "34-Epithelial cell"       
+[11] "20-Ciliated"               "16-Fibroblast"            
+[13] "0-Fibroblast"              "27-Fibroblast"            
+> 
+> # Only tumor cell clusters that are 100% patient specific 
+> 
+> df <- as.data.frame(proj@cellColData) %>% dplyr::group_by(predictedGroup_ArchR) %>% 
++   dplyr::count(Sample) 
+> 
+> idents <- table(df$predictedGroup_ArchR)
+> idents.sub <- idents[idents ==1 & names(idents) %in% names(markerList.sub)]
+> 
+> markerList.sub <- markerList.sub[names(idents.sub)] 
+> print(names(markerList.sub))
+ [1] "0-Fibroblast"              "10-Epithelial cell"       
+ [3] "16-Fibroblast"             "17-Epithelial cell"       
+ [5] "19-Epithelial cell"        "21-Unciliated epithelia 1"
+ [7] "27-Fibroblast"             "3-Epithelial cell"        
+ [9] "31-Unciliated epithelia 1" "34-Epithelial cell"       
+[11] "9-Epithelial cell"        
+> # Intersect marker peaks for each cluster with P2Gs and write to bed file
+> for ( i in names(markerList.sub)){
++   data <- unlist(markerList.sub[i])
++   markers <- paste0(data$seqnames,":",data$start,"-",data$end)
++   markers.int <- intersect(p2g.df.sub$peakName,markers)
++   markers.int <- stringr::str_replace(string=markers.int,pattern = ":",replacement = "-")
++   bed <- data.frame(do.call(rbind, strsplit(markers.int, "-", fixed=TRUE)))
++   write.table(bed,paste0("Marker_Enhancers_ArchR_",i,".bed"),row.names = F,col.names = F,quote = F,sep = "\t")
++ }
+> 
+> # Concatenate marker peaks from each cluster and remove redundant peaks
+> data <- unlist(markerList.sub)
+> markers <- paste0(data$seqnames,":",data$start,"-",data$end)
+> markers.int <- intersect(p2g.df.sub$peakName,markers)
+> markers.int <- unique(markers.int)
+> markers.int <- stringr::str_replace(string=markers.int,pattern = ":",replacement = "-")
+> bed <- data.frame(do.call(rbind, strsplit(markers.int, "-", fixed=TRUE)))
+> write.table(bed,"Marker_Enhancers_ArchR-nodups.bed",row.names = F,col.names = F,quote = F,sep = "\t")
+> 
+> 
+> 
+> writeLines(capture.output(sessionInfo()), "sessionInfo_Intersect_DiffPeaks_P2Gs.txt")
+> 
+> proc.time()
+    user   system  elapsed 
+5244.351  854.806  428.121 
