@@ -69,13 +69,17 @@ peaks.pseudobulk <- peaks.pseudobulk[,-1]
 print(labels)
 print(colnames(peaks.pseudobulk))
 dim(peaks.pseudobulk)
+head(peaks.pseudobulk[,1:6])
+
+
 
 peaks.pseudobulk <- peaks.pseudobulk[rownames(peaks.pseudobulk) %in% unique(enhancers),]
-
+dim(peaks.pseudobulk)
 # Remove enhancer peaks that have ANY zero counts in ANY sample (no replicates)
 peaks.pseudobulk[peaks.pseudobulk == 0] <- NA
 peaks.pseudobulk <- peaks.pseudobulk[complete.cases(peaks.pseudobulk),]
-
+dim(peaks.pseudobulk)
+head(peaks.pseudobulk[,1:6])
 
 
 # Subset original Marker enhancer lists to new updated nonzero enhancers
