@@ -66,6 +66,10 @@ for (i in labels){
 rownames(peaks.pseudobulk) <- peaks.pseudobulk[,1]
 peaks.pseudobulk <- peaks.pseudobulk[,-1]
 
+print(labels)
+print(colnames(peaks.pseudobulk))
+dim(peaks.pseudobulk)
+
 peaks.pseudobulk <- peaks.pseudobulk[rownames(peaks.pseudobulk) %in% unique(enhancers),]
 
 # Remove enhancer peaks that have ANY zero counts in ANY sample (no replicates)
