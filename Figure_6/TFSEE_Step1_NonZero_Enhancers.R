@@ -23,7 +23,7 @@ labels <- list.files(pattern = "Marker_Enhancers_ArchR")
 labels <- str_remove(labels,"Marker_Enhancers_ArchR_")
 labels <- str_remove(labels,".bed")
 labels <- labels[-12]# Remove extra
-
+print(labels)
 
 enhancers <- read.delim("Marker_Enhancers_ArchR-nodups.bed",header = F)
 enhancers <- paste0(enhancers$V1,":",enhancers$V2,"-",enhancers$V3)
