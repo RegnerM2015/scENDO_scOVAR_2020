@@ -1,0 +1,61 @@
+R version 4.0.3 (2020-10-10)
+Platform: x86_64-conda-linux-gnu (64-bit)
+Running under: CentOS Linux 7 (Core)
+
+Matrix products: default
+BLAS/LAPACK: /home/regnerm/anaconda3/envs/scENDO_scOVAR/lib/libopenblasp-r0.3.12.so
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] parallel  stats4    stats     graphics  grDevices utils     datasets 
+[8] methods   base     
+
+other attached packages:
+ [1] nabor_0.5.0                 ChIPpeakAnno_3.24.2        
+ [3] ArchR_0.9.5                 magrittr_2.0.1             
+ [5] rhdf5_2.34.0                Matrix_1.3-2               
+ [7] data.table_1.14.0           SummarizedExperiment_1.20.0
+ [9] Biobase_2.50.0              GenomicRanges_1.42.0       
+[11] GenomeInfoDb_1.26.4         IRanges_2.24.1             
+[13] S4Vectors_0.28.1            BiocGenerics_0.36.0        
+[15] MatrixGenerics_1.2.1        matrixStats_0.58.0         
+[17] ggplot2_3.3.3              
+
+loaded via a namespace (and not attached):
+ [1] ProtGenerics_1.22.0      bitops_1.0-6             bit64_4.0.5             
+ [4] progress_1.2.2           httr_1.4.2               tools_4.0.3             
+ [7] utf8_1.2.1               R6_2.5.0                 DBI_1.1.1               
+[10] lazyeval_0.2.2           colorspace_2.0-0         rhdf5filters_1.2.0      
+[13] withr_2.4.1              tidyselect_1.1.0         prettyunits_1.1.1       
+[16] bit_4.0.4                curl_4.3                 compiler_4.0.3          
+[19] VennDiagram_1.6.20       graph_1.68.0             formatR_1.8             
+[22] xml2_1.3.2               DelayedArray_0.16.2      rtracklayer_1.50.0      
+[25] scales_1.1.1             RBGL_1.66.0              askpass_1.1             
+[28] rappdirs_0.3.3           stringr_1.4.0            Rsamtools_2.6.0         
+[31] XVector_0.30.0           pkgconfig_2.0.3          BSgenome_1.58.0         
+[34] regioneR_1.22.0          dbplyr_2.1.0             fastmap_1.1.0           
+[37] ensembldb_2.14.0         rlang_0.4.10             rstudioapi_0.13         
+[40] RSQLite_2.2.4            generics_0.1.0           gtools_3.8.2            
+[43] BiocParallel_1.24.1      dplyr_1.0.5              RCurl_1.98-1.3          
+[46] GenomeInfoDbData_1.2.4   futile.logger_1.4.3      Rcpp_1.0.6              
+[49] munsell_0.5.0            Rhdf5lib_1.12.1          fansi_0.4.2             
+[52] lifecycle_1.0.0          stringi_1.5.3            MASS_7.3-53.1           
+[55] zlibbioc_1.36.0          plyr_1.8.6               BiocFileCache_1.14.0    
+[58] grid_4.0.3               blob_1.2.1               crayon_1.4.1            
+[61] lattice_0.20-41          splines_4.0.3            Biostrings_2.58.0       
+[64] multtest_2.46.0          GenomicFeatures_1.42.2   hms_1.0.0               
+[67] KEGGREST_1.30.1          pillar_1.5.1             codetools_0.2-18        
+[70] biomaRt_2.46.3           futile.options_1.0.1     XML_3.99-0.6            
+[73] glue_1.4.2               lambda.r_1.2.4           vctrs_0.3.6             
+[76] png_0.1-7                gtable_0.3.0             openssl_1.4.3           
+[79] purrr_0.3.4              assertthat_0.2.1         cachem_1.0.4            
+[82] AnnotationFilter_1.14.0  survival_3.2-10          tibble_3.1.0            
+[85] GenomicAlignments_1.26.0 AnnotationDbi_1.52.0     memoise_2.0.0           
+[88] ellipsis_0.3.1          
