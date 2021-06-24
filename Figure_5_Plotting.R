@@ -73,7 +73,7 @@ plot <- plotBrowserTrack(atac,geneSymbol = "LAPTM4B", groupBy = "new.groups",
 )
 
 
-pdf("LAPTM4B_malignant_normal-Patients-OVCAR3.pdf",width =6,height = 2.5)
+pdf("LAPTM4B_malignant_normal-Patients-OVCAR3.pdf",width =6,height = 3)
 grid::grid.draw(plot[[1]])
 dev.off()
 
@@ -86,7 +86,7 @@ plot <- plotBrowserTrack(atac,geneSymbol = "LAPTM4B", groupBy = "new.groups",
 )
 
 
-pdf("LAPTM4B_malignant_normal-Patients.pdf",width =6,height = 3)
+pdf("LAPTM4B_malignant_normal-Patients.pdf",width =6,height = 3.5)
 grid::grid.draw(plot[[1]])
 dev.off()
 
@@ -118,7 +118,7 @@ plot <- plotBrowserTrack(atac,geneSymbol = "LAPTM4B", groupBy = "new.groups",
 )
 
 
-pdf("LAPTM4B_malignant_normal-OVCAR3.pdf",width =6,height = 2.5)
+pdf("LAPTM4B_malignant_normal-OVCAR3.pdf",width =6,height = 3)
 grid::grid.draw(plot[[1]])
 dev.off()
 
@@ -131,7 +131,7 @@ plot <- plotBrowserTrack(atac,geneSymbol = "LAPTM4B", groupBy = "new.groups",
 )
 
 
-pdf("LAPTM4B_malignant_normal.pdf",width =6,height = 3)
+pdf("LAPTM4B_malignant_normal.pdf",width =6,height = 3.5)
 grid::grid.draw(plot[[1]])
 dev.off()
 
