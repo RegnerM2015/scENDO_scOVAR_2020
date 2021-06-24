@@ -1,0 +1,1673 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> library(ArchR)
+Loading required package: ggplot2
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+Loading required package: data.table
+
+Attaching package: ‘data.table’
+
+The following object is masked from ‘package:SummarizedExperiment’:
+
+    shift
+
+The following object is masked from ‘package:GenomicRanges’:
+
+    shift
+
+The following object is masked from ‘package:IRanges’:
+
+    shift
+
+The following objects are masked from ‘package:S4Vectors’:
+
+    first, second
+
+Loading required package: Matrix
+
+Attaching package: ‘Matrix’
+
+The following object is masked from ‘package:S4Vectors’:
+
+    expand
+
+Loading required package: rhdf5
+Loading required package: magrittr
+
+Attaching package: ‘ArchR’
+
+The following objects are masked _by_ ‘.GlobalEnv’:
+
+    addArchRDebugging, addArchRLogging, addCoAccessibility,
+    addPeak2GeneLinks, correlateMatrices, correlateTrajectories,
+    createLogFile, filterDoublets, getArchRDebugging, getArchRLogging,
+    getCoAccessibility, getFragmentsFromArrow, getMatrixFromArrow,
+    getMatrixFromProject, getPeak2GeneLinks, peak2GeneHeatmap,
+    plotPeak2GeneHeatmap, validBSgenome
+
+> library(ChIPpeakAnno)
+> library(stats)
+> ArchR::addArchRThreads(threads = 64)
+Setting default number of Parallel threads to 64.
+> source("./Archr_Peak_Null_Permute.R")
+> source("./Archr_Peak_RawPval.R")
+> dir.create("./Significant_P2G_Outputs_Patient2")
+> SAMPLE.ID <- "EEC"
+> key.word.1 <- "pithelia"
+> key.word.2 <- "-Ciliated"
+> 
+> 
+> # Permuated p2g links 
+> #################################################################################################################
+> proj <- readRDS("./final_archr_proj_archrGS.rds")
+> idxSample <- BiocGenerics::which(proj$Sample =="3571DL")
+> cellsSample <- proj$cellNames[idxSample]
+> proj <- proj[cellsSample, ]
+> 
+> store <- as.numeric(0)
+> for (i in 1:100){
++   proj.null <- addPermPeak2GeneLinks(
++     ArchRProj = proj ,
++     reducedDims = "IterativeLSI",
++     useMatrix = "GeneIntegrationMatrix_ArchR",
++     dimsToUse = 1:50,
++     scaleDims = NULL,
++     corCutOff = 0.75,
++     k = 100,
++     knnIteration = 500,
++     overlapCutoff = 0.8,
++     maxDist = 250000,
++     scaleTo = 10^4,
++     log2Norm = TRUE,
++     predictionCutoff = 0.5,
++     seed = 1,
++     threads = max(floor(getArchRThreads()/2), 1),
++     verbose = TRUE,
++     logFile = createLogFile("addPeak2GeneLinks")
++   ) 
++   p2geneDF <- metadata(proj.null@peakSet)$Peak2GeneLinks
++   p2geneDF$geneName <- mcols(metadata(p2geneDF)$geneSet)$name[p2geneDF$idxRNA]
++   p2geneDF$peakName <- (metadata(p2geneDF)$peakSet %>% {paste0(seqnames(.), "_", start(.), "_", end(.))})[p2geneDF$idxATAC]
++   p2g.df.null <- as.data.frame(p2geneDF)
++   p2g.df.null <- p2g.df.null[complete.cases(p2g.df.null),]
++   p2g.null.sub <- dplyr::filter(p2g.df.null,RawPVal <=1e-12)
++   store[i] <- nrow(p2g.null.sub)
++ }
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e40037c37-Date-2021-06-21_Time-10-42-54.log
+If there is an issue, please report to github with logFile!
+2021-06-21 10:42:56 : Getting Available Matrices, 0.033 mins elapsed.
+2021-06-21 10:43:47 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.01 mins elapsed.
+2021-06-21 10:43:48 : Computing KNN, 0.026 mins elapsed.
+2021-06-21 10:43:54 : Identifying Non-Overlapping KNN pairs, 0.119 mins elapsed.
+2021-06-21 10:43:57 : Identified 466 Groupings!, 0.167 mins elapsed.
+2021-06-21 10:43:57 : Getting Group RNA Matrix, 0.172 mins elapsed.
+2021-06-21 10:44:38 : Getting Group ATAC Matrix, 0.858 mins elapsed.
+2021-06-21 10:45:47 : Normalizing Group Matrices, 1.999 mins elapsed.
+2021-06-21 10:46:05 : Finding Peak Gene Pairings, 2.299 mins elapsed.
+2021-06-21 10:46:27 : Completed Peak2Gene Correlations!, 2.673 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e40037c37-Date-2021-06-21_Time-10-42-54.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3518a7e-Date-2021-06-21_Time-10-46-30.log
+If there is an issue, please report to github with logFile!
+2021-06-21 10:46:32 : Getting Available Matrices, 0.031 mins elapsed.
+2021-06-21 10:46:35 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 10:46:35 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 10:46:35 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 10:46:38 : Identified 466 Groupings!, 0.052 mins elapsed.
+2021-06-21 10:46:38 : Getting Group RNA Matrix, 0.053 mins elapsed.
+2021-06-21 10:47:17 : Getting Group ATAC Matrix, 0.696 mins elapsed.
+2021-06-21 10:48:24 : Normalizing Group Matrices, 1.82 mins elapsed.
+2021-06-21 10:48:42 : Finding Peak Gene Pairings, 2.117 mins elapsed.
+2021-06-21 10:49:04 : Completed Peak2Gene Correlations!, 2.483 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3518a7e-Date-2021-06-21_Time-10-46-30.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1085789c-Date-2021-06-21_Time-10-49-06.log
+If there is an issue, please report to github with logFile!
+2021-06-21 10:49:07 : Getting Available Matrices, 0.028 mins elapsed.
+2021-06-21 10:49:08 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 10:49:09 : Computing KNN, 0.01 mins elapsed.
+2021-06-21 10:49:09 : Identifying Non-Overlapping KNN pairs, 0.013 mins elapsed.
+2021-06-21 10:49:11 : Identified 466 Groupings!, 0.055 mins elapsed.
+2021-06-21 10:49:11 : Getting Group RNA Matrix, 0.056 mins elapsed.
+2021-06-21 10:49:50 : Getting Group ATAC Matrix, 0.7 mins elapsed.
+2021-06-21 10:51:00 : Normalizing Group Matrices, 1.865 mins elapsed.
+2021-06-21 10:51:19 : Finding Peak Gene Pairings, 2.183 mins elapsed.
+2021-06-21 10:51:42 : Completed Peak2Gene Correlations!, 2.574 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1085789c-Date-2021-06-21_Time-10-49-06.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eaf7bd86-Date-2021-06-21_Time-10-51-44.log
+If there is an issue, please report to github with logFile!
+2021-06-21 10:51:46 : Getting Available Matrices, 0.035 mins elapsed.
+2021-06-21 10:51:47 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 10:51:48 : Computing KNN, 0.011 mins elapsed.
+2021-06-21 10:51:48 : Identifying Non-Overlapping KNN pairs, 0.013 mins elapsed.
+2021-06-21 10:51:51 : Identified 466 Groupings!, 0.06 mins elapsed.
+2021-06-21 10:51:51 : Getting Group RNA Matrix, 0.062 mins elapsed.
+2021-06-21 10:52:37 : Getting Group ATAC Matrix, 0.83 mins elapsed.
+2021-06-21 10:53:48 : Normalizing Group Matrices, 2.006 mins elapsed.
+2021-06-21 10:54:10 : Finding Peak Gene Pairings, 2.375 mins elapsed.
+2021-06-21 10:54:35 : Completed Peak2Gene Correlations!, 2.801 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eaf7bd86-Date-2021-06-21_Time-10-51-44.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4220f1f8-Date-2021-06-21_Time-10-54-37.log
+If there is an issue, please report to github with logFile!
+2021-06-21 10:54:39 : Getting Available Matrices, 0.031 mins elapsed.
+2021-06-21 10:54:40 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 10:54:41 : Computing KNN, 0.007 mins elapsed.
+2021-06-21 10:54:41 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 10:54:43 : Identified 466 Groupings!, 0.054 mins elapsed.
+2021-06-21 10:54:43 : Getting Group RNA Matrix, 0.056 mins elapsed.
+2021-06-21 10:55:30 : Getting Group ATAC Matrix, 0.839 mins elapsed.
+2021-06-21 10:56:35 : Normalizing Group Matrices, 1.923 mins elapsed.
+2021-06-21 10:56:52 : Finding Peak Gene Pairings, 2.203 mins elapsed.
+2021-06-21 10:57:13 : Completed Peak2Gene Correlations!, 2.543 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4220f1f8-Date-2021-06-21_Time-10-54-37.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e2d9e30d5-Date-2021-06-21_Time-10-57-14.log
+If there is an issue, please report to github with logFile!
+2021-06-21 10:57:16 : Getting Available Matrices, 0.031 mins elapsed.
+2021-06-21 10:57:17 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 10:57:17 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 10:57:17 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 10:57:20 : Identified 466 Groupings!, 0.05 mins elapsed.
+2021-06-21 10:57:20 : Getting Group RNA Matrix, 0.051 mins elapsed.
+2021-06-21 10:58:01 : Getting Group ATAC Matrix, 0.737 mins elapsed.
+2021-06-21 10:59:05 : Normalizing Group Matrices, 1.81 mins elapsed.
+2021-06-21 10:59:22 : Finding Peak Gene Pairings, 2.089 mins elapsed.
+2021-06-21 10:59:41 : Completed Peak2Gene Correlations!, 2.407 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e2d9e30d5-Date-2021-06-21_Time-10-57-14.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e57a9e3ea-Date-2021-06-21_Time-10-59-43.log
+If there is an issue, please report to github with logFile!
+2021-06-21 10:59:45 : Getting Available Matrices, 0.033 mins elapsed.
+2021-06-21 10:59:46 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 10:59:46 : Computing KNN, 0.008 mins elapsed.
+2021-06-21 10:59:47 : Identifying Non-Overlapping KNN pairs, 0.01 mins elapsed.
+2021-06-21 10:59:49 : Identified 466 Groupings!, 0.057 mins elapsed.
+2021-06-21 10:59:50 : Getting Group RNA Matrix, 0.059 mins elapsed.
+2021-06-21 11:00:26 : Getting Group ATAC Matrix, 0.659 mins elapsed.
+2021-06-21 11:01:28 : Normalizing Group Matrices, 1.706 mins elapsed.
+2021-06-21 11:01:44 : Finding Peak Gene Pairings, 1.974 mins elapsed.
+2021-06-21 11:02:06 : Completed Peak2Gene Correlations!, 2.337 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e57a9e3ea-Date-2021-06-21_Time-10-59-43.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1607d460-Date-2021-06-21_Time-11-02-08.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:02:09 : Getting Available Matrices, 0.028 mins elapsed.
+2021-06-21 11:02:10 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:02:11 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 11:02:11 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 11:02:14 : Identified 466 Groupings!, 0.057 mins elapsed.
+2021-06-21 11:02:14 : Getting Group RNA Matrix, 0.058 mins elapsed.
+2021-06-21 11:02:58 : Getting Group ATAC Matrix, 0.789 mins elapsed.
+2021-06-21 11:04:01 : Normalizing Group Matrices, 1.851 mins elapsed.
+2021-06-21 11:04:17 : Finding Peak Gene Pairings, 2.111 mins elapsed.
+2021-06-21 11:04:38 : Completed Peak2Gene Correlations!, 2.467 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1607d460-Date-2021-06-21_Time-11-02-08.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eee636fc-Date-2021-06-21_Time-11-04-40.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:04:41 : Getting Available Matrices, 0.028 mins elapsed.
+2021-06-21 11:04:42 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:04:43 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 11:04:43 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 11:04:45 : Identified 466 Groupings!, 0.05 mins elapsed.
+2021-06-21 11:04:45 : Getting Group RNA Matrix, 0.052 mins elapsed.
+2021-06-21 11:05:31 : Getting Group ATAC Matrix, 0.817 mins elapsed.
+2021-06-21 11:06:39 : Normalizing Group Matrices, 1.953 mins elapsed.
+2021-06-21 11:06:58 : Finding Peak Gene Pairings, 2.265 mins elapsed.
+2021-06-21 11:07:21 : Completed Peak2Gene Correlations!, 2.65 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eee636fc-Date-2021-06-21_Time-11-04-40.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5b24459b-Date-2021-06-21_Time-11-07-23.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:07:25 : Getting Available Matrices, 0.028 mins elapsed.
+2021-06-21 11:07:26 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:07:26 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 11:07:26 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 11:07:29 : Identified 466 Groupings!, 0.05 mins elapsed.
+2021-06-21 11:07:29 : Getting Group RNA Matrix, 0.052 mins elapsed.
+2021-06-21 11:08:12 : Getting Group ATAC Matrix, 0.767 mins elapsed.
+2021-06-21 11:09:19 : Normalizing Group Matrices, 1.89 mins elapsed.
+2021-06-21 11:09:37 : Finding Peak Gene Pairings, 2.188 mins elapsed.
+2021-06-21 11:10:02 : Completed Peak2Gene Correlations!, 2.598 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5b24459b-Date-2021-06-21_Time-11-07-23.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5fdfde43-Date-2021-06-21_Time-11-10-03.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:10:05 : Getting Available Matrices, 0.037 mins elapsed.
+2021-06-21 11:10:07 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:10:08 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 11:10:08 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 11:10:10 : Identified 466 Groupings!, 0.051 mins elapsed.
+2021-06-21 11:10:11 : Getting Group RNA Matrix, 0.053 mins elapsed.
+2021-06-21 11:10:59 : Getting Group ATAC Matrix, 0.856 mins elapsed.
+2021-06-21 11:12:08 : Normalizing Group Matrices, 2.003 mins elapsed.
+2021-06-21 11:12:26 : Finding Peak Gene Pairings, 2.316 mins elapsed.
+2021-06-21 11:12:54 : Completed Peak2Gene Correlations!, 2.781 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5fdfde43-Date-2021-06-21_Time-11-10-03.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1e0ddf6e-Date-2021-06-21_Time-11-12-56.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:12:58 : Getting Available Matrices, 0.035 mins elapsed.
+2021-06-21 11:13:00 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:13:00 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 11:13:00 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 11:13:03 : Identified 466 Groupings!, 0.053 mins elapsed.
+2021-06-21 11:13:03 : Getting Group RNA Matrix, 0.054 mins elapsed.
+2021-06-21 11:13:46 : Getting Group ATAC Matrix, 0.765 mins elapsed.
+2021-06-21 11:14:54 : Normalizing Group Matrices, 1.908 mins elapsed.
+2021-06-21 11:15:13 : Finding Peak Gene Pairings, 2.216 mins elapsed.
+2021-06-21 11:15:41 : Completed Peak2Gene Correlations!, 2.688 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1e0ddf6e-Date-2021-06-21_Time-11-12-56.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e2fb66f4e-Date-2021-06-21_Time-11-15-42.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:15:44 : Getting Available Matrices, 0.033 mins elapsed.
+2021-06-21 11:15:47 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:15:47 : Computing KNN, 0.007 mins elapsed.
+2021-06-21 11:15:48 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 11:15:50 : Identified 466 Groupings!, 0.056 mins elapsed.
+2021-06-21 11:15:50 : Getting Group RNA Matrix, 0.057 mins elapsed.
+2021-06-21 11:16:38 : Getting Group ATAC Matrix, 0.851 mins elapsed.
+2021-06-21 11:17:49 : Normalizing Group Matrices, 2.031 mins elapsed.
+2021-06-21 11:18:08 : Finding Peak Gene Pairings, 2.347 mins elapsed.
+2021-06-21 11:18:30 : Completed Peak2Gene Correlations!, 2.719 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e2fb66f4e-Date-2021-06-21_Time-11-15-42.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e7eebd7d-Date-2021-06-21_Time-11-18-32.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:18:33 : Getting Available Matrices, 0.03 mins elapsed.
+2021-06-21 11:18:37 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:18:38 : Computing KNN, 0.015 mins elapsed.
+2021-06-21 11:18:38 : Identifying Non-Overlapping KNN pairs, 0.017 mins elapsed.
+2021-06-21 11:18:41 : Identified 466 Groupings!, 0.064 mins elapsed.
+2021-06-21 11:18:41 : Getting Group RNA Matrix, 0.065 mins elapsed.
+2021-06-21 11:19:18 : Getting Group ATAC Matrix, 0.694 mins elapsed.
+2021-06-21 11:20:24 : Normalizing Group Matrices, 1.788 mins elapsed.
+2021-06-21 11:20:42 : Finding Peak Gene Pairings, 2.096 mins elapsed.
+2021-06-21 11:21:07 : Completed Peak2Gene Correlations!, 2.512 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e7eebd7d-Date-2021-06-21_Time-11-18-32.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3aafad30-Date-2021-06-21_Time-11-21-09.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:21:11 : Getting Available Matrices, 0.037 mins elapsed.
+2021-06-21 11:21:13 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:21:13 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 11:21:13 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 11:21:16 : Identified 466 Groupings!, 0.056 mins elapsed.
+2021-06-21 11:21:16 : Getting Group RNA Matrix, 0.057 mins elapsed.
+2021-06-21 11:21:57 : Getting Group ATAC Matrix, 0.737 mins elapsed.
+2021-06-21 11:23:03 : Normalizing Group Matrices, 1.838 mins elapsed.
+2021-06-21 11:23:22 : Finding Peak Gene Pairings, 2.161 mins elapsed.
+2021-06-21 11:23:47 : Completed Peak2Gene Correlations!, 2.573 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3aafad30-Date-2021-06-21_Time-11-21-09.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e59c1abbf-Date-2021-06-21_Time-11-23-48.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:23:51 : Getting Available Matrices, 0.04 mins elapsed.
+2021-06-21 11:23:54 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:23:54 : Computing KNN, 0.007 mins elapsed.
+2021-06-21 11:23:54 : Identifying Non-Overlapping KNN pairs, 0.01 mins elapsed.
+2021-06-21 11:23:57 : Identified 466 Groupings!, 0.056 mins elapsed.
+2021-06-21 11:23:57 : Getting Group RNA Matrix, 0.058 mins elapsed.
+2021-06-21 11:24:33 : Getting Group ATAC Matrix, 0.647 mins elapsed.
+2021-06-21 11:25:40 : Normalizing Group Matrices, 1.771 mins elapsed.
+2021-06-21 11:25:59 : Finding Peak Gene Pairings, 2.09 mins elapsed.
+2021-06-21 11:26:32 : Completed Peak2Gene Correlations!, 2.635 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e59c1abbf-Date-2021-06-21_Time-11-23-48.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eecacc7c-Date-2021-06-21_Time-11-26-33.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:26:35 : Getting Available Matrices, 0.031 mins elapsed.
+2021-06-21 11:26:36 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:26:37 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 11:26:37 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 11:26:40 : Identified 466 Groupings!, 0.057 mins elapsed.
+2021-06-21 11:26:40 : Getting Group RNA Matrix, 0.058 mins elapsed.
+2021-06-21 11:27:28 : Getting Group ATAC Matrix, 0.864 mins elapsed.
+2021-06-21 11:28:39 : Normalizing Group Matrices, 2.05 mins elapsed.
+2021-06-21 11:28:58 : Finding Peak Gene Pairings, 2.36 mins elapsed.
+2021-06-21 11:29:26 : Completed Peak2Gene Correlations!, 2.838 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eecacc7c-Date-2021-06-21_Time-11-26-33.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49ef941635-Date-2021-06-21_Time-11-29-28.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:29:30 : Getting Available Matrices, 0.037 mins elapsed.
+2021-06-21 11:29:32 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:29:32 : Computing KNN, 0.012 mins elapsed.
+2021-06-21 11:29:32 : Identifying Non-Overlapping KNN pairs, 0.014 mins elapsed.
+2021-06-21 11:29:35 : Identified 466 Groupings!, 0.061 mins elapsed.
+2021-06-21 11:29:35 : Getting Group RNA Matrix, 0.063 mins elapsed.
+2021-06-21 11:30:26 : Getting Group ATAC Matrix, 0.903 mins elapsed.
+2021-06-21 11:31:32 : Normalizing Group Matrices, 2.007 mins elapsed.
+2021-06-21 11:31:51 : Finding Peak Gene Pairings, 2.33 mins elapsed.
+2021-06-21 11:32:14 : Completed Peak2Gene Correlations!, 2.706 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49ef941635-Date-2021-06-21_Time-11-29-28.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49effaaa1d-Date-2021-06-21_Time-11-32-15.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:32:18 : Getting Available Matrices, 0.038 mins elapsed.
+2021-06-21 11:32:19 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.002 mins elapsed.
+2021-06-21 11:32:19 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 11:32:19 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 11:32:22 : Identified 466 Groupings!, 0.056 mins elapsed.
+2021-06-21 11:32:22 : Getting Group RNA Matrix, 0.057 mins elapsed.
+2021-06-21 11:33:03 : Getting Group ATAC Matrix, 0.734 mins elapsed.
+2021-06-21 11:34:17 : Normalizing Group Matrices, 1.967 mins elapsed.
+2021-06-21 11:34:37 : Finding Peak Gene Pairings, 2.296 mins elapsed.
+2021-06-21 11:35:05 : Completed Peak2Gene Correlations!, 2.768 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49effaaa1d-Date-2021-06-21_Time-11-32-15.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eecb190e-Date-2021-06-21_Time-11-35-06.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:35:11 : Getting Available Matrices, 0.069 mins elapsed.
+2021-06-21 11:35:12 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:35:12 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 11:35:13 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 11:35:15 : Identified 466 Groupings!, 0.055 mins elapsed.
+2021-06-21 11:35:15 : Getting Group RNA Matrix, 0.056 mins elapsed.
+2021-06-21 11:36:00 : Getting Group ATAC Matrix, 0.799 mins elapsed.
+2021-06-21 11:37:13 : Normalizing Group Matrices, 2.009 mins elapsed.
+2021-06-21 11:37:34 : Finding Peak Gene Pairings, 2.357 mins elapsed.
+2021-06-21 11:37:57 : Completed Peak2Gene Correlations!, 2.751 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eecb190e-Date-2021-06-21_Time-11-35-06.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e323bc4e1-Date-2021-06-21_Time-11-37-59.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:38:01 : Getting Available Matrices, 0.038 mins elapsed.
+2021-06-21 11:38:02 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:38:02 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 11:38:02 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 11:38:05 : Identified 466 Groupings!, 0.056 mins elapsed.
+2021-06-21 11:38:05 : Getting Group RNA Matrix, 0.058 mins elapsed.
+2021-06-21 11:38:43 : Getting Group ATAC Matrix, 0.686 mins elapsed.
+2021-06-21 11:39:52 : Normalizing Group Matrices, 1.829 mins elapsed.
+2021-06-21 11:40:12 : Finding Peak Gene Pairings, 2.172 mins elapsed.
+2021-06-21 11:40:55 : Completed Peak2Gene Correlations!, 2.883 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e323bc4e1-Date-2021-06-21_Time-11-37-59.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4f5b72a1-Date-2021-06-21_Time-11-40-57.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:40:58 : Getting Available Matrices, 0.033 mins elapsed.
+2021-06-21 11:41:00 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:41:00 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 11:41:00 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 11:41:03 : Identified 466 Groupings!, 0.056 mins elapsed.
+2021-06-21 11:41:03 : Getting Group RNA Matrix, 0.058 mins elapsed.
+2021-06-21 11:41:53 : Getting Group ATAC Matrix, 0.883 mins elapsed.
+2021-06-21 11:43:13 : Normalizing Group Matrices, 2.229 mins elapsed.
+2021-06-21 11:43:33 : Finding Peak Gene Pairings, 2.553 mins elapsed.
+2021-06-21 11:44:04 : Completed Peak2Gene Correlations!, 3.078 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4f5b72a1-Date-2021-06-21_Time-11-40-57.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3b2fb90d-Date-2021-06-21_Time-11-44-06.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:44:08 : Getting Available Matrices, 0.046 mins elapsed.
+2021-06-21 11:44:10 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.01 mins elapsed.
+2021-06-21 11:44:11 : Computing KNN, 0.015 mins elapsed.
+2021-06-21 11:44:11 : Identifying Non-Overlapping KNN pairs, 0.018 mins elapsed.
+2021-06-21 11:44:14 : Identified 466 Groupings!, 0.065 mins elapsed.
+2021-06-21 11:44:14 : Getting Group RNA Matrix, 0.067 mins elapsed.
+2021-06-21 11:45:03 : Getting Group ATAC Matrix, 0.894 mins elapsed.
+2021-06-21 11:46:15 : Normalizing Group Matrices, 2.084 mins elapsed.
+2021-06-21 11:46:33 : Finding Peak Gene Pairings, 2.385 mins elapsed.
+2021-06-21 11:46:56 : Completed Peak2Gene Correlations!, 2.772 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3b2fb90d-Date-2021-06-21_Time-11-44-06.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3a575b8d-Date-2021-06-21_Time-11-46-58.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:47:00 : Getting Available Matrices, 0.04 mins elapsed.
+2021-06-21 11:47:01 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:47:01 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 11:47:01 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 11:47:04 : Identified 466 Groupings!, 0.056 mins elapsed.
+2021-06-21 11:47:04 : Getting Group RNA Matrix, 0.058 mins elapsed.
+2021-06-21 11:47:46 : Getting Group ATAC Matrix, 0.742 mins elapsed.
+2021-06-21 11:49:02 : Normalizing Group Matrices, 2.024 mins elapsed.
+2021-06-21 11:49:24 : Finding Peak Gene Pairings, 2.382 mins elapsed.
+2021-06-21 11:49:52 : Completed Peak2Gene Correlations!, 2.853 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3a575b8d-Date-2021-06-21_Time-11-46-58.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e51fd3113-Date-2021-06-21_Time-11-49-54.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:49:56 : Getting Available Matrices, 0.038 mins elapsed.
+2021-06-21 11:49:57 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:49:58 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 11:49:58 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 11:50:01 : Identified 466 Groupings!, 0.057 mins elapsed.
+2021-06-21 11:50:01 : Getting Group RNA Matrix, 0.059 mins elapsed.
+2021-06-21 11:50:45 : Getting Group ATAC Matrix, 0.789 mins elapsed.
+2021-06-21 11:51:59 : Normalizing Group Matrices, 2.024 mins elapsed.
+2021-06-21 11:52:19 : Finding Peak Gene Pairings, 2.366 mins elapsed.
+2021-06-21 11:52:44 : Completed Peak2Gene Correlations!, 2.774 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e51fd3113-Date-2021-06-21_Time-11-49-54.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e70fc2e09-Date-2021-06-21_Time-11-52-46.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:52:48 : Getting Available Matrices, 0.037 mins elapsed.
+2021-06-21 11:52:49 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:52:50 : Computing KNN, 0.01 mins elapsed.
+2021-06-21 11:52:50 : Identifying Non-Overlapping KNN pairs, 0.013 mins elapsed.
+2021-06-21 11:52:53 : Identified 466 Groupings!, 0.063 mins elapsed.
+2021-06-21 11:52:53 : Getting Group RNA Matrix, 0.066 mins elapsed.
+2021-06-21 11:53:36 : Getting Group ATAC Matrix, 0.782 mins elapsed.
+2021-06-21 11:54:44 : Normalizing Group Matrices, 1.911 mins elapsed.
+2021-06-21 11:55:04 : Finding Peak Gene Pairings, 2.255 mins elapsed.
+2021-06-21 11:55:31 : Completed Peak2Gene Correlations!, 2.7 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e70fc2e09-Date-2021-06-21_Time-11-52-46.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3b3ad656-Date-2021-06-21_Time-11-55-33.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:55:35 : Getting Available Matrices, 0.04 mins elapsed.
+2021-06-21 11:55:37 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:55:38 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 11:55:38 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 11:55:41 : Identified 466 Groupings!, 0.057 mins elapsed.
+2021-06-21 11:55:41 : Getting Group RNA Matrix, 0.059 mins elapsed.
+2021-06-21 11:56:27 : Getting Group ATAC Matrix, 0.835 mins elapsed.
+2021-06-21 11:57:42 : Normalizing Group Matrices, 2.087 mins elapsed.
+2021-06-21 11:58:02 : Finding Peak Gene Pairings, 2.413 mins elapsed.
+2021-06-21 11:58:25 : Completed Peak2Gene Correlations!, 2.802 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3b3ad656-Date-2021-06-21_Time-11-55-33.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e6f9e0b12-Date-2021-06-21_Time-11-58-27.log
+If there is an issue, please report to github with logFile!
+2021-06-21 11:58:29 : Getting Available Matrices, 0.034 mins elapsed.
+2021-06-21 11:58:30 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 11:58:30 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 11:58:30 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 11:58:33 : Identified 466 Groupings!, 0.058 mins elapsed.
+2021-06-21 11:58:33 : Getting Group RNA Matrix, 0.059 mins elapsed.
+2021-06-21 11:59:14 : Getting Group ATAC Matrix, 0.735 mins elapsed.
+2021-06-21 12:00:21 : Normalizing Group Matrices, 1.859 mins elapsed.
+2021-06-21 12:00:41 : Finding Peak Gene Pairings, 2.185 mins elapsed.
+2021-06-21 12:01:03 : Completed Peak2Gene Correlations!, 2.559 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e6f9e0b12-Date-2021-06-21_Time-11-58-27.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e777b17f5-Date-2021-06-21_Time-12-01-05.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:01:07 : Getting Available Matrices, 0.039 mins elapsed.
+2021-06-21 12:01:11 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:01:11 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 12:01:12 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 12:01:14 : Identified 466 Groupings!, 0.055 mins elapsed.
+2021-06-21 12:01:14 : Getting Group RNA Matrix, 0.056 mins elapsed.
+2021-06-21 12:01:53 : Getting Group ATAC Matrix, 0.703 mins elapsed.
+2021-06-21 12:02:59 : Normalizing Group Matrices, 1.807 mins elapsed.
+2021-06-21 12:03:18 : Finding Peak Gene Pairings, 2.112 mins elapsed.
+2021-06-21 12:03:42 : Completed Peak2Gene Correlations!, 2.522 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e777b17f5-Date-2021-06-21_Time-12-01-05.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eb630afa-Date-2021-06-21_Time-12-03-44.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:03:46 : Getting Available Matrices, 0.035 mins elapsed.
+2021-06-21 12:03:47 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:03:47 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 12:03:48 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 12:03:50 : Identified 466 Groupings!, 0.053 mins elapsed.
+2021-06-21 12:03:50 : Getting Group RNA Matrix, 0.055 mins elapsed.
+2021-06-21 12:04:26 : Getting Group ATAC Matrix, 0.655 mins elapsed.
+2021-06-21 12:05:37 : Normalizing Group Matrices, 1.827 mins elapsed.
+2021-06-21 12:05:54 : Finding Peak Gene Pairings, 2.112 mins elapsed.
+2021-06-21 12:06:15 : Completed Peak2Gene Correlations!, 2.463 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eb630afa-Date-2021-06-21_Time-12-03-44.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e15f9db40-Date-2021-06-21_Time-12-06-17.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:06:19 : Getting Available Matrices, 0.034 mins elapsed.
+2021-06-21 12:06:20 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:06:20 : Computing KNN, 0.004 mins elapsed.
+2021-06-21 12:06:20 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 12:06:23 : Identified 466 Groupings!, 0.051 mins elapsed.
+2021-06-21 12:06:23 : Getting Group RNA Matrix, 0.053 mins elapsed.
+2021-06-21 12:07:03 : Getting Group ATAC Matrix, 0.726 mins elapsed.
+2021-06-21 12:08:07 : Normalizing Group Matrices, 1.789 mins elapsed.
+2021-06-21 12:08:24 : Finding Peak Gene Pairings, 2.075 mins elapsed.
+2021-06-21 12:08:47 : Completed Peak2Gene Correlations!, 2.454 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e15f9db40-Date-2021-06-21_Time-12-06-17.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e377e942c-Date-2021-06-21_Time-12-08-48.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:08:51 : Getting Available Matrices, 0.043 mins elapsed.
+2021-06-21 12:08:52 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:08:52 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 12:08:52 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 12:08:55 : Identified 466 Groupings!, 0.051 mins elapsed.
+2021-06-21 12:08:55 : Getting Group RNA Matrix, 0.052 mins elapsed.
+2021-06-21 12:09:35 : Getting Group ATAC Matrix, 0.715 mins elapsed.
+2021-06-21 12:10:41 : Normalizing Group Matrices, 1.816 mins elapsed.
+2021-06-21 12:10:59 : Finding Peak Gene Pairings, 2.112 mins elapsed.
+2021-06-21 12:11:22 : Completed Peak2Gene Correlations!, 2.501 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e377e942c-Date-2021-06-21_Time-12-08-48.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eeb49579-Date-2021-06-21_Time-12-11-23.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:11:26 : Getting Available Matrices, 0.036 mins elapsed.
+2021-06-21 12:11:27 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:11:27 : Computing KNN, 0.004 mins elapsed.
+2021-06-21 12:11:27 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 12:11:30 : Identified 466 Groupings!, 0.052 mins elapsed.
+2021-06-21 12:11:30 : Getting Group RNA Matrix, 0.054 mins elapsed.
+2021-06-21 12:12:08 : Getting Group ATAC Matrix, 0.692 mins elapsed.
+2021-06-21 12:13:10 : Normalizing Group Matrices, 1.722 mins elapsed.
+2021-06-21 12:13:27 : Finding Peak Gene Pairings, 2.008 mins elapsed.
+2021-06-21 12:13:52 : Completed Peak2Gene Correlations!, 2.425 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eeb49579-Date-2021-06-21_Time-12-11-23.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e267f53dd-Date-2021-06-21_Time-12-13-53.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:13:56 : Getting Available Matrices, 0.037 mins elapsed.
+2021-06-21 12:13:57 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:13:57 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 12:13:57 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 12:14:00 : Identified 466 Groupings!, 0.052 mins elapsed.
+2021-06-21 12:14:00 : Getting Group RNA Matrix, 0.054 mins elapsed.
+2021-06-21 12:14:47 : Getting Group ATAC Matrix, 0.836 mins elapsed.
+2021-06-21 12:15:57 : Normalizing Group Matrices, 2.012 mins elapsed.
+2021-06-21 12:16:16 : Finding Peak Gene Pairings, 2.315 mins elapsed.
+2021-06-21 12:16:40 : Completed Peak2Gene Correlations!, 2.713 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e267f53dd-Date-2021-06-21_Time-12-13-53.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e427651b3-Date-2021-06-21_Time-12-16-41.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:16:43 : Getting Available Matrices, 0.039 mins elapsed.
+2021-06-21 12:16:44 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:16:45 : Computing KNN, 0.014 mins elapsed.
+2021-06-21 12:16:45 : Identifying Non-Overlapping KNN pairs, 0.017 mins elapsed.
+2021-06-21 12:16:48 : Identified 466 Groupings!, 0.061 mins elapsed.
+2021-06-21 12:16:48 : Getting Group RNA Matrix, 0.063 mins elapsed.
+2021-06-21 12:17:34 : Getting Group ATAC Matrix, 0.819 mins elapsed.
+2021-06-21 12:18:45 : Normalizing Group Matrices, 2.008 mins elapsed.
+2021-06-21 12:19:02 : Finding Peak Gene Pairings, 2.29 mins elapsed.
+2021-06-21 12:19:25 : Completed Peak2Gene Correlations!, 2.679 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e427651b3-Date-2021-06-21_Time-12-16-41.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e50d58771-Date-2021-06-21_Time-12-19-26.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:19:29 : Getting Available Matrices, 0.043 mins elapsed.
+2021-06-21 12:19:33 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:19:33 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 12:19:33 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 12:19:36 : Identified 466 Groupings!, 0.051 mins elapsed.
+2021-06-21 12:19:36 : Getting Group RNA Matrix, 0.053 mins elapsed.
+2021-06-21 12:20:19 : Getting Group ATAC Matrix, 0.776 mins elapsed.
+2021-06-21 12:21:28 : Normalizing Group Matrices, 1.92 mins elapsed.
+2021-06-21 12:21:45 : Finding Peak Gene Pairings, 2.21 mins elapsed.
+2021-06-21 12:22:24 : Completed Peak2Gene Correlations!, 2.855 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e50d58771-Date-2021-06-21_Time-12-19-26.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e541d84b2-Date-2021-06-21_Time-12-22-25.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:22:28 : Getting Available Matrices, 0.036 mins elapsed.
+2021-06-21 12:22:29 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:22:29 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 12:22:30 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 12:22:32 : Identified 466 Groupings!, 0.051 mins elapsed.
+2021-06-21 12:22:32 : Getting Group RNA Matrix, 0.053 mins elapsed.
+2021-06-21 12:23:12 : Getting Group ATAC Matrix, 0.714 mins elapsed.
+2021-06-21 12:24:17 : Normalizing Group Matrices, 1.8 mins elapsed.
+2021-06-21 12:24:34 : Finding Peak Gene Pairings, 2.083 mins elapsed.
+2021-06-21 12:25:02 : Completed Peak2Gene Correlations!, 2.547 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e541d84b2-Date-2021-06-21_Time-12-22-25.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1a20359d-Date-2021-06-21_Time-12-25-04.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:25:07 : Getting Available Matrices, 0.037 mins elapsed.
+2021-06-21 12:25:10 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:25:10 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 12:25:10 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 12:25:13 : Identified 466 Groupings!, 0.053 mins elapsed.
+2021-06-21 12:25:13 : Getting Group RNA Matrix, 0.055 mins elapsed.
+2021-06-21 12:26:02 : Getting Group ATAC Matrix, 0.873 mins elapsed.
+2021-06-21 12:27:08 : Normalizing Group Matrices, 1.98 mins elapsed.
+2021-06-21 12:27:26 : Finding Peak Gene Pairings, 2.269 mins elapsed.
+2021-06-21 12:27:55 : Completed Peak2Gene Correlations!, 2.75 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1a20359d-Date-2021-06-21_Time-12-25-04.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e66dd5bd1-Date-2021-06-21_Time-12-27-56.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:27:58 : Getting Available Matrices, 0.033 mins elapsed.
+2021-06-21 12:28:00 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:28:01 : Computing KNN, 0.011 mins elapsed.
+2021-06-21 12:28:01 : Identifying Non-Overlapping KNN pairs, 0.013 mins elapsed.
+2021-06-21 12:28:03 : Identified 466 Groupings!, 0.057 mins elapsed.
+2021-06-21 12:28:03 : Getting Group RNA Matrix, 0.059 mins elapsed.
+2021-06-21 12:28:48 : Getting Group ATAC Matrix, 0.795 mins elapsed.
+2021-06-21 12:30:00 : Normalizing Group Matrices, 1.995 mins elapsed.
+2021-06-21 12:30:18 : Finding Peak Gene Pairings, 2.297 mins elapsed.
+2021-06-21 12:30:55 : Completed Peak2Gene Correlations!, 2.924 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e66dd5bd1-Date-2021-06-21_Time-12-27-56.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e6303bbaf-Date-2021-06-21_Time-12-30-57.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:30:59 : Getting Available Matrices, 0.036 mins elapsed.
+2021-06-21 12:31:03 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.012 mins elapsed.
+2021-06-21 12:31:03 : Computing KNN, 0.019 mins elapsed.
+2021-06-21 12:31:03 : Identifying Non-Overlapping KNN pairs, 0.021 mins elapsed.
+2021-06-21 12:31:06 : Identified 466 Groupings!, 0.067 mins elapsed.
+2021-06-21 12:31:06 : Getting Group RNA Matrix, 0.068 mins elapsed.
+2021-06-21 12:31:57 : Getting Group ATAC Matrix, 0.91 mins elapsed.
+2021-06-21 12:33:08 : Normalizing Group Matrices, 2.099 mins elapsed.
+2021-06-21 12:33:28 : Finding Peak Gene Pairings, 2.427 mins elapsed.
+2021-06-21 12:33:51 : Completed Peak2Gene Correlations!, 2.816 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e6303bbaf-Date-2021-06-21_Time-12-30-57.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e75447b38-Date-2021-06-21_Time-12-33-52.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:33:55 : Getting Available Matrices, 0.038 mins elapsed.
+2021-06-21 12:33:57 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:33:57 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 12:33:58 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 12:34:00 : Identified 466 Groupings!, 0.053 mins elapsed.
+2021-06-21 12:34:00 : Getting Group RNA Matrix, 0.055 mins elapsed.
+2021-06-21 12:34:47 : Getting Group ATAC Matrix, 0.826 mins elapsed.
+2021-06-21 12:35:54 : Normalizing Group Matrices, 1.952 mins elapsed.
+2021-06-21 12:36:12 : Finding Peak Gene Pairings, 2.247 mins elapsed.
+2021-06-21 12:36:41 : Completed Peak2Gene Correlations!, 2.73 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e75447b38-Date-2021-06-21_Time-12-33-52.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e46bd3a14-Date-2021-06-21_Time-12-36-43.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:36:45 : Getting Available Matrices, 0.034 mins elapsed.
+2021-06-21 12:36:46 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:36:46 : Computing KNN, 0.004 mins elapsed.
+2021-06-21 12:36:46 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 12:36:49 : Identified 466 Groupings!, 0.053 mins elapsed.
+2021-06-21 12:36:49 : Getting Group RNA Matrix, 0.054 mins elapsed.
+2021-06-21 12:37:35 : Getting Group ATAC Matrix, 0.826 mins elapsed.
+2021-06-21 12:38:45 : Normalizing Group Matrices, 1.987 mins elapsed.
+2021-06-21 12:39:04 : Finding Peak Gene Pairings, 2.295 mins elapsed.
+2021-06-21 12:39:27 : Completed Peak2Gene Correlations!, 2.684 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e46bd3a14-Date-2021-06-21_Time-12-36-43.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1119b1d-Date-2021-06-21_Time-12-39-28.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:39:31 : Getting Available Matrices, 0.034 mins elapsed.
+2021-06-21 12:39:33 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:39:33 : Computing KNN, 0.004 mins elapsed.
+2021-06-21 12:39:33 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 12:39:36 : Identified 466 Groupings!, 0.052 mins elapsed.
+2021-06-21 12:39:36 : Getting Group RNA Matrix, 0.053 mins elapsed.
+2021-06-21 12:40:19 : Getting Group ATAC Matrix, 0.764 mins elapsed.
+2021-06-21 12:41:27 : Normalizing Group Matrices, 1.907 mins elapsed.
+2021-06-21 12:41:44 : Finding Peak Gene Pairings, 2.193 mins elapsed.
+2021-06-21 12:42:08 : Completed Peak2Gene Correlations!, 2.588 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1119b1d-Date-2021-06-21_Time-12-39-28.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e24faea86-Date-2021-06-21_Time-12-42-09.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:42:14 : Getting Available Matrices, 0.07 mins elapsed.
+2021-06-21 12:42:16 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:42:16 : Computing KNN, 0.01 mins elapsed.
+2021-06-21 12:42:17 : Identifying Non-Overlapping KNN pairs, 0.013 mins elapsed.
+2021-06-21 12:42:19 : Identified 466 Groupings!, 0.057 mins elapsed.
+2021-06-21 12:42:19 : Getting Group RNA Matrix, 0.059 mins elapsed.
+2021-06-21 12:42:54 : Getting Group ATAC Matrix, 0.64 mins elapsed.
+2021-06-21 12:44:01 : Normalizing Group Matrices, 1.751 mins elapsed.
+2021-06-21 12:44:21 : Finding Peak Gene Pairings, 2.085 mins elapsed.
+2021-06-21 12:44:44 : Completed Peak2Gene Correlations!, 2.474 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e24faea86-Date-2021-06-21_Time-12-42-09.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4eabf791-Date-2021-06-21_Time-12-44-46.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:44:53 : Getting Available Matrices, 0.123 mins elapsed.
+2021-06-21 12:44:57 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:44:57 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 12:44:57 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 12:45:00 : Identified 466 Groupings!, 0.058 mins elapsed.
+2021-06-21 12:45:00 : Getting Group RNA Matrix, 0.059 mins elapsed.
+2021-06-21 12:45:41 : Getting Group ATAC Matrix, 0.735 mins elapsed.
+2021-06-21 12:46:48 : Normalizing Group Matrices, 1.856 mins elapsed.
+2021-06-21 12:47:07 : Finding Peak Gene Pairings, 2.175 mins elapsed.
+2021-06-21 12:47:31 : Completed Peak2Gene Correlations!, 2.575 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4eabf791-Date-2021-06-21_Time-12-44-46.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3bc1484d-Date-2021-06-21_Time-12-47-33.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:47:35 : Getting Available Matrices, 0.041 mins elapsed.
+2021-06-21 12:47:36 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:47:37 : Computing KNN, 0.004 mins elapsed.
+2021-06-21 12:47:37 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 12:47:40 : Identified 466 Groupings!, 0.058 mins elapsed.
+2021-06-21 12:47:40 : Getting Group RNA Matrix, 0.059 mins elapsed.
+2021-06-21 12:48:25 : Getting Group ATAC Matrix, 0.812 mins elapsed.
+2021-06-21 12:49:32 : Normalizing Group Matrices, 1.935 mins elapsed.
+2021-06-21 12:49:54 : Finding Peak Gene Pairings, 2.3 mins elapsed.
+2021-06-21 12:50:24 : Completed Peak2Gene Correlations!, 2.788 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3bc1484d-Date-2021-06-21_Time-12-47-33.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e7ebc9645-Date-2021-06-21_Time-12-50-25.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:50:28 : Getting Available Matrices, 0.041 mins elapsed.
+2021-06-21 12:50:33 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.009 mins elapsed.
+2021-06-21 12:50:33 : Computing KNN, 0.014 mins elapsed.
+2021-06-21 12:50:33 : Identifying Non-Overlapping KNN pairs, 0.016 mins elapsed.
+2021-06-21 12:50:36 : Identified 466 Groupings!, 0.065 mins elapsed.
+2021-06-21 12:50:36 : Getting Group RNA Matrix, 0.067 mins elapsed.
+2021-06-21 12:51:16 : Getting Group ATAC Matrix, 0.739 mins elapsed.
+2021-06-21 12:52:20 : Normalizing Group Matrices, 1.801 mins elapsed.
+2021-06-21 12:52:40 : Finding Peak Gene Pairings, 2.123 mins elapsed.
+2021-06-21 12:53:05 : Completed Peak2Gene Correlations!, 2.543 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e7ebc9645-Date-2021-06-21_Time-12-50-25.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5d76c40d-Date-2021-06-21_Time-12-53-06.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:53:09 : Getting Available Matrices, 0.042 mins elapsed.
+2021-06-21 12:53:10 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:53:10 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 12:53:10 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 12:53:13 : Identified 466 Groupings!, 0.059 mins elapsed.
+2021-06-21 12:53:13 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 12:53:51 : Getting Group ATAC Matrix, 0.695 mins elapsed.
+2021-06-21 12:55:00 : Normalizing Group Matrices, 1.834 mins elapsed.
+2021-06-21 12:55:18 : Finding Peak Gene Pairings, 2.141 mins elapsed.
+2021-06-21 12:55:45 : Completed Peak2Gene Correlations!, 2.582 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5d76c40d-Date-2021-06-21_Time-12-53-06.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4b555e83-Date-2021-06-21_Time-12-55-46.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:55:49 : Getting Available Matrices, 0.043 mins elapsed.
+2021-06-21 12:55:53 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:55:53 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 12:55:53 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 12:55:56 : Identified 466 Groupings!, 0.059 mins elapsed.
+2021-06-21 12:55:56 : Getting Group RNA Matrix, 0.06 mins elapsed.
+2021-06-21 12:56:40 : Getting Group ATAC Matrix, 0.792 mins elapsed.
+2021-06-21 12:57:49 : Normalizing Group Matrices, 1.932 mins elapsed.
+2021-06-21 12:58:08 : Finding Peak Gene Pairings, 2.258 mins elapsed.
+2021-06-21 12:58:34 : Completed Peak2Gene Correlations!, 2.684 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4b555e83-Date-2021-06-21_Time-12-55-46.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eeb74062-Date-2021-06-21_Time-12-58-35.log
+If there is an issue, please report to github with logFile!
+2021-06-21 12:58:38 : Getting Available Matrices, 0.041 mins elapsed.
+2021-06-21 12:58:40 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 12:58:40 : Computing KNN, 0.004 mins elapsed.
+2021-06-21 12:58:40 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 12:58:43 : Identified 466 Groupings!, 0.057 mins elapsed.
+2021-06-21 12:58:43 : Getting Group RNA Matrix, 0.059 mins elapsed.
+2021-06-21 12:59:23 : Getting Group ATAC Matrix, 0.721 mins elapsed.
+2021-06-21 13:00:33 : Normalizing Group Matrices, 1.898 mins elapsed.
+2021-06-21 13:00:53 : Finding Peak Gene Pairings, 2.224 mins elapsed.
+2021-06-21 13:01:24 : Completed Peak2Gene Correlations!, 2.74 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eeb74062-Date-2021-06-21_Time-12-58-35.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e6c41dd1b-Date-2021-06-21_Time-13-01-25.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:01:27 : Getting Available Matrices, 0.033 mins elapsed.
+2021-06-21 13:01:30 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:01:30 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 13:01:30 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 13:01:33 : Identified 466 Groupings!, 0.056 mins elapsed.
+2021-06-21 13:01:33 : Getting Group RNA Matrix, 0.058 mins elapsed.
+2021-06-21 13:02:11 : Getting Group ATAC Matrix, 0.691 mins elapsed.
+2021-06-21 13:03:20 : Normalizing Group Matrices, 1.835 mins elapsed.
+2021-06-21 13:03:40 : Finding Peak Gene Pairings, 2.176 mins elapsed.
+2021-06-21 13:04:06 : Completed Peak2Gene Correlations!, 2.61 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e6c41dd1b-Date-2021-06-21_Time-13-01-25.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e7d912364-Date-2021-06-21_Time-13-04-08.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:04:10 : Getting Available Matrices, 0.036 mins elapsed.
+2021-06-21 13:04:12 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:04:12 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 13:04:12 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 13:04:15 : Identified 466 Groupings!, 0.055 mins elapsed.
+2021-06-21 13:04:15 : Getting Group RNA Matrix, 0.057 mins elapsed.
+2021-06-21 13:04:55 : Getting Group ATAC Matrix, 0.718 mins elapsed.
+2021-06-21 13:06:11 : Normalizing Group Matrices, 1.997 mins elapsed.
+2021-06-21 13:06:30 : Finding Peak Gene Pairings, 2.312 mins elapsed.
+2021-06-21 13:06:56 : Completed Peak2Gene Correlations!, 2.738 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e7d912364-Date-2021-06-21_Time-13-04-08.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5e12b304-Date-2021-06-21_Time-13-06-57.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:06:59 : Getting Available Matrices, 0.03 mins elapsed.
+2021-06-21 13:07:00 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:07:00 : Computing KNN, 0.004 mins elapsed.
+2021-06-21 13:07:00 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 13:07:03 : Identified 466 Groupings!, 0.054 mins elapsed.
+2021-06-21 13:07:03 : Getting Group RNA Matrix, 0.056 mins elapsed.
+2021-06-21 13:07:47 : Getting Group ATAC Matrix, 0.782 mins elapsed.
+2021-06-21 13:09:05 : Normalizing Group Matrices, 2.077 mins elapsed.
+2021-06-21 13:09:25 : Finding Peak Gene Pairings, 2.415 mins elapsed.
+2021-06-21 13:09:53 : Completed Peak2Gene Correlations!, 2.877 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5e12b304-Date-2021-06-21_Time-13-06-57.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e27719628-Date-2021-06-21_Time-13-09-54.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:09:56 : Getting Available Matrices, 0.032 mins elapsed.
+2021-06-21 13:09:58 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:09:59 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 13:09:59 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 13:10:02 : Identified 466 Groupings!, 0.06 mins elapsed.
+2021-06-21 13:10:02 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 13:10:50 : Getting Group ATAC Matrix, 0.861 mins elapsed.
+2021-06-21 13:12:01 : Normalizing Group Matrices, 2.047 mins elapsed.
+2021-06-21 13:12:22 : Finding Peak Gene Pairings, 2.394 mins elapsed.
+2021-06-21 13:12:54 : Completed Peak2Gene Correlations!, 2.924 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e27719628-Date-2021-06-21_Time-13-09-54.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e37e87ef1-Date-2021-06-21_Time-13-12-56.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:12:57 : Getting Available Matrices, 0.029 mins elapsed.
+2021-06-21 13:13:01 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:13:02 : Computing KNN, 0.007 mins elapsed.
+2021-06-21 13:13:02 : Identifying Non-Overlapping KNN pairs, 0.01 mins elapsed.
+2021-06-21 13:13:05 : Identified 466 Groupings!, 0.061 mins elapsed.
+2021-06-21 13:13:05 : Getting Group RNA Matrix, 0.062 mins elapsed.
+2021-06-21 13:13:52 : Getting Group ATAC Matrix, 0.846 mins elapsed.
+2021-06-21 13:15:07 : Normalizing Group Matrices, 2.094 mins elapsed.
+2021-06-21 13:15:27 : Finding Peak Gene Pairings, 2.431 mins elapsed.
+2021-06-21 13:15:58 : Completed Peak2Gene Correlations!, 2.951 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e37e87ef1-Date-2021-06-21_Time-13-12-56.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e300fe417-Date-2021-06-21_Time-13-16-00.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:16:02 : Getting Available Matrices, 0.031 mins elapsed.
+2021-06-21 13:16:03 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:16:04 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 13:16:04 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 13:16:07 : Identified 466 Groupings!, 0.059 mins elapsed.
+2021-06-21 13:16:07 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 13:16:53 : Getting Group ATAC Matrix, 0.827 mins elapsed.
+2021-06-21 13:18:10 : Normalizing Group Matrices, 2.11 mins elapsed.
+2021-06-21 13:18:30 : Finding Peak Gene Pairings, 2.449 mins elapsed.
+2021-06-21 13:18:58 : Completed Peak2Gene Correlations!, 2.905 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e300fe417-Date-2021-06-21_Time-13-16-00.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e186dc432-Date-2021-06-21_Time-13-18-59.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:19:01 : Getting Available Matrices, 0.031 mins elapsed.
+2021-06-21 13:19:02 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:19:02 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 13:19:03 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 13:19:06 : Identified 466 Groupings!, 0.058 mins elapsed.
+2021-06-21 13:19:06 : Getting Group RNA Matrix, 0.06 mins elapsed.
+2021-06-21 13:19:53 : Getting Group ATAC Matrix, 0.853 mins elapsed.
+2021-06-21 13:21:08 : Normalizing Group Matrices, 2.097 mins elapsed.
+2021-06-21 13:21:28 : Finding Peak Gene Pairings, 2.438 mins elapsed.
+2021-06-21 13:21:57 : Completed Peak2Gene Correlations!, 2.921 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e186dc432-Date-2021-06-21_Time-13-18-59.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e73235547-Date-2021-06-21_Time-13-21-59.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:22:01 : Getting Available Matrices, 0.028 mins elapsed.
+2021-06-21 13:22:03 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:22:04 : Computing KNN, 0.018 mins elapsed.
+2021-06-21 13:22:04 : Identifying Non-Overlapping KNN pairs, 0.021 mins elapsed.
+2021-06-21 13:22:07 : Identified 466 Groupings!, 0.076 mins elapsed.
+2021-06-21 13:22:07 : Getting Group RNA Matrix, 0.078 mins elapsed.
+2021-06-21 13:22:58 : Getting Group ATAC Matrix, 0.934 mins elapsed.
+2021-06-21 13:24:12 : Normalizing Group Matrices, 2.153 mins elapsed.
+2021-06-21 13:24:31 : Finding Peak Gene Pairings, 2.472 mins elapsed.
+2021-06-21 13:25:00 : Completed Peak2Gene Correlations!, 2.952 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e73235547-Date-2021-06-21_Time-13-21-59.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1fadef2a-Date-2021-06-21_Time-13-25-01.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:25:03 : Getting Available Matrices, 0.034 mins elapsed.
+2021-06-21 13:25:05 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:25:06 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 13:25:06 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 13:25:09 : Identified 466 Groupings!, 0.059 mins elapsed.
+2021-06-21 13:25:09 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 13:26:02 : Getting Group ATAC Matrix, 0.94 mins elapsed.
+2021-06-21 13:27:20 : Normalizing Group Matrices, 2.252 mins elapsed.
+2021-06-21 13:27:39 : Finding Peak Gene Pairings, 2.57 mins elapsed.
+2021-06-21 13:28:06 : Completed Peak2Gene Correlations!, 3.016 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1fadef2a-Date-2021-06-21_Time-13-25-01.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49efe8dc27-Date-2021-06-21_Time-13-28-08.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:28:10 : Getting Available Matrices, 0.034 mins elapsed.
+2021-06-21 13:28:12 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:28:12 : Computing KNN, 0.004 mins elapsed.
+2021-06-21 13:28:12 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 13:28:15 : Identified 466 Groupings!, 0.059 mins elapsed.
+2021-06-21 13:28:15 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 13:29:08 : Getting Group ATAC Matrix, 0.944 mins elapsed.
+2021-06-21 13:30:29 : Normalizing Group Matrices, 2.298 mins elapsed.
+2021-06-21 13:30:52 : Finding Peak Gene Pairings, 2.68 mins elapsed.
+2021-06-21 13:31:20 : Completed Peak2Gene Correlations!, 3.149 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49efe8dc27-Date-2021-06-21_Time-13-28-08.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e7e866042-Date-2021-06-21_Time-13-31-22.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:31:24 : Getting Available Matrices, 0.034 mins elapsed.
+2021-06-21 13:31:25 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:31:25 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 13:31:26 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 13:31:29 : Identified 466 Groupings!, 0.058 mins elapsed.
+2021-06-21 13:31:29 : Getting Group RNA Matrix, 0.06 mins elapsed.
+2021-06-21 13:32:17 : Getting Group ATAC Matrix, 0.862 mins elapsed.
+2021-06-21 13:33:33 : Normalizing Group Matrices, 2.125 mins elapsed.
+2021-06-21 13:33:53 : Finding Peak Gene Pairings, 2.462 mins elapsed.
+2021-06-21 13:34:21 : Completed Peak2Gene Correlations!, 2.939 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e7e866042-Date-2021-06-21_Time-13-31-22.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e35a7ca6a-Date-2021-06-21_Time-13-34-23.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:34:25 : Getting Available Matrices, 0.032 mins elapsed.
+2021-06-21 13:34:26 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:34:26 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 13:34:26 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 13:34:30 : Identified 466 Groupings!, 0.06 mins elapsed.
+2021-06-21 13:34:30 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 13:35:18 : Getting Group ATAC Matrix, 0.86 mins elapsed.
+2021-06-21 13:36:35 : Normalizing Group Matrices, 2.15 mins elapsed.
+2021-06-21 13:36:55 : Finding Peak Gene Pairings, 2.475 mins elapsed.
+2021-06-21 13:37:21 : Completed Peak2Gene Correlations!, 2.913 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e35a7ca6a-Date-2021-06-21_Time-13-34-23.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e47677054-Date-2021-06-21_Time-13-37-22.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:37:24 : Getting Available Matrices, 0.029 mins elapsed.
+2021-06-21 13:37:26 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:37:26 : Computing KNN, 0.004 mins elapsed.
+2021-06-21 13:37:26 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 13:37:29 : Identified 466 Groupings!, 0.059 mins elapsed.
+2021-06-21 13:37:29 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 13:38:13 : Getting Group ATAC Matrix, 0.786 mins elapsed.
+2021-06-21 13:39:22 : Normalizing Group Matrices, 1.946 mins elapsed.
+2021-06-21 13:39:42 : Finding Peak Gene Pairings, 2.267 mins elapsed.
+2021-06-21 13:40:06 : Completed Peak2Gene Correlations!, 2.679 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e47677054-Date-2021-06-21_Time-13-37-22.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49ed3af5bb-Date-2021-06-21_Time-13-40-08.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:40:10 : Getting Available Matrices, 0.033 mins elapsed.
+2021-06-21 13:40:11 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:40:11 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 13:40:11 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 13:40:14 : Identified 466 Groupings!, 0.059 mins elapsed.
+2021-06-21 13:40:14 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 13:41:06 : Getting Group ATAC Matrix, 0.929 mins elapsed.
+2021-06-21 13:42:30 : Normalizing Group Matrices, 2.328 mins elapsed.
+2021-06-21 13:42:53 : Finding Peak Gene Pairings, 2.699 mins elapsed.
+2021-06-21 13:43:21 : Completed Peak2Gene Correlations!, 3.177 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49ed3af5bb-Date-2021-06-21_Time-13-40-08.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5c271e47-Date-2021-06-21_Time-13-43-23.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:43:25 : Getting Available Matrices, 0.03 mins elapsed.
+2021-06-21 13:43:27 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:43:28 : Computing KNN, 0.011 mins elapsed.
+2021-06-21 13:43:28 : Identifying Non-Overlapping KNN pairs, 0.014 mins elapsed.
+2021-06-21 13:43:31 : Identified 466 Groupings!, 0.069 mins elapsed.
+2021-06-21 13:43:31 : Getting Group RNA Matrix, 0.071 mins elapsed.
+2021-06-21 13:44:19 : Getting Group ATAC Matrix, 0.873 mins elapsed.
+2021-06-21 13:45:32 : Normalizing Group Matrices, 2.076 mins elapsed.
+2021-06-21 13:45:51 : Finding Peak Gene Pairings, 2.406 mins elapsed.
+2021-06-21 13:46:35 : Completed Peak2Gene Correlations!, 3.128 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5c271e47-Date-2021-06-21_Time-13-43-23.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e9ddc207-Date-2021-06-21_Time-13-46-36.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:46:39 : Getting Available Matrices, 0.042 mins elapsed.
+2021-06-21 13:46:40 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:46:40 : Computing KNN, 0.004 mins elapsed.
+2021-06-21 13:46:40 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 13:46:43 : Identified 466 Groupings!, 0.06 mins elapsed.
+2021-06-21 13:46:44 : Getting Group RNA Matrix, 0.062 mins elapsed.
+2021-06-21 13:47:28 : Getting Group ATAC Matrix, 0.806 mins elapsed.
+2021-06-21 13:48:49 : Normalizing Group Matrices, 2.157 mins elapsed.
+2021-06-21 13:49:09 : Finding Peak Gene Pairings, 2.478 mins elapsed.
+2021-06-21 13:49:34 : Completed Peak2Gene Correlations!, 2.907 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e9ddc207-Date-2021-06-21_Time-13-46-36.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5e107d2c-Date-2021-06-21_Time-13-49-36.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:49:38 : Getting Available Matrices, 0.031 mins elapsed.
+2021-06-21 13:49:39 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:49:39 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 13:49:39 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 13:49:42 : Identified 466 Groupings!, 0.059 mins elapsed.
+2021-06-21 13:49:42 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 13:50:32 : Getting Group ATAC Matrix, 0.881 mins elapsed.
+2021-06-21 13:52:02 : Normalizing Group Matrices, 2.382 mins elapsed.
+2021-06-21 13:52:23 : Finding Peak Gene Pairings, 2.733 mins elapsed.
+2021-06-21 13:52:52 : Completed Peak2Gene Correlations!, 3.222 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5e107d2c-Date-2021-06-21_Time-13-49-36.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3044a2fa-Date-2021-06-21_Time-13-52-54.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:52:56 : Getting Available Matrices, 0.032 mins elapsed.
+2021-06-21 13:52:59 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:52:59 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 13:52:59 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 13:53:02 : Identified 466 Groupings!, 0.06 mins elapsed.
+2021-06-21 13:53:02 : Getting Group RNA Matrix, 0.062 mins elapsed.
+2021-06-21 13:53:53 : Getting Group ATAC Matrix, 0.899 mins elapsed.
+2021-06-21 13:55:19 : Normalizing Group Matrices, 2.334 mins elapsed.
+2021-06-21 13:55:40 : Finding Peak Gene Pairings, 2.691 mins elapsed.
+2021-06-21 13:56:13 : Completed Peak2Gene Correlations!, 3.231 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3044a2fa-Date-2021-06-21_Time-13-52-54.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e23fdf7a4-Date-2021-06-21_Time-13-56-14.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:56:17 : Getting Available Matrices, 0.035 mins elapsed.
+2021-06-21 13:56:18 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:56:18 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 13:56:19 : Identifying Non-Overlapping KNN pairs, 0.01 mins elapsed.
+2021-06-21 13:56:22 : Identified 466 Groupings!, 0.062 mins elapsed.
+2021-06-21 13:56:22 : Getting Group RNA Matrix, 0.064 mins elapsed.
+2021-06-21 13:57:22 : Getting Group ATAC Matrix, 1.063 mins elapsed.
+2021-06-21 13:58:45 : Normalizing Group Matrices, 2.454 mins elapsed.
+2021-06-21 13:59:03 : Finding Peak Gene Pairings, 2.755 mins elapsed.
+2021-06-21 13:59:27 : Completed Peak2Gene Correlations!, 3.149 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e23fdf7a4-Date-2021-06-21_Time-13-56-14.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e44edd8fd-Date-2021-06-21_Time-13-59-29.log
+If there is an issue, please report to github with logFile!
+2021-06-21 13:59:31 : Getting Available Matrices, 0.032 mins elapsed.
+2021-06-21 13:59:32 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 13:59:32 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 13:59:32 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 13:59:35 : Identified 466 Groupings!, 0.059 mins elapsed.
+2021-06-21 13:59:35 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 14:00:34 : Getting Group ATAC Matrix, 1.036 mins elapsed.
+2021-06-21 14:01:48 : Normalizing Group Matrices, 2.265 mins elapsed.
+2021-06-21 14:02:10 : Finding Peak Gene Pairings, 2.633 mins elapsed.
+2021-06-21 14:02:41 : Completed Peak2Gene Correlations!, 3.15 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e44edd8fd-Date-2021-06-21_Time-13-59-29.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e13485ea9-Date-2021-06-21_Time-14-02-42.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:02:44 : Getting Available Matrices, 0.03 mins elapsed.
+2021-06-21 14:02:46 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:02:47 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 14:02:47 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 14:02:50 : Identified 466 Groupings!, 0.06 mins elapsed.
+2021-06-21 14:02:50 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 14:03:49 : Getting Group ATAC Matrix, 1.044 mins elapsed.
+2021-06-21 14:05:11 : Normalizing Group Matrices, 2.42 mins elapsed.
+2021-06-21 14:05:30 : Finding Peak Gene Pairings, 2.738 mins elapsed.
+2021-06-21 14:05:56 : Completed Peak2Gene Correlations!, 3.171 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e13485ea9-Date-2021-06-21_Time-14-02-42.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e194272dd-Date-2021-06-21_Time-14-05-58.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:06:01 : Getting Available Matrices, 0.042 mins elapsed.
+2021-06-21 14:06:03 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:06:04 : Computing KNN, 0.018 mins elapsed.
+2021-06-21 14:06:04 : Identifying Non-Overlapping KNN pairs, 0.021 mins elapsed.
+2021-06-21 14:06:07 : Identified 466 Groupings!, 0.074 mins elapsed.
+2021-06-21 14:06:07 : Getting Group RNA Matrix, 0.076 mins elapsed.
+2021-06-21 14:06:57 : Getting Group ATAC Matrix, 0.906 mins elapsed.
+2021-06-21 14:08:12 : Normalizing Group Matrices, 2.153 mins elapsed.
+2021-06-21 14:08:35 : Finding Peak Gene Pairings, 2.531 mins elapsed.
+2021-06-21 14:09:02 : Completed Peak2Gene Correlations!, 2.988 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e194272dd-Date-2021-06-21_Time-14-05-58.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49ebab1311-Date-2021-06-21_Time-14-09-04.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:09:06 : Getting Available Matrices, 0.037 mins elapsed.
+2021-06-21 14:09:07 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:09:08 : Computing KNN, 0.008 mins elapsed.
+2021-06-21 14:09:08 : Identifying Non-Overlapping KNN pairs, 0.01 mins elapsed.
+2021-06-21 14:09:11 : Identified 466 Groupings!, 0.061 mins elapsed.
+2021-06-21 14:09:11 : Getting Group RNA Matrix, 0.063 mins elapsed.
+2021-06-21 14:10:00 : Getting Group ATAC Matrix, 0.875 mins elapsed.
+2021-06-21 14:11:17 : Normalizing Group Matrices, 2.166 mins elapsed.
+2021-06-21 14:11:37 : Finding Peak Gene Pairings, 2.5 mins elapsed.
+2021-06-21 14:12:08 : Completed Peak2Gene Correlations!, 3.004 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49ebab1311-Date-2021-06-21_Time-14-09-04.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1459f9c6-Date-2021-06-21_Time-14-12-10.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:12:13 : Getting Available Matrices, 0.059 mins elapsed.
+2021-06-21 14:12:29 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.002 mins elapsed.
+2021-06-21 14:12:29 : Computing KNN, 0.008 mins elapsed.
+2021-06-21 14:12:30 : Identifying Non-Overlapping KNN pairs, 0.012 mins elapsed.
+2021-06-21 14:12:33 : Identified 466 Groupings!, 0.063 mins elapsed.
+2021-06-21 14:12:33 : Getting Group RNA Matrix, 0.065 mins elapsed.
+2021-06-21 14:13:29 : Getting Group ATAC Matrix, 0.994 mins elapsed.
+2021-06-21 14:14:46 : Normalizing Group Matrices, 2.293 mins elapsed.
+2021-06-21 14:15:07 : Finding Peak Gene Pairings, 2.631 mins elapsed.
+2021-06-21 14:15:34 : Completed Peak2Gene Correlations!, 3.092 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1459f9c6-Date-2021-06-21_Time-14-12-10.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3e3d5d63-Date-2021-06-21_Time-14-15-36.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:15:39 : Getting Available Matrices, 0.041 mins elapsed.
+2021-06-21 14:15:41 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:15:42 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 14:15:42 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 14:15:45 : Identified 466 Groupings!, 0.06 mins elapsed.
+2021-06-21 14:15:45 : Getting Group RNA Matrix, 0.062 mins elapsed.
+2021-06-21 14:16:29 : Getting Group ATAC Matrix, 0.792 mins elapsed.
+2021-06-21 14:17:52 : Normalizing Group Matrices, 2.182 mins elapsed.
+2021-06-21 14:18:13 : Finding Peak Gene Pairings, 2.531 mins elapsed.
+2021-06-21 14:18:40 : Completed Peak2Gene Correlations!, 2.984 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3e3d5d63-Date-2021-06-21_Time-14-15-36.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5a570aa2-Date-2021-06-21_Time-14-18-42.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:18:44 : Getting Available Matrices, 0.04 mins elapsed.
+2021-06-21 14:18:46 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:18:46 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 14:18:46 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 14:18:50 : Identified 466 Groupings!, 0.062 mins elapsed.
+2021-06-21 14:18:50 : Getting Group RNA Matrix, 0.063 mins elapsed.
+2021-06-21 14:19:33 : Getting Group ATAC Matrix, 0.777 mins elapsed.
+2021-06-21 14:20:48 : Normalizing Group Matrices, 2.04 mins elapsed.
+2021-06-21 14:21:11 : Finding Peak Gene Pairings, 2.414 mins elapsed.
+2021-06-21 14:21:41 : Completed Peak2Gene Correlations!, 2.912 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e5a570aa2-Date-2021-06-21_Time-14-18-42.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e501b4214-Date-2021-06-21_Time-14-21-43.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:21:45 : Getting Available Matrices, 0.041 mins elapsed.
+2021-06-21 14:21:49 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:21:49 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 14:21:49 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 14:21:53 : Identified 466 Groupings!, 0.062 mins elapsed.
+2021-06-21 14:21:53 : Getting Group RNA Matrix, 0.064 mins elapsed.
+2021-06-21 14:22:39 : Getting Group ATAC Matrix, 0.835 mins elapsed.
+2021-06-21 14:23:53 : Normalizing Group Matrices, 2.071 mins elapsed.
+2021-06-21 14:24:14 : Finding Peak Gene Pairings, 2.413 mins elapsed.
+2021-06-21 14:24:51 : Completed Peak2Gene Correlations!, 3.035 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e501b4214-Date-2021-06-21_Time-14-21-43.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3cf9f3a9-Date-2021-06-21_Time-14-24-53.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:24:55 : Getting Available Matrices, 0.034 mins elapsed.
+2021-06-21 14:24:56 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:24:57 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 14:24:57 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 14:25:00 : Identified 466 Groupings!, 0.059 mins elapsed.
+2021-06-21 14:25:00 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 14:25:53 : Getting Group ATAC Matrix, 0.944 mins elapsed.
+2021-06-21 14:27:22 : Normalizing Group Matrices, 2.423 mins elapsed.
+2021-06-21 14:27:41 : Finding Peak Gene Pairings, 2.745 mins elapsed.
+2021-06-21 14:28:11 : Completed Peak2Gene Correlations!, 3.249 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3cf9f3a9-Date-2021-06-21_Time-14-24-53.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e37cdceaf-Date-2021-06-21_Time-14-28-13.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:28:15 : Getting Available Matrices, 0.035 mins elapsed.
+2021-06-21 14:28:17 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:28:17 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 14:28:18 : Identifying Non-Overlapping KNN pairs, 0.01 mins elapsed.
+2021-06-21 14:28:21 : Identified 466 Groupings!, 0.063 mins elapsed.
+2021-06-21 14:28:21 : Getting Group RNA Matrix, 0.065 mins elapsed.
+2021-06-21 14:29:08 : Getting Group ATAC Matrix, 0.845 mins elapsed.
+2021-06-21 14:30:22 : Normalizing Group Matrices, 2.089 mins elapsed.
+2021-06-21 14:30:42 : Finding Peak Gene Pairings, 2.417 mins elapsed.
+2021-06-21 14:31:05 : Completed Peak2Gene Correlations!, 2.809 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e37cdceaf-Date-2021-06-21_Time-14-28-13.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1b70a097-Date-2021-06-21_Time-14-31-07.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:31:11 : Getting Available Matrices, 0.071 mins elapsed.
+2021-06-21 14:31:16 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.002 mins elapsed.
+2021-06-21 14:31:16 : Computing KNN, 0.008 mins elapsed.
+2021-06-21 14:31:17 : Identifying Non-Overlapping KNN pairs, 0.011 mins elapsed.
+2021-06-21 14:31:20 : Identified 466 Groupings!, 0.064 mins elapsed.
+2021-06-21 14:31:20 : Getting Group RNA Matrix, 0.066 mins elapsed.
+2021-06-21 14:32:05 : Getting Group ATAC Matrix, 0.821 mins elapsed.
+2021-06-21 14:33:30 : Normalizing Group Matrices, 2.23 mins elapsed.
+2021-06-21 14:33:53 : Finding Peak Gene Pairings, 2.614 mins elapsed.
+2021-06-21 14:34:19 : Completed Peak2Gene Correlations!, 3.059 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1b70a097-Date-2021-06-21_Time-14-31-07.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4bb1340b-Date-2021-06-21_Time-14-34-21.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:34:24 : Getting Available Matrices, 0.043 mins elapsed.
+2021-06-21 14:34:27 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:34:27 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 14:34:27 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 14:34:30 : Identified 466 Groupings!, 0.061 mins elapsed.
+2021-06-21 14:34:30 : Getting Group RNA Matrix, 0.063 mins elapsed.
+2021-06-21 14:35:20 : Getting Group ATAC Matrix, 0.897 mins elapsed.
+2021-06-21 14:36:38 : Normalizing Group Matrices, 2.197 mins elapsed.
+2021-06-21 14:36:59 : Finding Peak Gene Pairings, 2.534 mins elapsed.
+2021-06-21 14:37:24 : Completed Peak2Gene Correlations!, 2.962 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4bb1340b-Date-2021-06-21_Time-14-34-21.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e240fabcb-Date-2021-06-21_Time-14-37-26.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:37:28 : Getting Available Matrices, 0.037 mins elapsed.
+2021-06-21 14:37:30 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:37:31 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 14:37:31 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 14:37:34 : Identified 466 Groupings!, 0.062 mins elapsed.
+2021-06-21 14:37:34 : Getting Group RNA Matrix, 0.065 mins elapsed.
+2021-06-21 14:38:15 : Getting Group ATAC Matrix, 0.748 mins elapsed.
+2021-06-21 14:39:31 : Normalizing Group Matrices, 2.005 mins elapsed.
+2021-06-21 14:39:49 : Finding Peak Gene Pairings, 2.32 mins elapsed.
+2021-06-21 14:40:14 : Completed Peak2Gene Correlations!, 2.735 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e240fabcb-Date-2021-06-21_Time-14-37-26.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1901c3fb-Date-2021-06-21_Time-14-40-16.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:40:18 : Getting Available Matrices, 0.034 mins elapsed.
+2021-06-21 14:40:23 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:40:23 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 14:40:23 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 14:40:26 : Identified 466 Groupings!, 0.06 mins elapsed.
+2021-06-21 14:40:26 : Getting Group RNA Matrix, 0.062 mins elapsed.
+2021-06-21 14:41:18 : Getting Group ATAC Matrix, 0.929 mins elapsed.
+2021-06-21 14:42:36 : Normalizing Group Matrices, 2.233 mins elapsed.
+2021-06-21 14:42:56 : Finding Peak Gene Pairings, 2.55 mins elapsed.
+2021-06-21 14:43:18 : Completed Peak2Gene Correlations!, 2.931 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e1901c3fb-Date-2021-06-21_Time-14-40-16.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e29c3e70f-Date-2021-06-21_Time-14-43-20.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:43:22 : Getting Available Matrices, 0.036 mins elapsed.
+2021-06-21 14:43:25 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:43:25 : Computing KNN, 0.01 mins elapsed.
+2021-06-21 14:43:25 : Identifying Non-Overlapping KNN pairs, 0.013 mins elapsed.
+2021-06-21 14:43:29 : Identified 466 Groupings!, 0.066 mins elapsed.
+2021-06-21 14:43:29 : Getting Group RNA Matrix, 0.068 mins elapsed.
+2021-06-21 14:44:10 : Getting Group ATAC Matrix, 0.749 mins elapsed.
+2021-06-21 14:45:20 : Normalizing Group Matrices, 1.923 mins elapsed.
+2021-06-21 14:45:39 : Finding Peak Gene Pairings, 2.246 mins elapsed.
+2021-06-21 14:46:05 : Completed Peak2Gene Correlations!, 2.671 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e29c3e70f-Date-2021-06-21_Time-14-43-20.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4b8141f3-Date-2021-06-21_Time-14-46-07.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:46:09 : Getting Available Matrices, 0.036 mins elapsed.
+2021-06-21 14:46:10 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.002 mins elapsed.
+2021-06-21 14:46:11 : Computing KNN, 0.007 mins elapsed.
+2021-06-21 14:46:11 : Identifying Non-Overlapping KNN pairs, 0.01 mins elapsed.
+2021-06-21 14:46:14 : Identified 466 Groupings!, 0.063 mins elapsed.
+2021-06-21 14:46:14 : Getting Group RNA Matrix, 0.064 mins elapsed.
+2021-06-21 14:46:54 : Getting Group ATAC Matrix, 0.732 mins elapsed.
+2021-06-21 14:48:02 : Normalizing Group Matrices, 1.867 mins elapsed.
+2021-06-21 14:48:22 : Finding Peak Gene Pairings, 2.194 mins elapsed.
+2021-06-21 14:48:47 : Completed Peak2Gene Correlations!, 2.615 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4b8141f3-Date-2021-06-21_Time-14-46-07.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e50ea42ec-Date-2021-06-21_Time-14-48-49.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:48:51 : Getting Available Matrices, 0.034 mins elapsed.
+2021-06-21 14:48:53 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:48:54 : Computing KNN, 0.013 mins elapsed.
+2021-06-21 14:48:54 : Identifying Non-Overlapping KNN pairs, 0.017 mins elapsed.
+2021-06-21 14:48:57 : Identified 466 Groupings!, 0.068 mins elapsed.
+2021-06-21 14:48:57 : Getting Group RNA Matrix, 0.07 mins elapsed.
+2021-06-21 14:49:40 : Getting Group ATAC Matrix, 0.793 mins elapsed.
+2021-06-21 14:50:51 : Normalizing Group Matrices, 1.971 mins elapsed.
+2021-06-21 14:51:12 : Finding Peak Gene Pairings, 2.314 mins elapsed.
+2021-06-21 14:51:41 : Completed Peak2Gene Correlations!, 2.802 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e50ea42ec-Date-2021-06-21_Time-14-48-49.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e59d3cb27-Date-2021-06-21_Time-14-51-43.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:51:45 : Getting Available Matrices, 0.034 mins elapsed.
+2021-06-21 14:51:47 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:51:47 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 14:51:48 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 14:51:51 : Identified 466 Groupings!, 0.061 mins elapsed.
+2021-06-21 14:51:51 : Getting Group RNA Matrix, 0.063 mins elapsed.
+2021-06-21 14:52:36 : Getting Group ATAC Matrix, 0.808 mins elapsed.
+2021-06-21 14:53:45 : Normalizing Group Matrices, 1.965 mins elapsed.
+2021-06-21 14:54:04 : Finding Peak Gene Pairings, 2.283 mins elapsed.
+2021-06-21 14:54:28 : Completed Peak2Gene Correlations!, 2.681 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e59d3cb27-Date-2021-06-21_Time-14-51-43.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e63ef0625-Date-2021-06-21_Time-14-54-29.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:54:31 : Getting Available Matrices, 0.032 mins elapsed.
+2021-06-21 14:54:33 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:54:33 : Computing KNN, 0.004 mins elapsed.
+2021-06-21 14:54:33 : Identifying Non-Overlapping KNN pairs, 0.006 mins elapsed.
+2021-06-21 14:54:36 : Identified 466 Groupings!, 0.06 mins elapsed.
+2021-06-21 14:54:36 : Getting Group RNA Matrix, 0.062 mins elapsed.
+2021-06-21 14:55:17 : Getting Group ATAC Matrix, 0.741 mins elapsed.
+2021-06-21 14:56:28 : Normalizing Group Matrices, 1.928 mins elapsed.
+2021-06-21 14:56:50 : Finding Peak Gene Pairings, 2.287 mins elapsed.
+2021-06-21 14:57:14 : Completed Peak2Gene Correlations!, 2.696 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e63ef0625-Date-2021-06-21_Time-14-54-29.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e440d9833-Date-2021-06-21_Time-14-57-16.log
+If there is an issue, please report to github with logFile!
+2021-06-21 14:57:18 : Getting Available Matrices, 0.035 mins elapsed.
+2021-06-21 14:57:20 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 14:57:20 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 14:57:20 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 14:57:23 : Identified 466 Groupings!, 0.061 mins elapsed.
+2021-06-21 14:57:23 : Getting Group RNA Matrix, 0.063 mins elapsed.
+2021-06-21 14:58:11 : Getting Group ATAC Matrix, 0.861 mins elapsed.
+2021-06-21 14:59:25 : Normalizing Group Matrices, 2.084 mins elapsed.
+2021-06-21 14:59:46 : Finding Peak Gene Pairings, 2.437 mins elapsed.
+2021-06-21 15:00:13 : Completed Peak2Gene Correlations!, 2.892 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e440d9833-Date-2021-06-21_Time-14-57-16.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e7981ba51-Date-2021-06-21_Time-15-00-15.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:00:18 : Getting Available Matrices, 0.056 mins elapsed.
+2021-06-21 15:00:21 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.002 mins elapsed.
+2021-06-21 15:00:22 : Computing KNN, 0.007 mins elapsed.
+2021-06-21 15:00:22 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 15:00:25 : Identified 466 Groupings!, 0.064 mins elapsed.
+2021-06-21 15:00:25 : Getting Group RNA Matrix, 0.067 mins elapsed.
+2021-06-21 15:01:11 : Getting Group ATAC Matrix, 0.823 mins elapsed.
+2021-06-21 15:02:17 : Normalizing Group Matrices, 1.935 mins elapsed.
+2021-06-21 15:02:36 : Finding Peak Gene Pairings, 2.245 mins elapsed.
+2021-06-21 15:03:00 : Completed Peak2Gene Correlations!, 2.644 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e7981ba51-Date-2021-06-21_Time-15-00-15.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e73d7e24d-Date-2021-06-21_Time-15-03-02.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:03:04 : Getting Available Matrices, 0.045 mins elapsed.
+2021-06-21 15:03:07 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 15:03:07 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 15:03:08 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 15:03:11 : Identified 466 Groupings!, 0.061 mins elapsed.
+2021-06-21 15:03:11 : Getting Group RNA Matrix, 0.062 mins elapsed.
+2021-06-21 15:03:53 : Getting Group ATAC Matrix, 0.765 mins elapsed.
+2021-06-21 15:04:59 : Normalizing Group Matrices, 1.859 mins elapsed.
+2021-06-21 15:05:17 : Finding Peak Gene Pairings, 2.165 mins elapsed.
+2021-06-21 15:05:44 : Completed Peak2Gene Correlations!, 2.61 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e73d7e24d-Date-2021-06-21_Time-15-03-02.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4293f875-Date-2021-06-21_Time-15-05-46.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:05:48 : Getting Available Matrices, 0.035 mins elapsed.
+2021-06-21 15:05:49 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 15:05:49 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 15:05:50 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 15:05:53 : Identified 466 Groupings!, 0.061 mins elapsed.
+2021-06-21 15:05:53 : Getting Group RNA Matrix, 0.062 mins elapsed.
+2021-06-21 15:06:34 : Getting Group ATAC Matrix, 0.747 mins elapsed.
+2021-06-21 15:07:44 : Normalizing Group Matrices, 1.91 mins elapsed.
+2021-06-21 15:08:03 : Finding Peak Gene Pairings, 2.226 mins elapsed.
+2021-06-21 15:08:26 : Completed Peak2Gene Correlations!, 2.611 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4293f875-Date-2021-06-21_Time-15-05-46.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e2f2984bb-Date-2021-06-21_Time-15-08-27.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:08:29 : Getting Available Matrices, 0.036 mins elapsed.
+2021-06-21 15:08:31 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 15:08:31 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 15:08:31 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 15:08:35 : Identified 466 Groupings!, 0.065 mins elapsed.
+2021-06-21 15:08:35 : Getting Group RNA Matrix, 0.067 mins elapsed.
+2021-06-21 15:09:12 : Getting Group ATAC Matrix, 0.686 mins elapsed.
+2021-06-21 15:10:25 : Normalizing Group Matrices, 1.901 mins elapsed.
+2021-06-21 15:10:46 : Finding Peak Gene Pairings, 2.242 mins elapsed.
+2021-06-21 15:11:12 : Completed Peak2Gene Correlations!, 2.69 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e2f2984bb-Date-2021-06-21_Time-15-08-27.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3b3f52a1-Date-2021-06-21_Time-15-11-14.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:11:16 : Getting Available Matrices, 0.035 mins elapsed.
+2021-06-21 15:11:19 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 15:11:19 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 15:11:19 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 15:11:22 : Identified 466 Groupings!, 0.06 mins elapsed.
+2021-06-21 15:11:22 : Getting Group RNA Matrix, 0.062 mins elapsed.
+2021-06-21 15:12:15 : Getting Group ATAC Matrix, 0.942 mins elapsed.
+2021-06-21 15:13:41 : Normalizing Group Matrices, 2.383 mins elapsed.
+2021-06-21 15:14:02 : Finding Peak Gene Pairings, 2.719 mins elapsed.
+2021-06-21 15:14:33 : Completed Peak2Gene Correlations!, 3.239 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3b3f52a1-Date-2021-06-21_Time-15-11-14.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4fceee30-Date-2021-06-21_Time-15-14-34.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:14:37 : Getting Available Matrices, 0.034 mins elapsed.
+2021-06-21 15:14:38 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 15:14:38 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 15:14:38 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 15:14:42 : Identified 466 Groupings!, 0.059 mins elapsed.
+2021-06-21 15:14:42 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 15:15:25 : Getting Group ATAC Matrix, 0.787 mins elapsed.
+2021-06-21 15:16:34 : Normalizing Group Matrices, 1.934 mins elapsed.
+2021-06-21 15:16:53 : Finding Peak Gene Pairings, 2.246 mins elapsed.
+2021-06-21 15:17:19 : Completed Peak2Gene Correlations!, 2.681 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e4fceee30-Date-2021-06-21_Time-15-14-34.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eb50a303-Date-2021-06-21_Time-15-17-21.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:17:23 : Getting Available Matrices, 0.035 mins elapsed.
+2021-06-21 15:17:24 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 15:17:25 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 15:17:25 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 15:17:28 : Identified 466 Groupings!, 0.058 mins elapsed.
+2021-06-21 15:17:28 : Getting Group RNA Matrix, 0.06 mins elapsed.
+2021-06-21 15:18:10 : Getting Group ATAC Matrix, 0.757 mins elapsed.
+2021-06-21 15:19:20 : Normalizing Group Matrices, 1.927 mins elapsed.
+2021-06-21 15:19:41 : Finding Peak Gene Pairings, 2.271 mins elapsed.
+2021-06-21 15:20:04 : Completed Peak2Gene Correlations!, 2.665 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49eb50a303-Date-2021-06-21_Time-15-17-21.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e451d14a8-Date-2021-06-21_Time-15-20-06.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:20:08 : Getting Available Matrices, 0.03 mins elapsed.
+2021-06-21 15:20:10 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 15:20:10 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 15:20:10 : Identifying Non-Overlapping KNN pairs, 0.007 mins elapsed.
+2021-06-21 15:20:13 : Identified 466 Groupings!, 0.059 mins elapsed.
+2021-06-21 15:20:13 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 15:21:03 : Getting Group ATAC Matrix, 0.885 mins elapsed.
+2021-06-21 15:22:18 : Normalizing Group Matrices, 2.142 mins elapsed.
+2021-06-21 15:22:39 : Finding Peak Gene Pairings, 2.488 mins elapsed.
+2021-06-21 15:23:05 : Completed Peak2Gene Correlations!, 2.931 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e451d14a8-Date-2021-06-21_Time-15-20-06.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e2ddf6b5c-Date-2021-06-21_Time-15-23-07.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:23:13 : Getting Available Matrices, 0.101 mins elapsed.
+2021-06-21 15:23:15 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 15:23:15 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 15:23:16 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 15:23:19 : Identified 466 Groupings!, 0.06 mins elapsed.
+2021-06-21 15:23:19 : Getting Group RNA Matrix, 0.062 mins elapsed.
+2021-06-21 15:23:56 : Getting Group ATAC Matrix, 0.684 mins elapsed.
+2021-06-21 15:24:59 : Normalizing Group Matrices, 1.735 mins elapsed.
+2021-06-21 15:25:18 : Finding Peak Gene Pairings, 2.052 mins elapsed.
+2021-06-21 15:25:43 : Completed Peak2Gene Correlations!, 2.469 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e2ddf6b5c-Date-2021-06-21_Time-15-23-07.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3b9545fd-Date-2021-06-21_Time-15-25-45.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:25:47 : Getting Available Matrices, 0.036 mins elapsed.
+2021-06-21 15:25:49 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 15:25:49 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 15:25:49 : Identifying Non-Overlapping KNN pairs, 0.009 mins elapsed.
+2021-06-21 15:25:52 : Identified 466 Groupings!, 0.062 mins elapsed.
+2021-06-21 15:25:52 : Getting Group RNA Matrix, 0.064 mins elapsed.
+2021-06-21 15:26:29 : Getting Group ATAC Matrix, 0.678 mins elapsed.
+2021-06-21 15:27:34 : Normalizing Group Matrices, 1.765 mins elapsed.
+2021-06-21 15:27:54 : Finding Peak Gene Pairings, 2.093 mins elapsed.
+2021-06-21 15:28:17 : Completed Peak2Gene Correlations!, 2.48 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e3b9545fd-Date-2021-06-21_Time-15-25-45.log
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e691b0c4c-Date-2021-06-21_Time-15-28-19.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:28:21 : Getting Available Matrices, 0.033 mins elapsed.
+2021-06-21 15:28:22 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 15:28:22 : Computing KNN, 0.006 mins elapsed.
+2021-06-21 15:28:23 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 15:28:26 : Identified 466 Groupings!, 0.06 mins elapsed.
+2021-06-21 15:28:26 : Getting Group RNA Matrix, 0.061 mins elapsed.
+2021-06-21 15:29:08 : Getting Group ATAC Matrix, 0.767 mins elapsed.
+2021-06-21 15:30:14 : Normalizing Group Matrices, 1.869 mins elapsed.
+2021-06-21 15:30:34 : Finding Peak Gene Pairings, 2.205 mins elapsed.
+2021-06-21 15:31:01 : Completed Peak2Gene Correlations!, 2.645 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e691b0c4c-Date-2021-06-21_Time-15-28-19.log
+> # Compute eFDR for alpha 1e-12 my taking the median of the store vector dividing by # of significant observed tests
+> saveRDS(store,"./Significant_P2G_Outputs_Patient2/store_null_tests.rds")
+> 
+> 
+> # Observed data final run:
+> proj <- readRDS("./final_archr_proj_archrGS.rds")
+> idxSample <- BiocGenerics::which(proj$Sample =="3571DL")
+> cellsSample <- proj$cellNames[idxSample]
+> proj <- proj[cellsSample, ]
+> # Add p2g links (no restrictions on FDR, Correlation, Variance cutoff) with raw pvalue
+> ##############################################################################################################
+> proj <- addPeak2GeneLinks(
++   ArchRProj = proj ,
++   reducedDims = "IterativeLSI",
++   useMatrix = "GeneIntegrationMatrix_ArchR",
++   dimsToUse = 1:50,
++   scaleDims = NULL,
++   corCutOff = 0.75,
++   k = 100,
++   knnIteration = 500,
++   overlapCutoff = 0.8,
++   maxDist = 250000,
++   scaleTo = 10^4,
++   log2Norm = TRUE,
++   predictionCutoff = 0.5,
++   seed = 1,
++   threads = max(floor(getArchRThreads()/2), 1),
++   verbose = TRUE,
++   logFile = createLogFile("addPeak2GeneLinks")
++ )
+ArchR logging to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e72cd4459-Date-2021-06-21_Time-15-31-07.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:31:09 : Getting Available Matrices, 0.032 mins elapsed.
+2021-06-21 15:31:10 : Filtered Low Prediction Score Cells (458 of 7248, 0.063), 0.001 mins elapsed.
+2021-06-21 15:31:11 : Computing KNN, 0.005 mins elapsed.
+2021-06-21 15:31:11 : Identifying Non-Overlapping KNN pairs, 0.008 mins elapsed.
+2021-06-21 15:31:14 : Identified 466 Groupings!, 0.062 mins elapsed.
+2021-06-21 15:31:14 : Getting Group RNA Matrix, 0.063 mins elapsed.
+2021-06-21 15:31:50 : Getting Group ATAC Matrix, 0.66 mins elapsed.
+2021-06-21 15:33:00 : Normalizing Group Matrices, 1.827 mins elapsed.
+2021-06-21 15:33:21 : Finding Peak Gene Pairings, 2.173 mins elapsed.
+2021-06-21 15:33:22 : Computing Background Correlations, 2.195 mins elapsed.
+chr1 chr10 chr11 chr12 chr13 chr14 chr15 chr16 chr17 chr18 chr19 chr2 chr20 chr21 chr22 chr3 chr4 chr5 chr6 chr7 chr8 chr9 chrX 
+2021-06-21 15:33:53 : Computing Correlations, 2.718 mins elapsed.
+2021-06-21 15:34:14 : Completed Peak2Gene Correlations!, 3.07 mins elapsed.
+ArchR logging successful to : ArchRLogs/ArchR-addPeak2GeneLinks-f49e72cd4459-Date-2021-06-21_Time-15-31-07.log
+> 
+> p2geneDF <- metadata(proj@peakSet)$Peak2GeneLinks
+> p2geneDF$geneName <- mcols(metadata(p2geneDF)$geneSet)$name[p2geneDF$idxRNA]
+> p2geneDF$peakName <- (metadata(p2geneDF)$peakSet %>% {paste0(seqnames(.), ":", start(.), "-", end(.))})[p2geneDF$idxATAC]
+> annot <- readRDS(metadata(p2geneDF)$seATAC)
+> p2geneDF$peakType <- annot@rowRanges$peakType[p2geneDF$idxATAC]
+> p2g.df.obs <- as.data.frame(p2geneDF)
+> p2g.df.obs <- p2g.df.obs[complete.cases(p2g.df.obs),]
+> 
+> pdf("./Significant_P2G_Outputs_Patient2/P2G_Correlation.pdf",width = 5,height = 3.5)
+> hist(p2g.df.obs$Correlation,col = "lightblue",
++      main = paste0("Histogram of\n",nrow(p2g.df.obs)," P2G correlations"),xlab = "Correlation")
+> dev.off()
+null device 
+          1 
+> 
+> pdf("./Significant_P2G_Outputs_Patient2/P2g_Pval.pdf",width = 5,height = 3.5)
+> hist(p2g.df.obs$RawPVal,col="lightblue",
++      main = paste0("Histogram of\n",nrow(p2g.df.obs)," P2G p-values"),xlab = "p-value")
+> abline(v=0.01,col = "red")
+> dev.off()
+null device 
+          1 
+> 
+> saveRDS(p2g.df.obs,"./Significant_P2G_Outputs_Patient2/All_P2G_Observed.rds")
+> 
+> ################################################################################################################
+> 
+> p2g.df.hist <- dplyr::filter(p2g.df.obs,RawPVal <=1e-12 & Correlation >= 0.45)
+> 
+> pdf("./Significant_P2G_Outputs_Patient2/GenesPerPeak_histogram.pdf",width = 5,height = 3.5)
+> hist(table(p2g.df.hist$idxRNA),main="Distribution of genes per peaks")
+> dev.off()
+null device 
+          1 
+> 
+> pdf("./Significant_P2G_Outputs_Patient2/PeaksPerGene_histogram.pdf",width = 5,height = 3.5)
+> hist(table(p2g.df.hist$idxATAC),main="Distribution of peaks per gene")
+> dev.off()
+null device 
+          1 
+> 
+> 
+> #Subset to postive correlation P2Gs
+> p2g.df.sub <- dplyr::filter(p2g.df.obs,RawPVal <=1e-12 & Correlation >= 0.45& peakType == "Distal")
+> 
+> # Plot peak2 gene heatmap
+> 
+> p2g.df.sub$idx <- paste0(p2g.df.sub$idxATAC,"-",p2g.df.sub$idxRNA)
+> p2g.df.sub.plot <- p2g.df.sub
+> 
+> # Make color scheme for heatmap based on original UMAP colors:
+> proj$cluster.num <- factor(gsub("-.*","",proj$predictedGroup_ArchR))
+> my_levels <- c("10","19",
++                "1",
++                "4" ,"5",
++                "3","11","26",
++                "0",
++                "7",
++                "25")
+> # Relevel object@ident
+> proj@cellColData$cluster.new <- factor(x=proj$cluster.num, levels = my_levels)
+> # Make order of colors:
+> epithelial.cols <- colorRampPalette(c("#A0E989", "#337B24"))
+> epithelial.cols <- epithelial.cols(8)
+> fibro.cols <- c("#f593f1","#f272ed","#ef52e9","#e415dd","#c412bd","#a30f9d","#62095e")
+> smooth.cols <- c("#c2abd6","#b47fe5","#8948a1")
+> endo.cols <- c("#93CEFF","#4A99FF","#286ab5")
+> t.cols <- c("gray40","gray60")
+> macro.cols <- c("#ff6600","#ff9d5c")
+> mast.cols <- "gold3"
+> b.cols <- c("#B22222","#CD5C5C")
+> cols <- c(epithelial.cols,fibro.cols,smooth.cols,endo.cols,t.cols,macro.cols,mast.cols,b.cols)
+> cols <- cols[c(3,6,9,16,17,19,20,21,22,25,26)]
+> names(cols) <- levels(factor(proj@cellColData$cluster.new))
+> 
+> source("P2G_Heatmap_Distal.R")
+> test <- plotPeak2GeneHeatmap.distal(proj,peaks=p2g.df.sub.plot,groupBy = "cluster.new",k=length(levels(factor(proj$cluster.new))),
++                                     corCutOff = .45,varCutOffATAC = 0,varCutOffRNA = 0,FDRCutOff = 1,nPlot =100000,palGroup=cols,
++                                     palATAC = paletteContinuous("solarExtra"),
++                                     palRNA = paletteContinuous("solarExtra"))
+ArchR logging to : ArchRLogs/ArchR-plotPeak2GeneHeatmap-f49e409adc8d-Date-2021-06-21_Time-15-34-32.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:34:50 : Determining KNN Groups!, 0.305 mins elapsed.
+2021-06-21 15:34:56 : Ordering Peak2Gene Links!, 0.405 mins elapsed.
+2021-06-21 15:35:12 : Constructing ATAC Heatmap!, 0.658 mins elapsed.
+Adding Annotations..
+Preparing Main Heatmap..
+'magick' package is suggested to install to give better rasterization.
+
+Set `ht_opt$message = FALSE` to turn off this message.
+2021-06-21 15:35:13 : Constructing RNA Heatmap!, 0.687 mins elapsed.
+Adding Annotations..
+Preparing Main Heatmap..
+'magick' package is suggested to install to give better rasterization.
+
+Set `ht_opt$message = FALSE` to turn off this message.
+ArchR logging successful to : ArchRLogs/ArchR-plotPeak2GeneHeatmap-f49e409adc8d-Date-2021-06-21_Time-15-34-32.log
+> 
+> pdf("./Significant_P2G_Outputs_Patient2/Peak2Gene_Heatmap_Legend.pdf",width = 8,height = 12)
+> draw(test, heatmap_legend_side = "bottom")
+> dev.off()
+null device 
+          1 
+> 
+> p2g.heat.df <- plotPeak2GeneHeatmap.distal(proj,peaks=p2g.df.sub.plot,groupBy = "predictedGroup_ArchR",k=length(levels(factor(proj$predictedGroup_ArchR))),
++                                            corCutOff = .45,varCutOffATAC = 0,varCutOffRNA = 0,FDRCutOff = 1,returnMatrices = T,nPlot = 100000)
+ArchR logging to : ArchRLogs/ArchR-plotPeak2GeneHeatmap-f49e3c6ede84-Date-2021-06-21_Time-15-39-39.log
+If there is an issue, please report to github with logFile!
+2021-06-21 15:39:55 : Determining KNN Groups!, 0.27 mins elapsed.
+2021-06-21 15:40:01 : Ordering Peak2Gene Links!, 0.362 mins elapsed.
+> 
+> 
+> # Save P2G peaknames and Kmeans cluster for the genes of interest (specific to cancer cells)
+> 
+> p2g.df.sub.plot$kmeans <- p2g.heat.df$RNA$kmeansId
+> saveRDS(p2g.df.sub.plot,"./Significant_P2G_Outputs_Patient2/Distal_P2Gs_Kmeans.rds")
+> 
+> pdf("./Significant_P2G_Outputs_Patient2/GenesPerPeak_histogram-distal.pdf",width = 5,height = 3.5)
+> hist(table(p2g.df.sub.plot$idxRNA),main="Distribution of genes per distal peaks")
+> dev.off()
+null device 
+          1 
+> 
+> pdf("./Significant_P2G_Outputs_Patient2/PeaksPerGene_histogram-distal.pdf",width = 5,height = 3.5)
+> hist(table(p2g.df.sub.plot$idxATAC),main="Distribution of distal peaks per gene")
+> dev.off()
+null device 
+          1 
+> 
+> 
+> 
+> proc.time()
+    user   system  elapsed 
+50451.45 35789.87 18128.42 
