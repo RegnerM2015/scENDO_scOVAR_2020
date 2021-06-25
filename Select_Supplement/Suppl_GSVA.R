@@ -139,7 +139,7 @@ dat <- as.matrix(assay(rlog.rna))
 res <- GSVA::gsva(dat,gset.idx.list = gset,method = "gsva",kcdf = "Gaussian")
 head(res)
 
-                  
+
 ha = HeatmapAnnotation(
   Site = factor(c(rep("1",7),rep("2",7))),
   Type = factor(c(rep("1",7),rep("2",3),rep("3",4))),
@@ -176,8 +176,8 @@ Idents(rna.sub) <- "cluster.new"
 
 
 StackedVlnPlot(rna.sub,features = c("Cluster9",
-                                "Cluster10",
-                                "Cluster7"))+ggsave("CancerSEA_Vln.pdf",width = 12,height =10)
+                                    "Cluster10",
+                                    "Cluster7"))+ggsave("CancerSEA_Vln.pdf",width = 12,height =10)
 
 # Check significance for each Gene signature (3,7,10)
 summary(aov(Cluster7 ~ cluster.new, data = rna.sub@meta.data))
@@ -192,7 +192,7 @@ kruskal.test(Cluster9 ~ cluster.new, data = rna.sub@meta.data)
 # Show proportion of patient cells per cluster:
 meta <- rna.sub@meta.data
 
-df <- meta %>% group_by(RNA_snn_res.0.7) %>% count(Sample)
+df <- meta %>% dplyr::group_by(RNA_snn_res.0.7) %>% count(Sample)
 colnames(df) <- c("Cluster","Sample","Cells")
 
 # Reorder cluster factor levels to group by cell type 
