@@ -166,9 +166,9 @@ rna.sub <- AddModuleScore(rna.sub,features = gset,search = T,names = names)
 
 Idents(rna.sub) <- "RNA_snn_res.0.7"
 
-my_levels <- rev(c(11,20,21,22,31,19,34,
+my_levels <- c(11,20,21,22,31,19,34,
                    3,9,10,17,16,
-                   0,27))
+                   0,27)
 
 # Relevel object@ident
 rna.sub$cluster.new <- factor(x = rna.sub$RNA_snn_res.0.7, levels = my_levels)
