@@ -198,20 +198,9 @@ colnames(df) <- c("Cluster","Sample","Cells")
 # Reorder cluster factor levels to group by cell type 
 
 df %>% 
-  dplyr::mutate(cluster.new = factor(Cluster,levels = c(0,
-                                                      16,
-                                                      27,
-                                                      1,
-                                                      9,
-                                                      10,
-                                                      11,
-                                                      18,
-                                                      19,
-                                                      21,
-                                                      22,
-                                                      23,
-                                                      32,
-                                                      35))) %>% 
+  dplyr::mutate(cluster.new = factor(Cluster,levels = c(11,20,21,22,31,19,34,
+                                                        3,9,10,17,16,
+                                                        0,27))) %>% 
   ggplot(aes(fill=Sample, y=Cells, x= fct_rev(cluster.new))) + 
   geom_bar(position="fill", stat="identity")+
   coord_flip()+theme_classic()+xlab("Clusters")+ylab("# of cells")+
@@ -220,66 +209,5 @@ df %>%
 
 
 
+writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
 
-
-# # Repeat analysis for ATAC-gene activity data:
-
-# atac <- readRDS("./proj_LSI_GeneScores_Annotations_Int.rds")
-# # Add Gene activity matrix using Signac model 
-# gene.ranges <- ArchR::geneAnnoHg38
-# gene.ranges <- gene.ranges$genes
-# genebodyandpromoter.coords <- Signac::Extend(x = gene.ranges, upstream = 2000, downstream = 0)
-# genebodyandpromoter.coords$name <- genebodyandpromoter.coords$symbol
-# atac <- addFeatureMatrix(atac,matrixName = "SignacGeneScore",features = genebodyandpromoter.coords,force = T)
-# 
-# # Pseudobulk ATAC gene activity 
-# atac.counts <- getMatrixFromProject(atac,useMatrix = "SignacGeneScore")
-# 
-# atac.counts.mat <- assay(atac.counts)
-# rownames(atac.counts.mat) <- make.unique(rowData(atac.counts)$name)
-# 
-#   
-# atac.counts <- atac.counts.mat
-# atac.pseudobulk <- data.frame(rownames(atac.counts))
-# for (i in labels){
-#   cells <- rownames(dplyr::filter(as.data.frame(atac@cellColData),predictedGroup_ArchR == i))
-#   
-#   atac.counts.sub <-atac.counts[,colnames(atac.counts) %in% cells]
-#   
-#   atac.counts.bulk <- rowSums(as.matrix(atac.counts.sub))
-#   
-#   atac.pseudobulk$i <- atac.counts.bulk
-#   colnames(atac.pseudobulk)[dim(atac.pseudobulk)[2]] <- i
-#   
-# }
-# rownames(atac.pseudobulk) <-atac.pseudobulk[,1]
-# atac.pseudobulk <- atac.pseudobulk[,-1]
-# dim(atac.pseudobulk)
-# 
-# 
-# 
-# library(DESeq2)
-# dds <- DESeqDataSetFromMatrix(countData = atac.pseudobulk,
-#                               colData = data.frame(meta=colnames(atac.pseudobulk)),design = ~ 1)
-# 
-# dds <- estimateSizeFactors(dds)
-# sizeFactors(dds)
-# 
-# rlog.atac <- rlog(dds,blind = T)
-# dat <- as.matrix(assay(rlog.atac))
-# 
-# 
-# res <- GSVA::gsva(dat,gset.idx.list = gset,method = "gsva",kcdf = "Gaussian")
-# head(res)
-# 
-# Heatmap(res,cluster_rows = T)
-
-# 
-# 
-# rna <- AddModuleScore(rna,features = gset,name = names)
-# VlnPlot(rna,features = "Angiogenesis1")
-# VlnPlot(rna,features = "Invasion10",idents = labels)
-# VlnPlot(rna,features = "Proliferation12")
-# VlnPlot(rna,features= "Cell_Cycle3")
-# VlnPlot(rna,features= "Quiescence13",pt.size = 0 )
-# VlnPlot(rna,features= "Stemness14",idents = labels)
