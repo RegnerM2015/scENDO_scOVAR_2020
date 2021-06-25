@@ -119,7 +119,10 @@ ha = HeatmapAnnotation(
 )
 pdf("GSVA_Heatmap_raw_poisson.pdf",width = 6,height = 8)
 # Make heatmap annotation
-Heatmap(scale(res),cluster_rows = T,top_annotation = ha)
+Heatmap(scale(res),cluster_rows = T,top_annotation = ha,clustering_method_rows = "complete",
+        clustering_method_columns = "complete",
+        clustering_distance_columns = "euclidean",
+        clustering_distance_rows = "euclidean")
 dev.off()
 
 
@@ -149,7 +152,10 @@ ha = HeatmapAnnotation(
 )
 pdf("GSVA_Heatmap_Rlog_gaussian.pdf",width = 6,height =10)
 # Make heatmap annotation
-Heatmap(scale(res),cluster_rows = T,top_annotation = ha)
+Heatmap(scale(res),cluster_rows = T,top_annotation = ha,clustering_method_rows = "complete",
+        clustering_method_columns = "complete",
+        clustering_distance_columns = "euclidean",
+        clustering_distance_rows = "euclidean")
 dev.off()
 
 
