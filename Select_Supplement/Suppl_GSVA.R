@@ -209,5 +209,5 @@ df %>%
 
 
 
-writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
+writeLines(capture.output(sessionInfo()), "sessionInfo-GSVA.txt")
 
