@@ -1,6 +1,6 @@
 library(Seurat)
 library(RColorBrewer)
-
+library(ggplot2)
 
 rna <- readRDS("./endo_ovar_All_scRNA_processed.rds")
 
@@ -262,9 +262,59 @@ rna.3E5CFL <- readRDS("./ovar_3E5CFL_scRNA_processed.rds")
 VlnPlot(rna.3E5CFL,features = "Total_CNVs")
 VlnPlot(rna.3E5CFL,features="EPCAM")
 VlnPlot(rna.3E5CFL,features="MUC16")
-rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E5CFL[,rna.3E5CFL$RNA_snn_res.0.7 %in% c(0)]),"_9")]
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E5CFL[,rna.3E5CFL$RNA_snn_res.0.7 %in% c(0)]),"_11")]
 table(rna.sub$RNA_snn_res.0.7)
-rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E5CFL[,rna.3E5CFL$RNA_snn_res.0.7 %in% c(1)]),"_9")]
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E5CFL[,rna.3E5CFL$RNA_snn_res.0.7 %in% c(2)]),"_11")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E5CFL[,rna.3E5CFL$RNA_snn_res.0.7 %in% c(5)]),"_11")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E5CFL[,rna.3E5CFL$RNA_snn_res.0.7 %in% c(6)]),"_11")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E5CFL[,rna.3E5CFL$RNA_snn_res.0.7 %in% c(9)]),"_11")]
 table(rna.sub$RNA_snn_res.0.7)
 
 
+
+# Patient 10
+rna.3CCF1L <- readRDS("./ovar_3CCF1L_scRNA_processed.rds")
+VlnPlot(rna.3CCF1L,features = "Total_CNVs")
+VlnPlot(rna.3CCF1L,features="EPCAM")
+VlnPlot(rna.3CCF1L,features="MUC16")
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3CCF1L[,rna.3CCF1L$RNA_snn_res.0.7 %in% c(0)]),"_9")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3CCF1L[,rna.3CCF1L$RNA_snn_res.0.7 %in% c(1)]),"_9")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3CCF1L[,rna.3CCF1L$RNA_snn_res.0.7 %in% c(7)]),"_9")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3CCF1L[,rna.3CCF1L$RNA_snn_res.0.7 %in% c(8)]),"_9")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3CCF1L[,rna.3CCF1L$RNA_snn_res.0.7 %in% c(10)]),"_9")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3CCF1L[,rna.3CCF1L$RNA_snn_res.0.7 %in% c(13)]),"_9")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3CCF1L[,rna.3CCF1L$RNA_snn_res.0.7 %in% c(14)]),"_9")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3CCF1L[,rna.3CCF1L$RNA_snn_res.0.7 %in% c(15)]),"_9")]
+table(rna.sub$RNA_snn_res.0.7)
+
+
+
+
+# Patient 11
+rna.3E4D1L <- readRDS("./ovar_3E4D1L_scRNA_processed.rds")
+VlnPlot(rna.3E4D1L,features = "Total_CNVs")
+VlnPlot(rna.3E4D1L,features = "TOP2A")
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E4D1L[,rna.3E4D1L$RNA_snn_res.0.7 %in% c(0)]),"_10")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E4D1L[,rna.3E4D1L$RNA_snn_res.0.7 %in% c(2)]),"_10")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E4D1L[,rna.3E4D1L$RNA_snn_res.0.7 %in% c(4)]),"_10")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E4D1L[,rna.3E4D1L$RNA_snn_res.0.7 %in% c(5)]),"_10")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E4D1L[,rna.3E4D1L$RNA_snn_res.0.7 %in% c(8)]),"_10")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E4D1L[,rna.3E4D1L$RNA_snn_res.0.7 %in% c(10)]),"_10")]
+table(rna.sub$RNA_snn_res.0.7)
+rna.sub <- rna[,colnames(rna) %in% paste0(colnames(rna.3E4D1L[,rna.3E4D1L$RNA_snn_res.0.7 %in% c(1)]),"_10")]
+table(rna.sub$RNA_snn_res.0.7)
