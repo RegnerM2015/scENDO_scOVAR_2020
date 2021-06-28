@@ -137,6 +137,35 @@ dev.off()
 
 
 
+# Plot suppl. malignant fractions IGV figure:
+atac <- readRDS("./final_archr_proj_archrGS-P2Gs.rds")
+
+levels(factor(atac$predictedGroup_ArchR))
+
+labels <- c("2-Epithelial cell",
+            "3-Epithelial cell",
+            "0-Epithelial cell",
+            "7-Epithelial cell",
+            "11-Epithelial cell",
+            "16-Epithelial cell")
+
+atac$new.groups <- ifelse(atac$predictedGroup_ArchR %in% labels, "Cancer","Normal")
+
+idxSample <- BiocGenerics::which(atac$new.groups == "Cancer")
+cellsSample <- atac$cellNames[idxSample]
+atac <- atac[cellsSample, ]
+
+plot <- plotBrowserTrack(atac,geneSymbol = "LAPTM4B", groupBy = "Sample",
+                         pal=c("springgreen2","springgreen4"),
+                         upstream = 41500,
+                         downstream = 10000
+)
+
+
+pdf("LAPTM4B_malignant_suppl_SNP.pdf",width =6,height = 3)
+grid::grid.draw(plot[[1]])
+dev.off()
+
 
 
 writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
