@@ -156,7 +156,7 @@ cellsSample <- atac$cellNames[idxSample]
 atac <- atac[cellsSample, ]
 
 plot <- plotBrowserTrack(atac,geneSymbol = "LAPTM4B", groupBy = "Sample",
-                         pal=c("springgreen2","springgreen4"),
+                         pal=c("springgreen3","springgreen4"),
                          upstream = 41500,
                          downstream = 10000
 )
