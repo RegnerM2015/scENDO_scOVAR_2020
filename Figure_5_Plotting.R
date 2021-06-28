@@ -162,7 +162,7 @@ plot <- plotBrowserTrack(atac,geneSymbol = "LAPTM4B", groupBy = "Sample",
 )
 
 
-pdf("LAPTM4B_malignant_suppl_SNP.pdf",width =6,height = 3)
+pdf("LAPTM4B_malignant_suppl_SNP.pdf",width =10,height = 3)
 grid::grid.draw(plot[[1]])
 dev.off()
 
