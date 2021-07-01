@@ -183,19 +183,53 @@ df %>%
 
 CombinePlots(list(p4,p3,p2,p0,pfirst),ncol=5)+ggsave("Malignant_markers_vln.pdf",width=16,height =6)
 
-
-
-
-
-
-
-
 p.CNV <- FeaturePlot(rna,features = "Total_CNVs")
 p.CA125 <- FeaturePlot(rna,features = "MUC16")
 p.HE4 <- FeaturePlot(rna,features = "WFDC2")
 p.CD117 <- FeaturePlot(rna,features = "KIT")
 
 CombinePlots(list(plabels,p.CNV,p.CA125,p.HE4,p.CD117),ncol=1)+ggsave("Malignant_Features.pdf",width = 6,height = 24)
+
+
+
+malignant <- c(11,20,21,22,31,
+               19,34,
+               3,
+               9,10,
+               16,17,
+               0,27)
+remaining <- c(6,8,12,14,15,18,24,25,26,29,
+               7,23,
+               1,33,
+               2,4,30,
+               5,13,
+               32,
+               28,35)
+# find markers avg logFC >= 0.5 and adj pval <=0.01
+for ( i in malignant){
+  
+  tryCatch(
+    markers <- FindMarkers(rna,ident.1=i,
+                           ident.2=remaining,
+                           features=c("MUC16",
+                                      "WFDC2",
+                                      "KIT"),
+                           min.pct = 0,only.pos = T,
+                           logfc.threshold = 0)
+  )
+  
+  if(nrow(markers) >0){
+    print(paste0("Cancer markers present for ",i,":"))
+    print(markers)
+    print(paste0("End markers for ",i))
+  }else{
+    
+  }
+  
+}
+
+
+
 
 
 writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
