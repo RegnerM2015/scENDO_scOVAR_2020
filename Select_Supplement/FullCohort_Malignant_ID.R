@@ -3,14 +3,12 @@ library(Seurat)
 library(scales)
 library(forcats)
 library(RColorBrewer)
-library(ArchR)
 library(stringr)
 library(stringi)
 library(dplyr)
 library(tidyr)
-h5disableFileLocking()
 
-rna <- readRDS("/datastore/nextgenout5/share/labs/francolab/scENDO_scOVAR_Proj/Figure_Making/Figure_1/endo_ovar_All_scRNA_processed.rds")
+rna <- readRDS("endo_ovar_All_scRNA_processed.rds")
 # Plot cell type UMAPs for RNA/ATAC
 
 # RNA
@@ -29,42 +27,6 @@ rna.df$cell.type <- as.factor(rna.df$cell.type)
 levels(rna.df$cluster)
 levels(rna.df$cell.type)
 
-
-# Help sort the cluster numbers:
-###############################
-epi <- grep("pitheli",levels(rna.df$cell.type))
-epi.new <- grep("-Ciliated",levels(rna.df$cell.type))
-epi <- c(epi,epi.new)
-
-fibro <- grep("ibro",levels(rna.df$cell.type))
-
-smooth <- grep("mooth",levels(rna.df$cell.type))
-
-endo <- grep("dothel",levels(rna.df$cell.type))
-
-t.nk <- grep("T cell",levels(rna.df$cell.type))
-t.nk.new <- grep("Lym",levels(rna.df$cell.type))
-t.nk <- c(t.nk,t.nk.new)
-
-mac <- grep("acrophage",levels(rna.df$cell.type))
-
-mast <- grep("Mast",levels(rna.df$cell.type))
-
-b <- grep("B cell",levels(rna.df$cell.type))
-
-
-cell.types.idx <- c(epi,fibro,smooth,endo,t.nk,mac,mast,b)
-
-store <- numeric(0)
-for(i in 1:length(cell.types.idx)){
-  name <- levels(rna.df$cell.type)[cell.types.idx[i]]
-  print(gsub("-.*","",name))
-  new.name <- gsub("-.*","",name)
-  new.num <- as.numeric(new.name)
-  store[i] <- new.num
-}
-print(store)
-#####################################################
 
 my_levels <- c(11,20,21,22,31,
                19,34,
@@ -125,8 +87,7 @@ p1 <- ggplot(rna.df,aes(x = UMAP_1,y=UMAP_2,color = cluster.new))+
   theme(legend.key.size = unit(0.2, "cm"))+
   scale_color_manual(values = cols)+
   guides(colour = guide_legend(override.aes = list(size=6)))+NoLegend()
-LabelClusters(p1,id="cluster.new",color="black",repel = T,size=8)+ggsave("Cell_Type_RNA-labels.pdf",width = 8,height = 7)
-
+plabels <- LabelClusters(p1,id="cluster.new",color="black",repel = T,size=8)+ggsave("Cell_Type_RNA-labels.pdf",width = 8,height = 7)
 
 
 # Suppl. Figure CNV plot
@@ -146,36 +107,95 @@ meta$cluster <- factor(meta$RNA_snn_res.0.7,levels = rev(c(11,20,21,22,31,
                                                            32,
                                                            28,35)))
 
-ggplot(meta,aes(x=cluster,y=Total_CNVs,fill=cluster))+geom_boxplot()+coord_flip()+
+p0<-ggplot(meta,aes(x=cluster,y=Total_CNVs,fill=cluster))+geom_boxplot(lwd=0.45,outlier.size = 0.55,fatten=0.95)+coord_flip()+
   theme_classic()+scale_fill_manual(values = rev(cols))+NoLegend()+
+  scale_y_continuous(position = "right")+
   ggsave("CNV_BoxPlot.pdf",width = 4,height = 8)
 
 # Make violin plots for CA125 expression
 # Relevel object@ident
 rna@active.ident <- factor(x =rna$RNA_snn_res.0.7, levels = rev(my_levels))
 p1 <- VlnPlot(rna,features = "MUC16",pt.size = 0)+coord_flip()+NoLegend()
-p1 <- ggplot(p1$data,aes(y=ident,x=MUC16))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+p2 <- ggplot(p1$data,aes(y=ident,x=MUC16))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.55,fatten = 0.95)+NoLegend()+
   theme_classic()+NoLegend()+ylab("Cluster #")+xlab("CA125 expression")+
   scale_fill_manual(values=rev(cols))+
-  coord_cartesian(xlim=c(0, 1.5))+
+  scale_x_continuous(position = "top")+
   ggsave("CA125_BoxPlot.pdf",width = 4,height = 8)
 # Make violin plots for CA125 expression
 # Relevel object@ident
 rna@active.ident <- factor(x =rna$RNA_snn_res.0.7, levels = rev(my_levels))
 p1 <- VlnPlot(rna,features = "WFDC2",pt.size = 0)+coord_flip()+NoLegend()
-p1 <- ggplot(p1$data,aes(y=ident,x=WFDC2))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+p3 <- ggplot(p1$data,aes(y=ident,x=WFDC2))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.55,fatten = 0.95)+NoLegend()+
   theme_classic()+NoLegend()+ylab("Cluster #")+xlab("HE4 expression")+
   scale_fill_manual(values=rev(cols))+
-  coord_cartesian(xlim=c(0, 1.5))+
+  scale_x_continuous(position = "top")+
   ggsave("HE4_BoxPlot.pdf",width = 4,height = 8)
 # Make violin plots for CD117 expression
 # Relevel object@ident
 rna@active.ident <- factor(x =rna$RNA_snn_res.0.7, levels = rev(my_levels))
 p1 <- VlnPlot(rna,features = "KIT",pt.size = 0)+coord_flip()+NoLegend()
-p1 <- ggplot(p1$data,aes(y=ident,x=KIT))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+p4 <- ggplot(p1$data,aes(y=ident,x=KIT))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.55,fatten = 0.95)+NoLegend()+
   theme_classic()+NoLegend()+ylab("Cluster #")+xlab("CD117 expression")+
   scale_fill_manual(values=rev(cols))+
+  scale_x_continuous(position = "top")+
   ggsave("CD117_BoxPlot.pdf",width = 4,height = 8)
+
+
+library(forcats)
+sampleColors <- RColorBrewer::brewer.pal(11,"Paired")
+sampleColors[11] <- "#8c8b8b"
+pie(rep(1,11), col=sampleColors) 
+
+
+# Color patient tumors to resemble the cancer ribbon color 
+sampleColors <- c(sampleColors[5],sampleColors[7],sampleColors[6],sampleColors[8],sampleColors[10],sampleColors[9],sampleColors[4],sampleColors[3],sampleColors[2],sampleColors[11],sampleColors[1])
+
+# Patient proportion per subcluster in RNA:
+meta <- rna@meta.data
+
+df <- meta %>% dplyr::group_by(RNA_snn_res.0.7) %>% dplyr::count(Sample)
+colnames(df) <- c("Cluster","Sample","Cells")
+
+# Reorder cluster factor levels to group by cell type 
+levels(factor(rna$cell.type))
+df %>% 
+  dplyr::mutate(cell.type = factor(Cluster,levels = c(11,20,21,22,31,
+                                                      19,34,
+                                                      3,
+                                                      9,10,
+                                                      16,17,
+                                                      0,27,
+                                                      6,8,12,14,15,18,24,25,26,29,
+                                                      7,23,
+                                                      1,33,
+                                                      2,4,30,
+                                                      5,13,
+                                                      32,
+                                                      28,35))) %>% 
+  ggplot(aes(fill=Sample, y=Cells, x= fct_rev(cell.type))) + 
+  geom_bar(position="fill", stat="identity")+
+  coord_flip()+theme_classic()+xlab("Clusters")+ylab("# of cells")+NoLegend()+
+  scale_y_continuous(position = "right")+
+  scale_x_discrete(position = "top")+
+  scale_fill_manual(values = sampleColors)+ggsave("Cell_Type_Prop_RNA.pdf",width = 4,height = 8) -> pfirst
+
+
+
+CombinePlots(list(p4,p3,p2,p0,pfirst),ncol=5)+ggsave("Malignant_markers_vln.pdf",width=16,height =6)
+
+
+
+
+
+
+
+
+p.CNV <- FeaturePlot(rna,features = "Total_CNVs")
+p.CA125 <- FeaturePlot(rna,features = "MUC16")
+p.HE4 <- FeaturePlot(rna,features = "WFDC2")
+p.CD117 <- FeaturePlot(rna,features = "KIT")
+
+CombinePlots(list(plabels,p.CNV,p.CA125,p.HE4,p.CD117),ncol=1)+ggsave("Malignant_Features.pdf",width = 6,height = 24)
 
 
 writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
