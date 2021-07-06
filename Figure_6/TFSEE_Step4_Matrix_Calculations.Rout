@@ -1,0 +1,879 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> ###########################################################
+> # Matt Regner
+> # Franco Lab
+> # Date: May-December 2020
+> # 
+> # Sample: All 
+> # Description: This script performs the following tasks  
+> #     1) Read in TF motif prediction matrix 
+> #     2) Pseudobulk TF expression (DESeq rlog transformation)
+> #     3) Pseudobulk enhancer activity (DESeq rlog transformation)
+> #     4) Scaling of each matrix from 0-1
+> #     5) TFSEE matrix operations 
+> #################################################################
+> library(ArchR)
+Loading required package: ggplot2
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+Loading required package: parallel
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:parallel’:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:base’:
+
+    expand.grid
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+Loading required package: data.table
+
+Attaching package: ‘data.table’
+
+The following object is masked from ‘package:SummarizedExperiment’:
+
+    shift
+
+The following object is masked from ‘package:GenomicRanges’:
+
+    shift
+
+The following object is masked from ‘package:IRanges’:
+
+    shift
+
+The following objects are masked from ‘package:S4Vectors’:
+
+    first, second
+
+Loading required package: Matrix
+
+Attaching package: ‘Matrix’
+
+The following object is masked from ‘package:S4Vectors’:
+
+    expand
+
+Loading required package: rhdf5
+Loading required package: magrittr
+
+Attaching package: ‘ArchR’
+
+The following objects are masked _by_ ‘.GlobalEnv’:
+
+    addArchRDebugging, addArchRLogging, addCoAccessibility,
+    addPeak2GeneLinks, correlateMatrices, correlateTrajectories,
+    createLogFile, getArchRDebugging, getArchRLogging,
+    getCoAccessibility, getFragmentsFromArrow, getMatrixFromArrow,
+    getMatrixFromProject, getPeak2GeneLinks, peak2GeneHeatmap,
+    plotPeak2GeneHeatmap, validBSgenome
+
+> library(ComplexHeatmap)
+Loading required package: grid
+========================================
+ComplexHeatmap version 2.6.2
+Bioconductor page: http://bioconductor.org/packages/ComplexHeatmap/
+Github page: https://github.com/jokergoo/ComplexHeatmap
+Documentation: http://jokergoo.github.io/ComplexHeatmap-reference
+
+If you use it in published research, please cite:
+Gu, Z. Complex heatmaps reveal patterns and correlations in multidimensional 
+  genomic data. Bioinformatics 2016.
+
+This message can be suppressed by:
+  suppressPackageStartupMessages(library(ComplexHeatmap))
+========================================
+
+> library(DESeq2)
+> library(Seurat)
+
+Attaching package: ‘Seurat’
+
+The following object is masked from ‘package:SummarizedExperiment’:
+
+    Assays
+
+> library(ggplot2)
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:data.table’:
+
+    between, first, last
+
+The following object is masked from ‘package:Biobase’:
+
+    combine
+
+The following objects are masked from ‘package:GenomicRanges’:
+
+    intersect, setdiff, union
+
+The following object is masked from ‘package:GenomeInfoDb’:
+
+    intersect
+
+The following objects are masked from ‘package:IRanges’:
+
+    collapse, desc, intersect, setdiff, slice, union
+
+The following objects are masked from ‘package:S4Vectors’:
+
+    first, intersect, rename, setdiff, setequal, union
+
+The following objects are masked from ‘package:BiocGenerics’:
+
+    combine, intersect, setdiff, union
+
+The following object is masked from ‘package:matrixStats’:
+
+    count
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> 
+> ###############################################
+> # Part 1: Read in TF motif prediction matrix 
+> ###############################################
+> # Read in TF motif prediction matrix
+> enhancer.motifs<- read.delim("./motif_enhancers_scaled.txt",sep = "\t")
+> rownames(enhancer.motifs) <- enhancer.motifs[,1]
+> enhancer.motifs <- enhancer.motifs[,-1]
+> # Rename syntax of peaks
+> colnames(enhancer.motifs) <- sub("\\.",":",colnames(enhancer.motifs))
+> colnames(enhancer.motifs) <- sub("\\.","-",colnames(enhancer.motifs))
+> 
+> 
+> # Set labels of cell types of interest
+> 
+> # Only use clusters with 100% patient specificity 
+> labels <- c("31-Unciliated epithelia 1",
++             "21-Unciliated epithelia 1",
++             "19-Epithelial cell",
++             "34-Epithelial cell",
++             "3-Epithelial cell",
++             "10-Epithelial cell",
++             "16-Fibroblast",
++             "17-Epithelial cell",
++             "0-Fibroblast",
++             "27-Fibroblast",
++             "9-Epithelial cell")# Screen for "pure" patient clusters
+> 
+> 
+> ###############################################
+> # Part 2: Pseudobulk TF expression 
+> ###############################################
+> 
+> # Pseudobulk RNA TF expression
+> rna <- readRDS("./endo_ovar_All_scRNA_processed.rds")
+> rna.counts <- rna@assays$RNA@counts
+> 
+> rna.pseudobulk <- data.frame(rownames(rna))
+> for (i in labels){
++   cells <- rownames(dplyr::filter(rna@meta.data,cell.type == i))
++   
++   rna.counts.sub <- rna.counts[,colnames(rna.counts) %in% cells]
++   
++   rna.counts.bulk <- rowSums(as.matrix(rna.counts.sub))
++   
++   rna.pseudobulk$i <- rna.counts.bulk
++   colnames(rna.pseudobulk)[dim(rna.pseudobulk)[2]] <- i
++   
++ }
+> rownames(rna.pseudobulk) <- rna.pseudobulk[,1]
+> rna.pseudobulk <- rna.pseudobulk[,-1]
+> dim(rna.pseudobulk)
+[1] 27293    11
+> 
+> # Remove any features/rows that have zero counts in ANY sample
+> dim(rna.pseudobulk)
+[1] 27293    11
+> rna.pseudobulk[rna.pseudobulk == 0] <- NA
+> rna.pseudobulk <- rna.pseudobulk[complete.cases(rna.pseudobulk),]
+> dim(rna.pseudobulk)
+[1] 14228    11
+> 
+> 
+> # rlog normalize data
+> library(DESeq2)
+> dds.rna <- DESeqDataSetFromMatrix(countData = rna.pseudobulk,
++                               colData = data.frame(meta=colnames(rna.pseudobulk)),design = ~ 1)
+converting counts to integer mode
+> 
+> dds.rna <- estimateSizeFactors(dds.rna)
+> sizeFactors(dds.rna)
+31-Unciliated epithelia 1 21-Unciliated epithelia 1        19-Epithelial cell 
+                0.4228244                 0.8419451                 1.1881445 
+       34-Epithelial cell         3-Epithelial cell        10-Epithelial cell 
+                0.1732310                 2.0603158                 2.2346574 
+            16-Fibroblast        17-Epithelial cell              0-Fibroblast 
+                1.0301040                 1.6039961                 2.1709611 
+            27-Fibroblast         9-Epithelial cell 
+                0.3094000                 3.0965999 
+> 
+> rlog.rna <- rlog(dds.rna,blind = T)
+> saveRDS(dds.rna,"dds_rna.rds")
+> saveRDS(rlog.rna,"rlog_rna.rds")
+> 
+> 
+> ###############################################
+> # Part 3: Pseudobulk enhancer activity
+> ###############################################
+> 
+> # Pseudobulk ATAC enhancer matrix
+> 
+> atac <- readRDS("./final_archr_proj_archrGS.rds")
+> 
+> source("./Archr_Peak_Null_Permute.R")
+> source("./Archr_Peak_RawPval.R")
+> source("./getMatrixFromProject.R")
+> peaks.mat <- getMatrixFromProject.mod(atac,useMatrix = "PeakMatrix")
+ArchR logging to : ArchRLogs/ArchR-getMatrixFromProject-645e4d28679d-Date-2021-07-06_Time-12-03-27.log
+If there is an issue, please report to github with logFile!
+2021-07-06 12:11:48 : Organizing colData, 8.353 mins elapsed.
+2021-07-06 12:11:48 : Organizing rowData, 8.358 mins elapsed.
+2021-07-06 12:11:48 : Organizing rowRanges, 8.358 mins elapsed.
+2021-07-06 12:11:48 : Organizing Assays (1 of 1), 8.359 mins elapsed.
+2021-07-06 12:13:19 : Constructing SummarizedExperiment, 9.871 mins elapsed.
+2021-07-06 12:13:22 : Finished Matrix Creation, 9.923 mins elapsed.
+> cell.names <- colnames(assay(peaks.mat))
+> peak.names <- paste0(seqnames(rowRanges(peaks.mat)),":", start(ranges(rowRanges(peaks.mat))),"-", end(ranges(rowRanges(peaks.mat))))
+> 
+> 
+> peaks.mat <- assay(peaks.mat)
+> 
+> dim(peaks.mat)
+[1] 519525  72507
+> length(cell.names)
+[1] 72507
+> length(peak.names)
+[1] 519525
+> 
+> colnames(peaks.mat) <- cell.names
+> rownames(peaks.mat) <- peak.names
+> head(peaks.mat[,1:4])
+6 x 4 sparse Matrix of class "dgCMatrix"
+                   3571DL#CGCACAGTCTATCTAC-1 3571DL#GCACCTTTCACTTACT-1
+chr1:794811-795311                         .                         .
+chr1:804261-804761                         .                         .
+chr1:817104-817604                         .                         .
+chr1:817941-818441                         .                         .
+chr1:818780-819280                         .                         .
+chr1:822939-823439                         .                         .
+                   3571DL#GTAATCGAGCGTTAGG-1 3571DL#CTGGCAGGTATTCGAC-1
+chr1:794811-795311                         .                         .
+chr1:804261-804761                         .                         .
+chr1:817104-817604                         .                         .
+chr1:817941-818441                         .                         .
+chr1:818780-819280                         .                         .
+chr1:822939-823439                         .                         .
+> 
+> 
+> # Construct pseudobulk peak/enhancer matrix
+> peaks.pseudobulk <- data.frame(rownames(peaks.mat))
+> for (i in labels){
++   cells <- rownames(dplyr::filter(as.data.frame(atac@cellColData),predictedGroup_ArchR == i))
++   
++   peaks.sub <- peaks.mat[,colnames(peaks.mat) %in% cells]
++   peaks.sub <- as(peaks.sub, "dgCMatrix")
++   peaks.bulk <- Matrix::rowSums(peaks.sub)
++   
++   peaks.pseudobulk$i <- peaks.bulk
++   colnames(peaks.pseudobulk)[dim(peaks.pseudobulk)[2]] <- i
++   
++   print("Iteration complete")
++ }
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+[1] "Iteration complete"
+> rownames(peaks.pseudobulk) <- peaks.pseudobulk$rownames.peaks.
+> peaks.pseudobulk <- peaks.pseudobulk[,-1]
+> 
+> # Remove features/peaks that have zero counts in ANY sample
+> dim(peaks.pseudobulk)
+[1] 519525     11
+> peaks.pseudobulk[peaks.pseudobulk == 0] <- NA
+> peaks.pseudobulk <- peaks.pseudobulk[complete.cases(peaks.pseudobulk),]
+> dim(peaks.pseudobulk)
+[1] 182165     11
+> 
+> #DESeq ATAC
+> 
+> library(DESeq2)
+> dds.atac <- DESeqDataSetFromMatrix(countData = peaks.pseudobulk,
++                               colData = data.frame(meta=colnames(peaks.pseudobulk)),design = ~ 1)
+converting counts to integer mode
+> 
+> dds.atac <- estimateSizeFactors(dds.atac)
+> sizeFactors(dds.atac)
+31-Unciliated epithelia 1 21-Unciliated epithelia 1        19-Epithelial cell 
+                0.4727447                 0.9611724                 0.5721027 
+       34-Epithelial cell         3-Epithelial cell        10-Epithelial cell 
+                0.1852442                 1.4021325                 4.6548578 
+            16-Fibroblast        17-Epithelial cell              0-Fibroblast 
+                1.8225583                 0.8556451                 2.9730005 
+            27-Fibroblast         9-Epithelial cell 
+                0.2842511                 3.9055474 
+> 
+> rlog.atac <- rlog(dds.atac,blind = T)
+-- note: fitType='parametric', but the dispersion trend was not well captured by the
+   function: y = a/x + b, and a local regression fit was automatically substituted.
+   specify fitType='local' or 'mean' to avoid this message next time.
+> 
+> saveRDS(rlog.atac,"rlog_atac.rds")
+> saveRDS(dds.atac,"dds_atac.rds")
+> rlog.rna <- readRDS("rlog_rna.rds")
+> rlog.atac <- readRDS("rlog_atac.rds")
+> 
+> ###############################################
+> # Part 4: Subsetting and scaling from 0 to 1
+> ###############################################
+> 
+> # Subset and reorder motif matrix, peak matrix and expression matrix
+> enhancer.mat <- assay(rlog.atac)
+> enhancer.mat <- as.data.frame(enhancer.mat)
+> enhancer.mat <- enhancer.mat[rownames(enhancer.mat) %in% colnames(enhancer.motifs),]
+> 
+> # Check order
+> motif.mat <- enhancer.motifs
+> motif.mat <- motif.mat[,colnames(motif.mat) %in% rownames(enhancer.mat)]
+> motif.mat <- motif.mat[ ,order(match(colnames(motif.mat), rownames(enhancer.mat))) ]
+> length(which(colnames(motif.mat) == rownames(enhancer.mat)))
+[1] 4920
+> 
+> expr.mat <- assay(rlog.rna)
+> expr.mat <- as.data.frame(expr.mat)
+> 
+> # Check order
+> tfs <- intersect(rownames(motif.mat),rownames(expr.mat))
+> expr.mat <- expr.mat[rownames(expr.mat) %in% tfs,]
+> motif.mat <- motif.mat[rownames(motif.mat) %in% tfs,]
+> expr.mat <- expr.mat[order(match(rownames(expr.mat), rownames(motif.mat))), ]
+> 
+> length(which(rownames(expr.mat)==rownames(motif.mat)))
+[1] 205
+> 
+> # Rescale peak matrix and rna expr matrix
+> library(scales)
+> for (i in 1:ncol(expr.mat)){
++   expr.mat[,i] <- rescale(expr.mat[,i],to = c(0,1))
++ }
+> library(scales)# Scale cell types
+> for (i in 1:ncol(enhancer.mat)){
++   enhancer.mat[,i] <- rescale(enhancer.mat[,i],to = c(0,1))
++ }
+> 
+> 
+> dim(enhancer.mat)
+[1] 4920   11
+> dim(motif.mat)
+[1]  205 4920
+> dim(expr.mat)
+[1] 205  11
+> 
+> 
+> 
+> length(which(rownames(motif.mat) == rownames(expr.mat)))
+[1] 205
+> 
+> length(which(rownames(enhancer.mat) == colnames(motif.mat)))
+[1] 4920
+> 
+> 
+> 
+> length(which(rownames(motif.mat) == rownames(expr.mat)))
+[1] 205
+> 
+> length(which(rownames(enhancer.mat) == colnames(motif.mat)))
+[1] 4920
+> 
+> dim(enhancer.mat)
+[1] 4920   11
+> dim(motif.mat)
+[1]  205 4920
+> dim(expr.mat)
+[1] 205  11
+> 
+> 
+> ###############################################
+> # Part 5: TFSEE matrix operations
+> ###############################################
+> 
+> # Peform matrix multiplication of enhancer activity by motif prediction
+> int <- t(enhancer.mat) %*% t(motif.mat)
+> 
+> dim(int)
+[1]  11 205
+> dim(expr.mat)
+[1] 205  11
+> 
+> length(which(colnames(int)==rownames(expr.mat)))
+[1] 205
+> 
+> 
+> 
+> # Multiply intermediate matrix by TF expression matrix 
+> tfsee <- int*t(expr.mat)
+> dim(tfsee)
+[1]  11 205
+> head(tfsee)
+                               AHR     ARNT     ARNTL    ASCL2     ATF1
+31-Unciliated epithelia 1 55.48534 39.47793  67.67300 8.571281 229.5396
+21-Unciliated epithelia 1 51.74691 39.16241  85.39920 3.366721 225.9775
+19-Epithelial cell        47.48744 48.84735  80.59600 9.168160 223.9895
+34-Epithelial cell        47.18167 49.67523  57.67984 6.591921 196.7597
+3-Epithelial cell         38.08962 31.18491  71.85387 5.203584 192.7476
+10-Epithelial cell        62.35742 43.58276 119.13699 8.134464 290.6385
+                              ATF2      ATF4     ATF6    BACH1    BACH2
+31-Unciliated epithelia 1 167.7796  85.07285 322.5178 367.7001 251.2452
+21-Unciliated epithelia 1 160.7046 103.46757 311.3640 341.6311 271.9226
+19-Epithelial cell        167.0112  96.21096 311.4790 357.4877 275.7438
+34-Epithelial cell        144.4748  84.74281 272.0369 310.4505 196.1730
+3-Epithelial cell         137.1106  66.75200 232.0347 293.5578 138.1603
+10-Epithelial cell        175.3370 111.99020 345.2935 380.7776 184.2257
+                               BATF    BATF3      BCL6    CEBPB    CEBPD
+31-Unciliated epithelia 1 125.54767 191.3333 10.150733 20.87567 26.21901
+21-Unciliated epithelia 1 171.79226 172.5146 12.289765 23.71831 31.80576
+19-Epithelial cell        164.97690 220.3729 10.264300 22.93296 27.61759
+34-Epithelial cell        210.66165 193.2777  7.889988 19.76131 24.20672
+3-Epithelial cell          68.34309 140.0654 10.687659 16.35802 22.55215
+10-Epithelial cell        206.81999 325.3275 11.950765 25.99275 31.97117
+                             CEBPG    CREB1    CREB3  CREB3L1  CREB3L4
+31-Unciliated epithelia 1 270.7922 143.8920 291.7330 210.0400 269.9362
+21-Unciliated epithelia 1 265.5797 155.3142 292.5702 221.1400 277.2390
+19-Epithelial cell        267.5349 132.7996 286.5135 222.2719 219.8501
+34-Epithelial cell        259.8996 120.5597 267.0275 187.4784 143.9050
+3-Epithelial cell         183.4427 105.3829 223.0702 260.4597 302.4064
+10-Epithelial cell        400.0054 148.5198 381.6660 159.6040 245.6833
+                               CTCF    DDIT3     E2F6     EBF1     EGR1
+31-Unciliated epithelia 1  90.84747 435.2010 377.3526 55.27458 398.2243
+21-Unciliated epithelia 1  95.20128 426.0965 343.1897 58.23644 312.3803
+19-Epithelial cell         83.88849 479.3250 311.3220 49.37173 380.0295
+34-Epithelial cell         85.81936 424.5373 283.5517 39.38805 315.1237
+3-Epithelial cell          72.05846 422.2044 313.8314 16.40735 529.9915
+10-Epithelial cell        115.68853 508.5557 443.4929 34.17760 353.0456
+                               EGR3     ELF1     ELF2     ELF3     ELF4
+31-Unciliated epithelia 1 123.84343 364.2759 316.2592 562.5066 263.9356
+21-Unciliated epithelia 1 148.47527 362.3088 316.6752 631.3162 288.8220
+19-Epithelial cell        147.33729 316.0618 303.4476 563.4667 305.9250
+34-Epithelial cell         92.01499 284.4083 268.7332 447.3463 268.4136
+3-Epithelial cell         161.82456 307.3454 255.2994 497.0189 220.6644
+10-Epithelial cell         87.20152 351.2760 387.6262 538.4025 320.3422
+                              ELK3     ELK4      ERF     ESR2     ESRRG
+31-Unciliated epithelia 1 367.2794 263.1637 236.5636 37.13544  4.770248
+21-Unciliated epithelia 1 326.3915 249.3148 241.1933 38.03740 14.815854
+19-Epithelial cell        330.3695 202.7625 239.9868  0.00000 54.122597
+34-Epithelial cell        306.2794 180.9395 173.1095  0.00000 14.152429
+3-Epithelial cell         190.4119 161.5667 190.4312 95.05591  0.000000
+10-Epithelial cell        342.8703 232.5143 283.2207 75.52100 28.559579
+                              ETS1     ETV4     ETV5      FOS     FOSB    FOSL1
+31-Unciliated epithelia 1 272.5512 227.6222 207.0098 407.7104 344.4000 435.4007
+21-Unciliated epithelia 1 239.4958 207.2321 187.4890 339.2656 297.7024 454.0905
+19-Epithelial cell        217.2169 258.5219 223.7380 440.7475 391.7526 433.7207
+34-Epithelial cell        209.7761 210.8054 197.7721 306.5574 272.7976 397.1715
+3-Epithelial cell         164.0709 212.3434 219.6446 539.5099 405.9150 285.5245
+10-Epithelial cell        262.8245 352.8774 236.4820 385.9711 292.8183 488.5495
+                             FOSL2     FOXC2    FOXJ3    GABPA     GLI2
+31-Unciliated epithelia 1 392.1890  51.34242 310.3749 247.1069 17.98726
+21-Unciliated epithelia 1 439.8616 169.42104 306.0787 237.1745 39.55197
+19-Epithelial cell        395.0165  28.45481 314.7746 206.3879 40.27062
+34-Epithelial cell        326.0352  44.69821 264.0096 185.1818 17.80621
+3-Epithelial cell         350.8295  43.76777 265.9727 205.6743 41.43058
+10-Epithelial cell        451.9943  32.02006 338.4919 237.0300 74.65689
+                               GLI3     GLIS2       GSC      HIC1      HIC2
+31-Unciliated epithelia 1  46.19981 126.41244 104.88524  63.34270 105.13908
+21-Unciliated epithelia 1  93.93127 136.38744 220.95563 106.84192 118.46690
+19-Epithelial cell         77.87441 191.51767 122.53900 104.31282 129.35864
+34-Epithelial cell         63.05562 123.63371  82.24393  61.88104 102.87497
+3-Epithelial cell          59.87010  89.87511 187.56830  68.83908  86.09618
+10-Epithelial cell        114.50487 208.49286 143.37356  97.20934 143.30586
+                              HINFP    HOXA10     IKZF1     IRF1     IRF2
+31-Unciliated epithelia 1  76.38086 7.1908848  38.03431 381.6250 227.1501
+21-Unciliated epithelia 1  82.53563 3.4895801 101.76231 423.9357 236.3349
+19-Epithelial cell         72.43598 6.1990551  88.38552 395.0218 235.8470
+34-Epithelial cell         62.15694 1.1665766  84.50921 356.0472 214.6340
+3-Epithelial cell          71.33447 0.7377556  98.34212 333.0585 186.3441
+10-Epithelial cell        111.83911 2.4424444  84.47265 461.9593 266.1580
+                              IRF3      IRF4      IRF7     IRF8     IRF9
+31-Unciliated epithelia 1 53.23683  8.514095  91.42535 22.68570 62.22856
+21-Unciliated epithelia 1 63.23572 33.887066 128.38416 35.99437 82.05842
+19-Epithelial cell        65.38215 10.341397 115.58060 62.44783 84.84253
+34-Epithelial cell        51.68063  8.068695 101.19110 55.65482 73.87377
+3-Epithelial cell         46.75804  1.748667  83.56703 51.82911 64.32327
+10-Epithelial cell        79.44483 13.349234 147.07949 27.15566 89.32480
+                              JDP2      JUN     JUNB     JUND    KLF10    KLF11
+31-Unciliated epithelia 1 255.6712 519.9804 489.8347 539.5696 327.0686 216.3919
+21-Unciliated epithelia 1 326.1238 565.0396 486.4958 578.6294 334.5865 215.6056
+19-Epithelial cell        310.0560 498.9613 521.3225 562.7502 335.6231 234.1662
+34-Epithelial cell        263.9817 421.0024 416.2383 460.6537 280.1670 198.5811
+3-Epithelial cell         276.8208 528.6642 485.3945 505.7595 373.4664 224.2873
+10-Epithelial cell        381.1142 495.6849 568.4996 561.1350 397.3926 267.6030
+                             KLF12     KLF15    KLF16     KLF2     KLF3
+31-Unciliated epithelia 1 134.9077 143.41860 267.2944 327.1539 355.2197
+21-Unciliated epithelia 1 175.1406 175.53909 281.3422 337.8401 404.3289
+19-Epithelial cell        157.9668 143.15066 252.6974 270.5204 361.9171
+34-Epithelial cell        162.1603 106.55057 224.6718 210.8270 305.3400
+3-Epithelial cell         190.5511 208.46293 216.4971 294.5593 296.4763
+10-Epithelial cell        219.7894  82.43416 318.7450 271.3494 408.9613
+                              KLF4     KLF5     KLF6     KLF9       MAF
+31-Unciliated epithelia 1 449.5425 482.2257 526.4282 233.6528 107.05181
+21-Unciliated epithelia 1 501.5350 499.2734 574.9900 323.1054 152.47406
+19-Epithelial cell        411.2984 426.9109 512.0844 265.9603 112.34784
+34-Epithelial cell        329.1712 355.5273 474.4532 221.0175  68.72356
+3-Epithelial cell         425.4107 400.2351 473.2224 280.5493 108.96574
+10-Epithelial cell        527.1853 487.3444 557.5927 317.3675 187.50473
+                              MAFB     MAFF     MAFG     MAFK      MAZ    MECOM
+31-Unciliated epithelia 1 161.5359 393.9210 400.6882 337.3834 402.4909 50.86681
+21-Unciliated epithelia 1 226.7222 469.4332 434.6981 355.5373 413.4344 49.65138
+19-Epithelial cell        305.4954 476.0369 409.8270 316.8371 394.7671 44.99239
+34-Epithelial cell        195.5751 394.2051 338.0712 247.1477 322.5586 43.48488
+3-Epithelial cell         213.9982 322.3441 297.2275 282.5827 331.8979 33.22159
+10-Epithelial cell        309.8348 430.8404 454.9137 357.0910 490.9961 45.60917
+                             MEF2A     MEF2C    MEF2D    MEIS1      MITF
+31-Unciliated epithelia 1 301.8692  97.99852 260.2565 12.04678  83.15060
+21-Unciliated epithelia 1 302.1385  72.93944 250.0708 15.58749  87.42992
+19-Epithelial cell        311.1489 140.98504 275.2064 15.35378  70.93765
+34-Epithelial cell        266.2682  65.28347 225.4830 12.86358  61.80312
+3-Epithelial cell         251.2901  91.23932 176.6249 13.58546  72.69006
+10-Epithelial cell        343.9507 101.51360 248.3818 17.15988 109.44429
+                               MLX  MSANTD3     MTF1     MZF1   NFE2L1   NFE2L2
+31-Unciliated epithelia 1 179.0567 304.2883 287.0412 195.5286 319.6703 468.2572
+21-Unciliated epithelia 1 194.1711 300.2066 257.3876 165.4739 333.4487 454.8600
+19-Epithelial cell        174.7306 254.6752 254.7937 159.7913 336.1446 445.1606
+34-Epithelial cell        156.4731 245.7694 232.4467 139.5856 295.3276 388.4463
+3-Epithelial cell         126.4071 195.7819 228.6842 155.3976 318.9028 352.5740
+10-Epithelial cell        209.4533 317.3635 304.2223 214.9329 407.4415 506.0760
+                              NFIA     NFIB     NFIC    NFIL3     NFYB
+31-Unciliated epithelia 1 254.3228 277.5921 363.8296 13.52829 249.2024
+21-Unciliated epithelia 1 297.9258 328.2614 400.4129 15.22723 252.2721
+19-Epithelial cell        281.5401 330.3418 330.7540 13.84577 277.1485
+34-Epithelial cell        187.2623 294.6929 314.8607 12.40894 207.1655
+3-Epithelial cell         247.4767 368.8407 329.4006 11.67276 217.4618
+10-Epithelial cell        342.8723 406.7685 404.7990 15.38834 325.5112
+                              NHLH1   NKX3-1    NR1D1     NR1D2    NR1H3
+31-Unciliated epithelia 1 157.35577 233.2330 140.9097  99.33556 167.2018
+21-Unciliated epithelia 1 115.89741 207.1255 198.6769 123.43777 143.6225
+19-Epithelial cell         89.03416 202.9542 163.3048 113.87958 127.5908
+34-Epithelial cell         76.11022 228.7766 127.2184  92.49695 125.7030
+3-Epithelial cell          69.16064 187.2404 219.8465 103.00222 149.2940
+10-Epithelial cell        158.11414 254.9070 166.7319 132.13471 211.4212
+                              NR2C2     NR2F2     NR4A1    NR4A2      NRL
+31-Unciliated epithelia 1 104.11158 107.99911  95.52921 260.3031 45.44235
+21-Unciliated epithelia 1 103.60160 118.05170 157.12572 319.6618 71.24543
+19-Epithelial cell         96.51355  83.49674 113.13383 255.8253 89.77195
+34-Epithelial cell         82.19089  85.97953  89.86378 184.9020 69.53740
+3-Epithelial cell          78.09350 102.80524 119.97767 226.1008 66.25265
+10-Epithelial cell        117.85579 119.92478 114.86373 329.6659 97.85722
+                              OSR2     PBX2      PBX3    PITX1   PKNOX1
+31-Unciliated epithelia 1 132.9853 65.04931  70.14566 343.3346 227.8533
+21-Unciliated epithelia 1 129.9254 75.44109  64.56937 320.1113 237.5520
+19-Epithelial cell        171.7543 69.36823  87.53440 312.2481 251.8618
+34-Epithelial cell        101.0249 59.40706  68.04949 257.8056 200.5520
+3-Epithelial cell         148.8499 56.65586  91.11096 276.7659 182.2474
+10-Epithelial cell        181.9185 89.27493 158.31651 376.6778 263.5666
+                              PLAG1   PLAGL1    PPARG    PRDM1   PRDM15
+31-Unciliated epithelia 1  92.40779 139.4807 257.1692 342.7088 166.3514
+21-Unciliated epithelia 1  84.50541 230.1842 279.7524 276.8202 131.8223
+19-Epithelial cell        181.16396 232.9637 228.4065 284.9745 176.6323
+34-Epithelial cell        154.42769 206.8244 206.3320 243.1259 111.2782
+3-Epithelial cell          88.17967 118.1948  92.9209 237.1949 140.5588
+10-Epithelial cell        194.73175 246.8187 106.2077 227.6417 232.4050
+                              PRDM4     RARA     RARG     RBPJ      REL
+31-Unciliated epithelia 1 102.24621 269.0100 144.7441 380.6773 177.8097
+21-Unciliated epithelia 1 108.97011 291.1247 152.0751 371.8139 207.9151
+19-Epithelial cell         87.59204 225.8921 207.2047 351.9802 210.8839
+34-Epithelial cell         76.85538 199.8651 182.1763 317.5681 193.1215
+3-Epithelial cell          76.44681 221.4575 161.8816 268.1206 158.4094
+10-Epithelial cell        121.58645 289.6735 331.3472 410.0817 206.3868
+                              RELA     RELB     REST     RFX1     RFX3
+31-Unciliated epithelia 1 177.2295 253.2189 385.3139 251.6759 225.1085
+21-Unciliated epithelia 1 188.9670 258.8767 379.0710 243.8857 196.0044
+19-Epithelial cell        187.3701 270.0817 345.8720 260.9959 234.7843
+34-Epithelial cell        170.5623 223.1409 311.5820 213.7158 176.7146
+3-Epithelial cell         137.8565 193.8943 316.2147 388.9602 281.4224
+10-Epithelial cell        219.5590 331.2913 453.1029 333.6148 247.7333
+                               RORA    RREB1    RUNX1     RUNX2     RXRA
+31-Unciliated epithelia 1  84.83058 307.2433 65.90353  55.88835 249.6449
+21-Unciliated epithelia 1 156.57657 381.1779 71.08881  92.15241 255.8200
+19-Epithelial cell        133.01770 337.1998 66.41363  74.46098 247.9880
+34-Epithelial cell        108.95634 277.7666 66.30534  60.00699 184.0068
+3-Epithelial cell         107.98497 273.7873 54.79376 103.37018 216.7240
+10-Epithelial cell        120.54269 333.1061 69.52948  75.92105 293.4303
+                             SMAD2    SMAD3    SMAD4    SNAI1     SNAI2
+31-Unciliated epithelia 1 428.0712 386.9046 296.5916 116.4355  48.19196
+21-Unciliated epithelia 1 397.9665 406.0907 294.1454 166.0717  87.14875
+19-Epithelial cell        377.9015 354.6401 262.4081 219.3173  56.67014
+34-Epithelial cell        327.7409 331.0659 221.4859 136.7193  45.70411
+3-Epithelial cell         340.7583 291.6958 312.1715 248.0454 104.90525
+10-Epithelial cell        437.3284 423.0336 317.7935 188.3253  82.70602
+                              SOX11     SOX13     SOX15      SOX5      SOX6
+31-Unciliated epithelia 1  35.57544 13.849097  53.97163  8.812161  45.23118
+21-Unciliated epithelia 1  38.36694 15.906353  49.00806 10.939820  69.89420
+19-Epithelial cell        125.97374 13.705671 103.06122  6.894372  85.26500
+34-Epithelial cell         63.82657  9.161909 109.65665  6.517884  49.16396
+3-Epithelial cell          25.00851 11.990767  43.05764  8.162986  30.87005
+10-Epithelial cell         48.10620 17.280400 265.32499 12.312169 101.03084
+                               SOX9      SP1      SP2      SP3      SP4
+31-Unciliated epithelia 1 13.714615 271.9185 269.2912 286.8191 64.18681
+21-Unciliated epithelia 1 18.625825 300.8835 285.5130 287.2804 67.60835
+19-Epithelial cell        14.456895 282.9967 251.7396 278.0362 71.80679
+34-Epithelial cell         9.703923 249.2219 208.0771 237.4767 64.54983
+3-Epithelial cell         12.278327 249.8132 247.5898 249.5165 77.36766
+10-Epithelial cell        12.601037 327.6792 319.8351 344.8855 94.19062
+                               SPI1      SPIB   SREBF1   SREBF2    STAT1
+31-Unciliated epithelia 1  32.77840   0.00000 235.1724 323.0365 196.9235
+21-Unciliated epithelia 1  65.95189  23.44206 258.4435 358.3436 203.7000
+19-Epithelial cell         80.53493 118.81007 246.6179 367.1185 231.3950
+34-Epithelial cell         28.89605  17.25513 202.4587 304.2786 222.0021
+3-Epithelial cell          73.36853  43.58368 178.9816 301.6663 161.5491
+10-Epithelial cell        110.20701   0.00000 270.5661 340.6630 250.5021
+                             STAT2    STAT3   STAT5A   STAT5B    STAT6    TCF12
+31-Unciliated epithelia 1 262.4664 18.79374 13.38159 13.56880 176.0870 14.75125
+21-Unciliated epithelia 1 258.0818 21.72613 16.18939 13.81943 154.9180 16.14534
+19-Epithelial cell        312.2821 18.91016 13.12127 12.01739 144.1575 13.44555
+34-Epithelial cell        258.3488 17.27855 13.26465 10.60173 143.3866 11.65964
+3-Epithelial cell         245.8901 16.04154 10.93974 10.05300 121.0088 12.67241
+10-Epithelial cell        332.0636 23.43231 17.64517 14.21659 155.8830 16.96457
+                              TCF3     TCF4    TEAD1    TEAD2   TFAP2A
+31-Unciliated epithelia 1 211.1180 233.2187 182.1121 194.7955 266.5709
+21-Unciliated epithelia 1 224.0680 282.3799 196.2023 202.1620 244.5120
+19-Epithelial cell        182.3860 181.9408 189.1536 197.6692 285.4483
+34-Epithelial cell        170.3711 144.9625 167.0942 165.3305 219.6929
+3-Epithelial cell         190.9014 246.6539 129.5779 227.8243 174.6896
+10-Epithelial cell        229.8422 299.1532 207.6004 222.5586 354.6947
+                              TFAP2E     TFAP4      TFE3     TFEB     THAP1
+31-Unciliated epithelia 1  5.3441990  9.197448  82.29705 57.64591 114.61223
+21-Unciliated epithelia 1  0.0000000 10.082539  94.69358 65.58618 112.94435
+19-Epithelial cell         0.3934848  9.257489  86.77673 77.08404  93.47750
+34-Epithelial cell         5.6343591  7.200403  87.21428 67.48573  88.61292
+3-Epithelial cell         13.3469630  6.712405  69.73921 61.41205  99.23079
+10-Epithelial cell        37.8311539 11.148686 126.46320 93.32471 146.74529
+                            THAP11     TP53   TWIST1     USF1      USF2
+31-Unciliated epithelia 1 248.8680 34.79585 34.26941 78.52155 105.53769
+21-Unciliated epithelia 1 239.1879 33.25894 90.39282 75.12275 122.65509
+19-Epithelial cell        194.4307 25.76878 50.71490 65.63179 120.17009
+34-Epithelial cell        176.8342 29.97615 32.97621 44.90863  92.91852
+3-Epithelial cell         203.2245 30.56775 49.91836 51.27422  97.38749
+10-Epithelial cell        303.9360 47.00006 57.30134 70.60919 158.18241
+                               VDR    VEZF1       YY2    ZBED1   ZBTB18
+31-Unciliated epithelia 1 215.8835 306.3414 135.16852 15.96146 7.951848
+21-Unciliated epithelia 1 227.5031 326.6258 143.99473 15.14677 8.843413
+19-Epithelial cell        264.0982 259.6149 121.91908 13.42187 7.263599
+34-Epithelial cell        204.5740 219.4007  92.29156 10.79172 4.533209
+3-Epithelial cell         217.3928 256.4015 185.30315 11.88702 7.525878
+10-Epithelial cell        271.5152 340.7695 149.84175 19.10728 6.906435
+                            ZBTB26    ZBTB6   ZBTB7A     ZEB1      ZFX  ZKSCAN1
+31-Unciliated epithelia 1 20.38378 231.8071 344.9445 280.9480 322.1729 159.9217
+21-Unciliated epithelia 1 19.99299 213.6142 340.1274 273.1225 274.9815 163.0597
+19-Epithelial cell        18.10469 165.6524 283.2160 210.4377 270.3676 141.2344
+34-Epithelial cell        22.60197 136.7228 264.7729 171.2451 238.7665 136.0648
+3-Epithelial cell         18.76435 195.3451 263.5563 188.7028 247.9618 126.8364
+10-Epithelial cell        27.08258 249.3637 365.2285 208.0540 358.3888 151.6275
+                           ZKSCAN5    ZNF135   ZNF140   ZNF143   ZNF148
+31-Unciliated epithelia 1 178.7085  69.65731 136.5799 338.6165 329.4734
+21-Unciliated epithelia 1 165.3950 104.47633 140.9542 358.2242 327.0992
+19-Epithelial cell        154.0098 177.28621 148.8514 345.6355 333.7657
+34-Epithelial cell        144.8262 140.62743 125.4575 276.0567 296.4525
+3-Epithelial cell         168.5800 167.30636 110.7473 293.5831 270.9835
+10-Epithelial cell        265.3983 164.68969 144.5757 349.8256 382.9900
+                             ZNF16   ZNF263   ZNF281    ZNF317   ZNF341
+31-Unciliated epithelia 1 269.8093 312.1858 374.8488 11.200564 3.959368
+21-Unciliated epithelia 1 268.3636 302.2461 371.3431 12.464295 4.494712
+19-Epithelial cell        250.1959 301.8209 313.2949 12.365071 4.720813
+34-Epithelial cell        234.4556 229.3376 283.2609  9.999113 4.659630
+3-Epithelial cell         288.3290 257.1563 271.5538 10.830537 4.378994
+10-Epithelial cell        324.2477 385.1642 364.7451 13.527665 6.946388
+                            ZNF354C   ZNF384   ZNF410   ZNF449   ZNF460
+31-Unciliated epithelia 1  77.18100 250.5540 158.7811 117.7943 230.9809
+21-Unciliated epithelia 1  94.99116 226.5733 172.2445 145.2977 254.3889
+19-Epithelial cell        119.12546 217.6208 177.0279 129.9878 231.0090
+34-Epithelial cell        160.80385 199.9692 110.2475 163.2027 226.1873
+3-Epithelial cell         121.50588 193.5812 150.7558 136.4308 214.6759
+10-Epithelial cell        136.00362 264.5510 202.6846 160.8261 249.3593
+                            ZNF528   ZNF682   ZNF740   ZNF75D
+31-Unciliated epithelia 1 4.159846 151.8285 191.0743 185.0188
+21-Unciliated epithelia 1 3.722372 165.2976 184.8710 159.9022
+19-Epithelial cell        3.884516 121.0950 213.5139 163.8425
+34-Epithelial cell        3.194732 107.1277 162.1748 165.0964
+3-Epithelial cell         2.989950 133.4438 191.8525 152.2624
+10-Epithelial cell        3.658852 152.2304 247.1685 248.2733
+> 
+> saveRDS(tfsee,"tfsee_matrix.rds")
+> saveRDS(int,"int_matrix.rds")
+> saveRDS(expr.mat,"expr_matrix.rds")
+> saveRDS(motif.mat,"motif_matrix.rds")
+> 
+> tfsee <- readRDS("tfsee_matrix.rds")
+> # Write table of TFs for canSAR search:
+> write.csv(data.frame(colnames(tfsee)),"TFs_for_canSAR.csv")
+> 
+> ##################################################################
+> # END OF TFSEE COMPUTATION
+> ##################################################################
+> 
+> 
+> 
+> ##################################################################
+> # Plotting of TFSEE heatmap 
+> ##################################################################
+> # Enrich for highest signal TFs:
+> tfsee.t <- t(tfsee)
+> tfsee.t <- as.data.frame(tfsee.t)
+> tfsee.t$rowMeans <- rowMeans(as.matrix(tfsee.t))
+> tfsee.t <- dplyr::filter(tfsee.t,rowMeans > summary(tfsee.t$rowMeans)[2])
+> tfsee.t <- tfsee.t[,-12]# Remove rowMeans column
+> tfsee <- t(tfsee.t)
+> 
+> 
+> # Output TF names to csv file for canSAR search:
+> write.csv(data.frame(TF=colnames(tfsee)),quote = F,sep = ",","TFs_for_canSAR.csv")
+Warning message:
+In write.csv(data.frame(TF = colnames(tfsee)), quote = F, sep = ",",  :
+  attempt to set 'sep' ignored
+> 
+> # Make heatmap annotation
+> ha = HeatmapAnnotation(
++   Site = factor(c(rep("1",5),rep("2",6))),
++   Type = factor(c(rep("1",5),rep("2",5),rep("3",1))),
++   Histology = factor(c(rep("1",5),rep("2",4),rep("3",1),rep("4",1))),
++   Stage = factor(c(rep("1",1),rep("2",2),rep("3",1),rep("4",1),rep("5",4),rep("6",2))),
++   Patient = factor(as.character(seq(1:11))),
++   size.rna = DESeq2::sizeFactors(dds.rna),
++   size.atac = DESeq2::sizeFactors(dds.atac))
+> 
+> 
+> library(ComplexHeatmap)
+> # Z-score the TFSEEs 
+> pdf(paste0("TFSEE_TF_scaled.pdf"), width = 5, height = 9)
+> Heatmap(t(scale(tfsee)),show_row_names =T,clustering_method_columns = "complete",top_annotation = ha,
++         clustering_method_rows="complete",
++         clustering_distance_columns = "euclidean",
++         clustering_distance_rows = "euclidean")
+> dev.off()
+null device 
+          1 
+> # Z-score the cell types
+> pdf(paste0("TFSEE_celltype_scaled.pdf"), width = 5, height =9)
+> Heatmap(scale(t(tfsee)),top_annotation = ha, 
++         show_row_names =T,clustering_method_rows = "complete",clustering_method_columns = "complete",clustering_distance_rows = "euclidean",
++         clustering_distance_columns = "euclidean")
+> dev.off()
+null device 
+          1 
+> # No z-score normalization
+> pdf(paste0("TFSEE_celltype_uncscaled.pdf"), width = 5, height = 9)
+> Heatmap(t(tfsee),top_annotation = ha,
++         show_row_names =T,clustering_method_rows = "complete",clustering_method_columns = "complete",
++         clustering_distance_columns="euclidean",
++         clustering_distance_row="euclidean")
+> dev.off()
+null device 
+          1 
+> 
+> 
+> writeLines(capture.output(sessionInfo()), "sessionInfo_TFSEE_Step4.txt")
+> 
+> proc.time()
+    user   system  elapsed 
+ 746.159  501.814 1186.027 
