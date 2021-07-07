@@ -44,6 +44,11 @@ tfsee.group2 <- tfsee[4,]
 tfsee.group2 <- as.data.frame(tfsee.group2)
 colnames(tfsee.group2) <- "group2"
 
+print("Comparison: Subclone 1 v. Subclone 2")
+print(rownames(tfsee)[3])
+print(rownames(tfsee)[4])
+print("Beginning comparison...")
+
 length(which(rownames(tfsee.group1) == rownames(tfsee.group2)))
 tfsee.group1 <- tfsee.group1
 tfsee.group2 <- tfsee.group2
@@ -78,7 +83,7 @@ total$drug.score <- drug.scores.new$Druggable
 total <- dplyr::arrange(total,difference.tfsee)
 total$rank <- 1:nrow(total)
 
-ggplot(total,aes(x=rank,y = difference.tfsee))+
+p1<-ggplot(total,aes(x=rank,y = difference.tfsee))+
   geom_point(aes(color = drug.score),size = 2)+
   ylab("difference(Scaled TFSEE score)")+theme_bw()+
   xlab("Rank")+
@@ -100,6 +105,12 @@ tfsee.group2 <- tfsee[8,]
 tfsee.group2 <- as.data.frame(tfsee.group2)
 colnames(tfsee.group2) <- "group2"
 
+
+print("Comparison: Sarcoma v. Carcinoma")
+print(rownames(tfsee)[7])
+print(rownames(tfsee)[8])
+print("Beginning comparison...")
+
 length(which(rownames(tfsee.group1) == rownames(tfsee.group2)))
 tfsee.group1 <- tfsee.group1
 tfsee.group2 <- tfsee.group2
@@ -135,7 +146,7 @@ total$drug.score <- drug.scores.new$Druggable
 total <- dplyr::arrange(total,difference.tfsee)
 total$rank <- 1:nrow(total)
 
-ggplot(total,aes(x=rank,y = difference.tfsee))+
+p2<-ggplot(total,aes(x=rank,y = difference.tfsee))+
   geom_point(aes(color = drug.score),size = 2)+
   ylab("difference(Scaled TFSEE score)")+theme_bw()+
   xlab("Rank")+
@@ -147,7 +158,204 @@ ggplot(total,aes(x=rank,y = difference.tfsee))+
 
 
 
+# Rank frequency plot for endometrial cancer of different histologies
+rownames(tfsee)
+# Build TFSEE fold change vector
+tfsee.group1 <- colMeans(tfsee[3:4,])
+tfsee.group1 <- as.data.frame(tfsee.group1)
+colnames(tfsee.group1) <- "group1"
 
+tfsee.group2 <- colMeans(tfsee[1:2,])
+tfsee.group2 <- as.data.frame(tfsee.group2)
+colnames(tfsee.group2) <- "group2"
+
+print("Comparison: Serous v. Endometrioid EC")
+print(paste0("Mean of:"))
+print(rownames(tfsee[c(3,4),]))
+print(paste0("Mean of:"))
+print(rownames(tfsee[c(1,2),]))
+print("Beginning comparison...")
+
+length(which(rownames(tfsee.group1) == rownames(tfsee.group2)))
+tfsee.group1 <- tfsee.group1
+tfsee.group2 <- tfsee.group2
+diff.tfsee <-tfsee.group1-tfsee.group2
+hist(diff.tfsee)
+
+colnames(diff.tfsee) <- "difference.tfsee"
+
+total <- diff.tfsee
+
+total$sum <- rowSums(total)
+
+total.group1 <- dplyr::filter(total,sum > 0)
+total.group2 <- dplyr::filter(total,sum < 0)
+
+drug.group1 <- intersect(rownames(total.group1),drug.scores.sub$TF)
+drug.group2 <- intersect(rownames(total.group2),drug.scores.sub$TF)
+
+total.group1 <- total.group1[rownames(total.group1) %in% drug.group1,]
+total.group2 <- total.group2[rownames(total.group2) %in% drug.group2,]
+
+
+# Add druggability to DF:
+
+drug.scores$Druggable <- ifelse(drug.scores$Score > 0, "Yes", "No")
+
+drug.scores.new <- dplyr::filter(drug.scores,TF %in% rownames(total))
+
+length(which(drug.scores.new$TF == rownames(total)))
+
+total$drug.score <- drug.scores.new$Druggable
+
+total <- dplyr::arrange(total,difference.tfsee)
+total$rank <- 1:nrow(total)
+
+p3<-ggplot(total,aes(x=rank,y = difference.tfsee))+
+  geom_point(aes(color = drug.score),size = 2)+
+  ylab("difference(Scaled TFSEE score)")+theme_bw()+
+  xlab("Rank")+
+  scale_color_manual(values = c("gray60","black"))+
+  geom_hline(yintercept = 0.25,linetype="dashed")+
+  geom_hline(yintercept = -0.25,linetype="dashed")+
+  ggsave("TFSEE_SerousVEndometrioid_Endometrial.pdf",width =5,height = 4)
+
+
+
+
+
+# Rank frequency plot for ovarian cancer of different histologies
+rownames(tfsee)
+# Build TFSEE fold change vector
+tfsee.group1 <- colMeans(tfsee[c(6,11),])
+tfsee.group1 <- as.data.frame(tfsee.group1)
+colnames(tfsee.group1) <- "group1"
+
+tfsee.group2 <- tfsee[5,]
+tfsee.group2 <- as.data.frame(tfsee.group2)
+colnames(tfsee.group2) <- "group2"
+
+print("Comparison: Serous v. Endometrioid OC")
+print(paste0("Mean of:"))
+print(rownames(tfsee[c(6,11),]))
+print(rownames(tfsee)[5])
+print("Beginning comparison...")
+
+length(which(rownames(tfsee.group1) == rownames(tfsee.group2)))
+tfsee.group1 <- tfsee.group1
+tfsee.group2 <- tfsee.group2
+diff.tfsee <-tfsee.group1-tfsee.group2
+hist(diff.tfsee)
+
+colnames(diff.tfsee) <- "difference.tfsee"
+
+total <- diff.tfsee
+
+total$sum <- rowSums(total)
+
+total.group1 <- dplyr::filter(total,sum > 0)
+total.group2 <- dplyr::filter(total,sum < 0)
+
+drug.group1 <- intersect(rownames(total.group1),drug.scores.sub$TF)
+drug.group2 <- intersect(rownames(total.group2),drug.scores.sub$TF)
+
+total.group1 <- total.group1[rownames(total.group1) %in% drug.group1,]
+total.group2 <- total.group2[rownames(total.group2) %in% drug.group2,]
+
+
+# Add druggability to DF:
+
+drug.scores$Druggable <- ifelse(drug.scores$Score > 0, "Yes", "No")
+
+drug.scores.new <- dplyr::filter(drug.scores,TF %in% rownames(total))
+
+length(which(drug.scores.new$TF == rownames(total)))
+
+total$drug.score <- drug.scores.new$Druggable
+
+total <- dplyr::arrange(total,difference.tfsee)
+total$rank <- 1:nrow(total)
+
+p4<-ggplot(total,aes(x=rank,y = difference.tfsee))+
+  geom_point(aes(color = drug.score),size = 2)+
+  ylab("difference(Scaled TFSEE score)")+theme_bw()+
+  xlab("Rank")+
+  scale_color_manual(values = c("gray60","black"))+
+  geom_hline(yintercept = 0.25,linetype="dashed")+
+  geom_hline(yintercept = -0.25,linetype="dashed")+
+  ggsave("TFSEE_SerousVEndometrioid_Ovarian.pdf",width =5,height = 4)
+
+
+
+# Rank frequency plot for GIST versus HGSOC
+rownames(tfsee)
+
+# Build TFSEE fold change vector
+tfsee.group1 <- colMeans(tfsee[c(9,10),])
+tfsee.group1 <- as.data.frame(tfsee.group1)
+colnames(tfsee.group1) <- "group1"
+
+tfsee.group2 <- colMeans(tfsee[c(6,11),])
+tfsee.group2 <- as.data.frame(tfsee.group2)
+colnames(tfsee.group2) <- "group2"
+
+print("Comparison: GIST v. HGSOC")
+print(paste0("Mean of:"))
+print(rownames(tfsee[c(9,10),]))
+print(paste0("Mean of:"))
+print(rownames(tfsee[c(6,11),]))
+print("Beginning comparison...")
+
+length(which(rownames(tfsee.group1) == rownames(tfsee.group2)))
+tfsee.group1 <- tfsee.group1
+tfsee.group2 <- tfsee.group2
+diff.tfsee <-tfsee.group1-tfsee.group2
+hist(diff.tfsee)
+
+colnames(diff.tfsee) <- "difference.tfsee"
+
+total <- diff.tfsee
+
+total$sum <- rowSums(total)
+
+total.group1 <- dplyr::filter(total,sum > 0)
+total.group2 <- dplyr::filter(total,sum < 0)
+
+drug.group1 <- intersect(rownames(total.group1),drug.scores.sub$TF)
+drug.group2 <- intersect(rownames(total.group2),drug.scores.sub$TF)
+
+total.group1 <- total.group1[rownames(total.group1) %in% drug.group1,]
+total.group2 <- total.group2[rownames(total.group2) %in% drug.group2,]
+
+
+# Add druggability to DF:
+
+drug.scores$Druggable <- ifelse(drug.scores$Score > 0, "Yes", "No")
+
+drug.scores.new <- dplyr::filter(drug.scores,TF %in% rownames(total))
+
+length(which(drug.scores.new$TF == rownames(total)))
+
+total$drug.score <- drug.scores.new$Druggable
+
+total <- dplyr::arrange(total,difference.tfsee)
+total$rank <- 1:nrow(total)
+
+p5<-ggplot(total,aes(x=rank,y = difference.tfsee))+
+  geom_point(aes(color = drug.score),size = 2)+
+  ylab("difference(Scaled TFSEE score)")+theme_bw()+
+  xlab("Rank")+
+  scale_color_manual(values = c("gray60","black"))+
+  geom_hline(yintercept = 0.25,linetype="dashed")+
+  geom_hline(yintercept = -0.25,linetype="dashed")+
+  ggsave("TFSEE_GISTvHGSOC.pdf",width =5,height = 4)
+
+
+CombinePlots(list(p4,p3,p5),ncol=1)+ggsave("Freq_Distribtions_Suppl.pdf",
+                                           width=5,height = 12)
+
+CombinePlots(list(p1,p2),ncol=1)+ggsave("Freq_Distribtions_Main.pdf",
+                                           width=5,height =8)
 
 
 # Plot heatmap with druggability
