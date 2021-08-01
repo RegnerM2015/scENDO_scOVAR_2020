@@ -7,29 +7,5 @@
 
 ### Please cite: TBD, in review at Molecular Cell
 
-![alt text](https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Cartoon.png)
 
-# Reproducibility 
-#### Session Information and conda .yml file: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Reproducibility)
-
-# Cell Ranger pre-processing
-#### cellranger/cellranger-atac directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/CellRanger)
-
-# scRNA-seq processing scripts
-#### scRNA-seq directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/scRNA-seq%20Processing%20Scripts)
-
-# scATAC-seq processing scripts
-#### scATAC-seq directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/scATAC-seq%20Processing%20Scripts)
-
-# Figure scripts
-#### Figure 1 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_1)
-#### Figure 2 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_2)
-#### Figure 3 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_3)
-#### Figure 4 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_4)
-#### Figure 5 directory: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_5)
-
-# Supplementary figure scripts
-#### Please email regnerm@live.unc.edu for inquiries into the supplemental figure scripts
-
-# Data download: 
-#### dbGaP Study Accession: phs002340.v1.p1
+Please vist the [wiki](https://github.com/RegnerM2015/scENDO_scOVAR_2020/wiki) for an in depth walkthrough of our data and analyses. 
