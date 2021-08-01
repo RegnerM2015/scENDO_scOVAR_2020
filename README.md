@@ -8,4 +8,4 @@
 ### Please cite: TBD, in review at Molecular Cell
 
 
-### Please vist the [wiki](https://github.com/RegnerM2015/scENDO_scOVAR_2020/wiki) for an in depth walkthrough of our data and analyses. 
+### Please vist the [wiki](https://github.com/RegnerM2015/scENDO_scOVAR_2020/wiki) for an in depth walk-through of our data and analyses. 
