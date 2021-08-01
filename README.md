@@ -9,3 +9,5 @@
 
 
 ### Please vist the [wiki](https://github.com/RegnerM2015/scENDO_scOVAR_2020/wiki) for an in depth walk-through of our data and analyses. 
+
+### To download the data, please visit the Gene Expression Omnibus (GEO) accession GSE173682.
