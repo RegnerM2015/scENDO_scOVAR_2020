@@ -8,6 +8,7 @@
 source("P2G_Heatmap_Distal.R")
 source("Archr_Peak_RawPval.R")
 source("Archr_Peak_Null_Permute.R")
+source("ArchRBrowser.R")
 library(ggplot2)
 library(Seurat)
 library(scales)
@@ -97,7 +98,7 @@ labels <- c("0-Fibroblast",
             "9-Epithelial cell",
             "27-Fibroblast" 
             
-            )
+)
 
 markerList <- getMarkers(markersPeaks, cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
 markerList.sub <- markerList[names(markerList) %in% labels]
@@ -158,7 +159,7 @@ norm.nearest <- p2g.norm[p2g.norm$Nearest == "Yes",]
 
 res <- fisher.test(matrix(c(nrow(cancer.nearest), nrow(norm.nearest), 
                             nrow(p2g.cancer)-nrow(cancer.nearest), nrow(p2g.norm)-nrow(norm.nearest)),
-                            ncol = 2))
+                          ncol = 2))
 print(res)
 print(paste0("The proportion of cancer-specific P2Gs predictable by nearest neighboring rule is significantly less relative to the normal P2Gs (p=",res$p.value,")"))
 ####################################################################
@@ -235,12 +236,11 @@ df.cancer$type <- "cancer"
 
 df<- rbind(df.normal,df.cancer)
 
-
 p1 <- ggplot(df, aes(x=type, y=num.genes.Freq, fill = type)) +
   stat_summary(geom = "bar", fun.y = mean, position = "dodge",width=0.3) +
   stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge",width=0.15)+
-  theme_classic()+  coord_cartesian(ylim=c(1.44,1.65))+NoLegend()
-
+  theme_classic()+  coord_cartesian(ylim=c(0.00,2.0))+NoLegend()+
+  scale_y_continuous(expand = c(0,0)) 
 df.cancer %>% 
   count(cat) %>% 
   mutate(perc = (n / nrow(df.cancer)*100)) -> cancer
@@ -260,7 +260,7 @@ p2 <- ggplot(comb,aes(x=cat,y=perc,fill=type))+
   scale_y_continuous(expand = c(0,0),limits=c(0,100))+NoLegend()
 
 
-CombinePlots(list(p2,p1),ncol=2)+ggsave("Barcharts_P2G_plots.pdf",width=6,height=3)
+CombinePlots(list(p2,p1),ncol=2)+ggsave("Barcharts_P2G_plots.pdf",width=4,height=2)
 
 # Cancer specific peaks link to more genes on average with statistical significance:
 test <- wilcox.test(df.cancer$num.genes.Freq,df.normal$num.genes.Freq,correct = F)
@@ -321,22 +321,22 @@ test <- test[test$Sample == "38FE7L",]
 levels(factor(test$predictedGroup_ArchR))
 
 new.idents <- setdiff(levels(factor(atac$predictedGroup_ArchR)),
-        c("16_8-Stromal fibroblasts",
-          "17_12-Stromal fibroblasts",
-          "18_14-Stromal fibroblasts",
-          "19_15-Stromal fibroblasts",
-          "20_18-Fibroblast",
-          "21_24-Fibroblast",
-          "23_215_23_26-Fibroblast",
-          "24_29-Fibroblast",
-          "26_23-Stromal fibroblasts",
-          "31_30-T cell",
-          "30_4-Lymphocytes",
-          "34_32-Mast cell",
-          "33_13-Macrophages",
-          "36_35-B cell",
-          "32_5-Macrophage",
-          "35_28-B cell" ))
+                      c("16_8-Stromal fibroblasts",
+                        "17_12-Stromal fibroblasts",
+                        "18_14-Stromal fibroblasts",
+                        "19_15-Stromal fibroblasts",
+                        "20_18-Fibroblast",
+                        "21_24-Fibroblast",
+                        "23_215_23_26-Fibroblast",
+                        "24_29-Fibroblast",
+                        "26_23-Stromal fibroblasts",
+                        "31_30-T cell",
+                        "30_4-Lymphocytes",
+                        "34_32-Mast cell",
+                        "33_13-Macrophages",
+                        "36_35-B cell",
+                        "32_5-Macrophage",
+                        "35_28-B cell" ))
 
 idxSample <- BiocGenerics::which(atac$predictedGroup_ArchR %in% new.idents)
 cellsSample <- atac$cellNames[idxSample]
@@ -453,8 +453,8 @@ cols <- cols[c(8:12,1:7,13:20)]
 plot <- plotBrowserTrack(atac.sub,geneSymbol ="RHEB", groupBy = "predictedGroup_ArchR",
                          features = GRangesList(TrackA = encode.all,TrackB = ft.peaks,TrackC = ov.peaks), 
                          loops = getPeak2GeneLinks.mod(atac,corCutOff = 0.45,
-                                                   PValCutOff = 1e-12,varCutOffATAC = 0,
-                                                   varCutOffRNA = 0),upstream = 6000,downstream = 35000,
+                                                       PValCutOff = 1e-12,varCutOffATAC = 0,
+                                                       varCutOffRNA = 0),upstream = 6000,downstream = 35000,
                          pal=cols)
 
 pdf("RHEB_final.pdf",width = 6,height = 8)
@@ -477,6 +477,89 @@ names <- gsub(".*_","",atac.sub$predictedGroup_ArchR)
 saveRDS(names,"names.rds")
 rm(atac.sub)
 rm(atac)
+
+
+# Plot MUC16 and CD117 examples:
+atac <- readRDS("final_archr_proj_archrGS-P2Gs.rds")
+# ATAC
+levels(factor(atac$predictedGroup_ArchR))
+my_levels <- as.character(c(11,20,21,22,31,19,34,
+                            3,9,10,16,17,
+                            0,27,
+                            6,8,12,14,15,18,24,25,26,29,7,23,
+                            1,33,
+                            2,4,30,
+                            5,13,
+                            32,
+                            28,35))
+
+for ( i in levels(factor(atac$predictedGroup_ArchR))){
+  num <-  gsub("-.*","",i)
+  idx <- match(num,my_levels)
+  atac$predictedGroup_ArchR <- str_replace(atac$predictedGroup_ArchR,pattern = i,replacement = paste0(idx,"_",atac$predictedGroup_ArchR))
+  print("iter complete")
+}
+
+epithelial.cols <- colorRampPalette(c("#A0E989", "#245719"))
+epithelial.cols <- epithelial.cols(14)
+
+fibro.cols <-colorRampPalette(c("#FABFD2", "#B1339E"))
+fibro.cols <- fibro.cols(10)
+
+smooth.cols <- c("#b47fe5","#d8b7e8")
+
+endo.cols <- c("#93CEFF","#4A99FF")
+
+t.cols <- c("gray60","gray20","gray40")
+
+macro.cols <- c("#ff6600","#ff9d5c")
+
+mast.cols <- "gold3"
+
+b.cols <- c("#B22222","#CD5C5C")
+
+
+cols <- c(epithelial.cols,fibro.cols,smooth.cols,endo.cols,t.cols,macro.cols,mast.cols,b.cols)
+plot <- plotBrowserTrack(atac,geneSymbol ="MUC16", groupBy = "predictedGroup_ArchR",
+                         features = GRangesList(TrackA = encode.all,TrackB = ft.peaks,TrackC = ov.peaks), 
+                         loops = getPeak2GeneLinks.mod(atac,corCutOff = 0.45,
+                                                       PValCutOff = 1e-12,varCutOffATAC = 0,
+                                                       varCutOffRNA = 0),upstream = 75000,downstream = 110000,
+                         pal=cols,
+                         ylim=.995)
+
+pdf("MUC16_final.pdf",width = 6,height = 8)
+grid::grid.draw(plot[[1]])
+dev.off()
+
+plot <- plotBrowserTrack(atac,geneSymbol ="KIT", groupBy = "predictedGroup_ArchR",
+                         features = GRangesList(TrackA = encode.all,TrackB = ft.peaks,TrackC = ov.peaks), 
+                         loops = getPeak2GeneLinks.mod(atac,corCutOff = 0.45,
+                                                       PValCutOff = 1e-12,varCutOffATAC = 0,
+                                                       varCutOffRNA = 0),upstream = 85000,downstream = 30000,
+                         pal=cols)
+
+pdf("KIT_final.pdf",width = 6,height = 8)
+grid::grid.draw(plot[[1]])
+dev.off()
+
+
+plot <- plotBrowserTrack(atac,geneSymbol = "LAPTM4B", groupBy = "predictedGroup_ArchR",
+                         features = GRangesList(TrackA = encode.all,TrackB = ft.peaks,TrackC = ov.peaks), 
+                         loops = getPeak2GeneLinks.mod(atac,corCutOff = 0.45,
+                                                       PValCutOff = 1e-12,varCutOffATAC = 0,
+                                                       varCutOffRNA = 0),
+                         pal=cols,
+                         upstream = 41500,
+                         downstream = 10000
+)
+
+
+pdf("LAPTM4B_final.pdf",width = 6,height = 8)
+grid::grid.draw(plot[[1]])
+dev.off()
+
+
 ####################################################################
 # PART 4: plot matching violin plots for RHEB expression and mTOR
 ####################################################################
@@ -517,13 +600,49 @@ print(res$p.value)
 # Differential expression of RHEB in cluster 3
 grouped.markers <- FindMarkers(rna.sub,ident.1 = "3",
                                ident.2 = as.character(c(9,10,16,17,
-                                           11,20,21,22,31,19,34,
-                                           0,27,
-                                           6,25,7,
-                                           1,33,
-                                           2)),only.pos = T)
+                                                        11,20,21,22,31,19,34,
+                                                        0,27,
+                                                        6,25,7,
+                                                        1,33,
+                                                        2)),only.pos = T)
 grouped.markers$gene <- rownames(grouped.markers)
 grouped.markers.RHEB <- grouped.markers[grouped.markers$gene == "RHEB",]
 print(grouped.markers.RHEB)# Significant up-regulation in cluster 3
+
+
+# make boxplots for MUC16 and KIT expression
+rna <- readRDS("./endo_ovar_All_scRNA_processed.rds")
+
+my_levels <- as.character(c(11,20,21,22,31,19,34,
+                            3,9,10,16,17,
+                            0,27,
+                            6,8,12,14,15,18,24,25,26,29,7,23,
+                            1,33,
+                            2,4,30,
+                            5,13,
+                            32,
+                            28,35))
+
+# Make violin plots for MUC16 expression and mTOR pathway expression
+# Relevel object@ident
+rna@active.ident <- factor(x =rna$RNA_snn_res.0.7, levels = rev(my_levels))
+p1 <- VlnPlot(rna,features = "MUC16",pt.size = 0)+coord_flip()+NoLegend()
+p1 <- ggplot(p1$data,aes(y=ident,x=MUC16))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+  theme_classic()+NoLegend()+ylab("Cluster #")+xlab("MUC16 expression")+ggsave("Vln-MUC16.pdf",width=3,height = 8)
+
+# Make violin plots for KIT expression and mTOR pathway expression
+# Relevel object@ident
+rna@active.ident <- factor(x =rna$RNA_snn_res.0.7, levels = rev(my_levels))
+p1 <- VlnPlot(rna,features = "KIT",pt.size = 0)+coord_flip()+NoLegend()
+p1 <- ggplot(p1$data,aes(y=ident,x=KIT))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+  theme_classic()+NoLegend()+ylab("Cluster #")+xlab("KIT expression")+ggsave("Vln-KIT.pdf",width=3,height = 8)
+
+# Make violin plots for LAPTM4B expression and mTOR pathway expression
+# Relevel object@ident
+rna@active.ident <- factor(x =rna$RNA_snn_res.0.7, levels = rev(my_levels))
+p1 <- VlnPlot(rna,features = "LAPTM4B",pt.size = 0)+coord_flip()+NoLegend()
+p1 <- ggplot(p1$data,aes(y=ident,x=LAPTM4B))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+  theme_classic()+NoLegend()+ylab("Cluster #")+xlab("LAPTM4B expression")+ggsave("Vln-LAPTM4B.pdf",width=3,height = 8)
+
 
 writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
