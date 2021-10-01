@@ -5,7 +5,7 @@
 ####      * Corresponding Author 
 
 
-### Please cite: TBD, in review at Molecular Cell
+### Please cite our paper published in Molecular Cell. 
 
 
 <p align="center">
