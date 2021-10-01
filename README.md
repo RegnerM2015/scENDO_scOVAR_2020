@@ -14,7 +14,7 @@ Adapted from Figure 1
 
 
 <p align="center">
-<img src="https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Overview_Cartoon_2021.PNG" width="400" height="660">
+<img src="https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Updated_Cartoon.PNG" width="400" height="660">
 </p>
 
 
