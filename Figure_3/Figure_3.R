@@ -8,6 +8,7 @@
 ###########################################################
 source("./P2G_Heatmap_Distal.R")
 source("./Archr_Peak_Null_Permute.R")
+source("./ArchRBrowser.R")
 library(ggplot2)
 library(Seurat)
 library(scales)
@@ -503,9 +504,32 @@ plot <- plotBrowserTrack(atac,geneSymbol = "SOX9", groupBy = "predictedGroup_Arc
                          loops = getPeak2GeneLinks(atac,FDRCutOff = 1,varCutOffATAC = 0,
                                                    varCutOffRNA = 0),upstream = 9000,downstream =202000,
                          features=GRangesList(TrackA=encode.all,TrackB=ft.peaks,TrackC=ov.peaks),
-                         pal= cols[-c(15,29)])
+                         pal= cols[-c(15,29)],
+                         ylim=.9965)
 
 pdf("SOX9_final.pdf",width = 6,height = 8)
+grid::grid.draw(plot[[1]])
+dev.off()
+
+plot <- plotBrowserTrack(atac,geneSymbol = "CD24", groupBy = "predictedGroup_ArchR",
+                         loops = getPeak2GeneLinks(atac,FDRCutOff = 1,varCutOffATAC = 0,
+                                                   varCutOffRNA = 0),upstream =110000,downstream =3000,
+                         features=GRangesList(TrackA=encode.all,TrackB=ft.peaks,TrackC=ov.peaks),
+                         pal= cols[-c(15,29)],
+                         ylim=.996)
+
+pdf("CD24_final.pdf",width = 6,height = 8)
+grid::grid.draw(plot[[1]])
+dev.off()
+
+plot <- plotBrowserTrack(atac,geneSymbol = "IMPA2", groupBy = "predictedGroup_ArchR",
+                         loops = getPeak2GeneLinks(atac,FDRCutOff = 1,varCutOffATAC = 0,
+                                                   varCutOffRNA = 0),upstream =68000,downstream =12500,
+                         features=GRangesList(TrackA=encode.all,TrackB=ft.peaks,TrackC=ov.peaks),
+                         pal= cols[-c(15,29)],
+                         ylim=.9910)
+
+pdf("IMPA2_final.pdf",width = 6,height = 8)
 grid::grid.draw(plot[[1]])
 dev.off()
 
@@ -514,26 +538,26 @@ dev.off()
 rna <- readRDS("endo_EEC_scRNA_processed.rds")
 
 my_levels <- rev(c("6",
-                                "8",
-                                "10",
-                                "14",
-                                "15",
-                                "19",
-                                "21",
-                                "22",
-                                "1",
-                                "2",
-                                "9",
-                                "13",
-                                "16",
-                                "17",
-                                "23",
-                                "4" ,"5","12",
-                                "3","11","26",
-                                "0","18",
-                                "24","7",
-                                "25",
-                                "27"))
+                   "8",
+                   "10",
+                   "14",
+                   "15",
+                   "19",
+                   "21",
+                   "22",
+                   "1",
+                   "2",
+                   "9",
+                   "13",
+                   "16",
+                   "17",
+                   "23",
+                   "4" ,"5","12",
+                   "3","11","26",
+                   "0","18",
+                   "24","7",
+                   "25",
+                   "27"))
 
 
 # Relevel object@ident
@@ -548,28 +572,89 @@ p1 <- ggplot(p1$data,aes(y=ident,x=SOX9))+geom_boxplot(aes(fill=ident),lwd=0.45,
 
 # Check SOX9 statistical significance:
 test <- FindMarkers(rna.sub,ident.1 = c("6",
-                                     "8",
-                                     "10",
-                                     "14",
-                                     "15",
-                                     "19",
-                                     "21",
-                                     "22"),
+                                        "8",
+                                        "10",
+                                        "14",
+                                        "15",
+                                        "19",
+                                        "21",
+                                        "22"),
                     ident.2 = c("1",
-                                 "2",
-                                 "9",
-                                 "13",
-                                 "16",
-                                 "17",
-                                 "23",
-                                 "4" ,"5","12",
-                                 "3","11","26",
-                                 "0","18",
-                                 "24","7",
-                                 "25",
-                                 "27"),only.pos = T)
+                                "2",
+                                "9",
+                                "13",
+                                "16",
+                                "17",
+                                "23",
+                                "4" ,"5","12",
+                                "3","11","26",
+                                "0","18",
+                                "24","7",
+                                "25",
+                                "27"),only.pos = T)
 test$genes <- rownames(test)
 test <- test[test$gene == "SOX9",]
+print(test)
+
+p1 <- VlnPlot(rna.sub,features = "CD24",pt.size = 0)+coord_flip()+NoLegend()
+p1 <- ggplot(p1$data,aes(y=ident,x=CD24))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+  theme_classic()+NoLegend()+ylab("Cluster #")+xlab("CD24 expression")+ggsave("Vln.pdf",width=3,height = 8)
+
+
+# Check CD24 statistical significance:
+test <- FindMarkers(rna.sub,ident.1 = c("6",
+                                        "8",
+                                        "10",
+                                        "14",
+                                        "15",
+                                        "19",
+                                        "21",
+                                        "22"),
+                    ident.2 = c("1",
+                                "2",
+                                "9",
+                                "13",
+                                "16",
+                                "17",
+                                "23",
+                                "4" ,"5","12",
+                                "3","11","26",
+                                "0","18",
+                                "24","7",
+                                "25",
+                                "27"),only.pos = T)
+test$genes <- rownames(test)
+test <- test[test$gene == "CD24",]
+print(test)
+
+
+p1 <- VlnPlot(rna.sub,features = "IMPA2",pt.size = 0)+coord_flip()+NoLegend()
+p1 <- ggplot(p1$data,aes(y=ident,x=IMPA2))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+  theme_classic()+NoLegend()+ylab("Cluster #")+xlab("IMPA2 expression")+ggsave("Vln-IMPA2.pdf",width=3,height = 8)
+
+
+# Check IMPA2 statistical significance:
+test <- FindMarkers(rna.sub,ident.1 = c("6",
+                                        "8",
+                                        "10",
+                                        "14",
+                                        "15",
+                                        "19",
+                                        "21",
+                                        "22"),
+                    ident.2 = c("1",
+                                "2",
+                                "9",
+                                "13",
+                                "16",
+                                "17",
+                                "23",
+                                "4" ,"5","12",
+                                "3","11","26",
+                                "0","18",
+                                "24","7",
+                                "25",
+                                "27"),only.pos = T,features = "IMPA2",logfc.threshold = 0)
 print(test)
 
 
