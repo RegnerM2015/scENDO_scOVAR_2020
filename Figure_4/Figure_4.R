@@ -9,6 +9,7 @@
 source("./P2G_Heatmap_Distal.R")
 source("./Archr_Peak_Null_Permute.R")
 source("./Archr_Peak_RawPval.R")
+source("ArchRBrowser.R")
 library(ggplot2)
 library(Seurat)
 library(scales)
@@ -437,14 +438,28 @@ plot <- plotBrowserTrack(atac,geneSymbol = "LAPTM4B", groupBy = "predictedGroup_
                                                        varCutOffRNA = 0),
                          pal=cols[-c(6,8,13,22,23)],
                          upstream = 41500,
-                         downstream = 10000
+                         downstream = 10000,
+                         ylim=.9955
                          )
 
 
 pdf("LAPTM4B_final.pdf",width = 6,height = 8)
 grid::grid.draw(plot[[1]])
 dev.off()
+plot <- plotBrowserTrack(atac,geneSymbol = "PI3", groupBy = "predictedGroup_ArchR",
+                         features = GRangesList(TrackA = encode.all,TrackB = ft.peaks,TrackC = ov.peaks), 
+                         loops = getPeak2GeneLinks.mod(atac,corCutOff = 0.45,
+                                                       PValCutOff = 1e-12,varCutOffATAC = 0,
+                                                       varCutOffRNA = 0),
+                         pal=cols[-c(6,8,13,22,23)],
+                         upstream = 50000,
+                         downstream = 50000
+)
 
+
+pdf("PI3_final.pdf",width = 6,height = 8)
+grid::grid.draw(plot[[1]])
+dev.off()
 # Plot matching scRNA-seq data
 rna <- readRDS("./ovar_HGSOC_scRNA_processed.rds")
 
@@ -481,6 +496,32 @@ test <- FindMarkers(rna.sub,ident.1 = as.character(c(0,2,3,7,11,16)),
 test$genes <- rownames(test)
 test <- test[test$gene == "LAPTM4B",]
 print(test)
+
+p1 <- VlnPlot(rna.sub,features = "PI3",pt.size = 0)+coord_flip()+NoLegend()
+p1 <- ggplot(p1$data,aes(y=ident,x=PI3))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+  theme_classic()+NoLegend()+ylab("Cluster #")+xlab("PI3 expression")+ggsave("Vln-PI3.pdf",width=3,height = 8)
+
+p1 <- VlnPlot(rna.sub,features = "SEMG1",pt.size = 0)+coord_flip()+NoLegend()
+p1 <- ggplot(p1$data,aes(y=ident,x=SEMG1))+geom_boxplot(aes(fill=ident),lwd=0.45,outlier.size = 0.95,fatten = 0.95)+NoLegend()+
+  theme_classic()+NoLegend()+ylab("Cluster #")+xlab("SEMG1 expression")+ggsave("Vln-SEMG1.pdf",width=3,height = 8)
+
+
+p1 <- p1$data
+colnames(p1)
+test <- kruskal.test(PI3~ident,data = p1)
+print(test)
+print(test$p.value)
+
+
+# Check PI3 statistical significance:
+test <- FindMarkers(rna.sub,ident.1 = as.character(c(0,2,3,7,11,16)),
+                    ident.2 = as.character(c(1,4,9,10,
+                                             14,
+                                             5,12,18,21,
+                                             6,8,13,
+                                             17)),only.pos = T,features = "PI3")
+print(test)
+
 
 
 writeLines(capture.output(sessionInfo()), "sessionInfo.txt")
