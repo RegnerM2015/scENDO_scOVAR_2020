@@ -1,9 +1,6 @@
 ###################################################
 # Matt Regner
 # Franco Lab 
-# Nov 2020-June 2021
-# Description: plot patient UMAPs, cell type UMAPs,
-# histology UMAPs, patient proportion per cluster
 ###################################################
 
 library(ggplot2)
