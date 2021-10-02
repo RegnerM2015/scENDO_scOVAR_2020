@@ -1,7 +1,7 @@
 ###########################################################
 # Matt Regner
 # Franco Lab
-# Date: 2020-2021
+# 2020-2021
 #
 # Description: Figure 4, HGSOC enhancer discovery 
 # RNA and ATAC data
