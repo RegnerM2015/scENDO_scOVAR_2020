@@ -1,6 +1,6 @@
 
 ## Figure 2 plotting
-The starting inputs for this script are 1) the multi-sample (full cohort) Seurat object and 2) the multi-Sample ArchR project with all peak-to-gene associations, and 3) the peak-to-gene link metadata table generated in the previous script. The outputs are the ATAC browser track per cluster for the gene locus of interest, the expression boxplot per cluster, the gene signature boxplot per cluster, the histograms showing the distributions of correlation and p-values, and the histograms showing the distribution of genes per peak and vice versa. 
+The starting inputs for this script are 1) the multi-sample (full cohort) Seurat object and 2) the multi-Sample ArchR project with all peak-to-gene associations, and 3) the peak-to-gene link metadata table. The outputs are the ATAC browser track per cluster for the gene locus of interest, the expression boxplot per cluster, the gene signature boxplot per cluster, the histograms showing the distributions of correlation and p-values, and the histograms showing the distribution of genes per peak and vice versa. 
 
 ### [/Figure_2/Figure_2.R](https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_2)
 
