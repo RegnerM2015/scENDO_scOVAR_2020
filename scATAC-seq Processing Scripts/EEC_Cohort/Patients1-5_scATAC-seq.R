@@ -288,7 +288,7 @@ proj <- filterDoublets(proj.filter,filterRatio = 1,cutEnrich = 1,cutScore = -Inf
 plotFragmentSizes(proj)+ggtitle("Fragment Size Histogram")+ggsave("Frags_hist.pdf",width = 6,height = 4)
 plotTSSEnrichment(proj)+ggtitle("TSS Enrichment")+ggsave("TSS.pdf",width = 6,height = 4)
 ###############################################################################################################
-proj <- readRDS("proj_LSI_AND_GeneScores.rds")
+
 
 # Perform LSI reduction and clustering with ATAC data only
 #######################################################################
