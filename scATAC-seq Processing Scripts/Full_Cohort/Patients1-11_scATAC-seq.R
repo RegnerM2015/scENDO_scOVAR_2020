@@ -392,7 +392,6 @@ plotFragmentSizes(proj)+ggtitle("Fragment Size Histogram")+ggsave("Frags_hist.pd
 plotTSSEnrichment(proj)+ggtitle("TSS Enrichment")+ggsave("TSS.pdf",width = 6,height = 4)
 ###############################################################################################################
 
-proj <- readRDS("./proj_LSI_AND_UMAP.rds")
 # Perform LSI reduction and clustering with ATAC data only
 #######################################################################
 
