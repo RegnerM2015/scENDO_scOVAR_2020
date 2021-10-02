@@ -1,7 +1,7 @@
 ###########################################################
 # Matt Regner
 # Franco Lab
-# Date: April 2020-June 2021
+# Date: 2020-2021
 #
 # Description: Figure 3, EEC enhancer discovery 
 # RNA and ATAC data
