@@ -24,4 +24,4 @@
 1. Verify SingleR cell type labels with cell type gene signatures from PanglaoDB using Seurat's *AddModuleScore()*
 
 
-#### The scRNA-seq pipeline is also depicted here: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Flowchart_Pipelines.png)
+#### The scRNA-seq pipeline is also depicted here: (https://github.com/RegnerM2015/scENDO_scOVAR_2020/blob/main/Pipeline_Updated.PNG)
