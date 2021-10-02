@@ -1,7 +1,7 @@
 
 ## Figure 4 plotting 
 
-The starting inputs for this script are 1) the multi-sample (HGSOC cohort) Seurat object, 2) the multi-Sample ArchR project with all peak-to-gene associations, and 3) the peak-to-gene link metadata. The outputs are the UMAP plots, proportion bar charts, expression boxplots for the gene of interest, and the ATAC browser track for the gene of interest presented in Figure 4. 
+The starting inputs for this script are 1) the multi-sample (HGSOC cohort) Seurat object, 2) the multi-Sample ArchR project with HGSOC peak-to-gene associations, and 3) the HGSOC peak-to-gene link metadata. The outputs are the UMAP plots, proportion bar charts, expression boxplots for the gene of interest, and the ATAC browser track for the gene of interest presented in Figure 4. 
 
 ### [/Figure_4/Figure_4.R](https://github.com/RegnerM2015/scENDO_scOVAR_2020/tree/main/Figure_4)
 
