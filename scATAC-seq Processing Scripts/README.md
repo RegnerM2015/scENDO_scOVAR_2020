@@ -1,4 +1,7 @@
 # scATAC-seq Processing Scripts
+
+IMPORTANT NOTE: Please ignore the comments in the body of the code as these comments may no longer be relevant. 
+
 ### /Full_Cohort/Patients1-11_scATAC-seq.R
 1. Preprocessing & QC
 1. Feature selection, dimension reduction and label transfering using scRNA-seq cell type subcluster labels
