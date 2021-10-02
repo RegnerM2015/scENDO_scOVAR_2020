@@ -7,8 +7,7 @@
 # Description: This script performs the following tasks  
 #         1) scATAC-seq processing
 #         2) scRNA-seq/scATAC-seq integration
-#         3) Peak2Gene linkage analysis/Co-accessiblity 
-#         4) Make input files for TFSEE analysis 
+#         3) Peak calling
 ###########################################################
 .libPaths('/home/regnerm/anaconda3/envs/scENDO_scOVAR/lib/R/library')
 
@@ -101,298 +100,297 @@ Idents(rna) <- "cell.type"
 Wilcox.markers <- readRDS("./wilcox_DEGs.rds")
 Wilcox.markers$cluster <- str_replace(Wilcox.markers$cluster,"/","_")
 
-# 
 # Create Arrow and ArchR project
-# ##########################################################################
-# ArrowFiles <- createArrowFiles(
-#  inputFiles = inputFiles,
-#  sampleNames = sampleNames,
-#  filterTSS = 0, #Dont set this too high because you can always increase later
-#  filterFrags = 0,
-#  addTileMat = T,
-#  addGeneScoreMat = F
-# )
-# ArrowFiles <- list.files(pattern=".arrow")
-# doubScores <- addDoubletScores(
-#   input = ArrowFiles,
-#   k = 10, #Refers to how many cells near a "pseudo-doublet" to count.
-#   knnMethod = "UMAP",useMatrix = "TileMatrix",nTrials=5,LSIMethod = 1,scaleDims = F,
-#   corCutOff = 0.75,UMAPParams = list(n_neighbors =30, min_dist = 0.3, metric = "cosine", verbose =FALSE),
-#   dimsToUse = 1:50
-# )
-# 
-# proj <- ArchRProject(
-#   ArrowFiles = ArrowFiles,
-#   outputDirectory = "All",
-#   copyArrows = T #This is recommened so that you maintain an unaltered copy for later usage.
-# )
-# 
-# # Filter out outlier low quality cells and doublets
-# ###############################################################################
-# # GMM for fragments per cell
-# library(mclust)
-# 
-# for (i in sampleNames){
-#   proj.i <- proj[proj$Sample == i]
-# 
-#   # GMM for fragments per cell
-#   depth.clust <- Mclust(log10(proj.i$nFrags),G = 2)
-#   proj.i$depth.cluster <- depth.clust$classification
-#   proj.i$depth.cluster.uncertainty <- depth.clust$uncertainty
-# 
-#   ggPoint(
-#     x = log10(proj.i$nFrags),
-#     y = log10(proj.i$TSSEnrichment+1),
-#     color = as.character(proj.i$depth.cluster),
-#     xlabel = "log10(unique fragments)",
-#     ylabel = "log10(TSS Enrichment+1)"
-#   ) + ggtitle(paste0("GMM classification:\n",i," log10(fragments)"))+
-#     ggsave(paste0(i,"_depth.pdf"),width = 4,height = 4)
-# 
-#   # GMM for TSS per cell
-#   TSS.clust <- Mclust(log10(proj.i$TSSEnrichment+1),G = 2)
-#   proj.i$TSS.cluster <- TSS.clust$classification
-#   proj.i$TSS.cluster.uncertainty <- TSS.clust$uncertainty
-# 
-#   ggPoint(
-#     x = log10(proj.i$nFrags),
-#     y = log10(proj.i$TSSEnrichment+1),
-#     color = as.character(proj.i$TSS.cluster),
-#     discrete = T,
-#     xlabel = "log10(unique fragments)",
-#     ylabel = "log10(TSS Enrichment+1)"
-#   ) + ggtitle(paste0("GMM classification:\n",i," TSS Enrichment"))+
-#     ggsave(paste0(i,"_TSS.pdf"),width = 4,height = 4)
-# 
-# 
-#   df.TSS <- data.frame(proj.i$cellNames,proj.i$TSS.cluster,proj.i$TSS.cluster.uncertainty,proj.i$TSSEnrichment)
-#   df.TSS <- dplyr::filter(df.TSS,proj.i.TSS.cluster == "2")
-#   df.TSS <- dplyr::filter(df.TSS,proj.i.TSS.cluster.uncertainty <= 0.05)
-#   saveRDS(df.TSS,paste0("df_TSS_",i,".rds"))
-# 
-#   df.depth <- data.frame(proj.i$cellNames,proj.i$depth.cluster,proj.i$depth.cluster.uncertainty,proj.i$nFrags)
-#   df.depth <- dplyr::filter(df.depth,proj.i.depth.cluster == "2")
-#   df.depth <- dplyr::filter(df.depth,proj.i.depth.cluster.uncertainty <= 0.05)
-#   saveRDS(df.depth,paste0("df_depth_",i,".rds"))
-# 
-#   ggPoint(
-#     x = log10(proj.i$nFrags),
-#     y = log10(proj.i$TSSEnrichment+1),
-#     colorDensity = T,
-#     continuousSet = "sambaNight",
-#     xlabel = "log10(unique fragments)",
-#     ylabel = "log10(TSS Enrichment+1)"
-#   ) +geom_hline(yintercept = log10(min(df.TSS$proj.i.TSSEnrichment)+1),linetype = "dashed")+
-#     geom_vline(xintercept = min(log10(df.depth$proj.i.nFrags)),linetype = "dashed")+
-#     ggtitle(paste0("QC thresholds:\n",i))+
-#     ggsave(paste0(i,"_QC.pdf"),width = 4,height = 4)
-# 
-#   ggPoint(
-#     x = log10(proj.i$nFrags),
-#     y = log10(proj.i$TSSEnrichment+1),
-#     color = proj.i$DoubletEnrichment,
-#     discrete = F,
-#     continuousSet = "sambaNight",
-#     xlabel = "log10(unique fragments)",
-#     ylabel = "log10(TSS Enrichment+1)"
-#   ) +geom_hline(yintercept = min(log10(df.TSS$proj.i.TSSEnrichment+1)),linetype = "dashed")+
-#     geom_vline(xintercept = min(log10(df.depth$proj.i.nFrags)),linetype = "dashed")+
-#     ggtitle(paste0("Doublet Enrichment:\n",i))+
-#     ggsave(paste0(i,"_doublets.pdf"),width = 4,height = 4)
-# 
-# }
-# 
-# 
-# for (i in sampleNames[2]){
-#   proj.i <- proj[proj$Sample == i]
-# 
-#   # GMM for fragments per cell
-#   depth.clust <- Mclust(log10(proj.i$nFrags),G = 2)
-#   proj.i$depth.cluster <- depth.clust$classification
-#   proj.i$depth.cluster.uncertainty <- depth.clust$uncertainty
-# 
-#   ggPoint(
-#     x = log10(proj.i$nFrags),
-#     y = log10(proj.i$TSSEnrichment+1),
-#     color = as.character(proj.i$depth.cluster),
-#     xlabel = "log10(unique fragments)",
-#     ylabel = "log10(TSS Enrichment+1)"
-#   ) + ggtitle(paste0("GMM classification:\n",i," log10(fragments)"))+
-#     ggsave(paste0(i,"_depth.pdf"),width = 4,height = 4)
-# 
-#   # Manually set TSS threshold
-#   #TSS.clust <- Mclust(log10(proj.i$TSSEnrichment+1),G = 2)
-#   proj.i$TSS.cluster <- ifelse(log10(proj.i$TSSEnrichment+1) >= 0.80,"2","1")
-#   proj.i$TSS.cluster.uncertainty <- rep(NA,nrow(proj.i@cellColData))
-# 
-#   ggPoint(
-#     x = log10(proj.i$nFrags),
-#     y = log10(proj.i$TSSEnrichment+1),
-#     color = as.character(proj.i$TSS.cluster),
-#     discrete = T,
-#     xlabel = "log10(unique fragments)",
-#     ylabel = "log10(TSS Enrichment+1)"
-#   ) + ggtitle(paste0("GMM classification:\n",i," TSS Enrichment"))+
-#     ggsave(paste0(i,"_TSS.pdf"),width = 4,height = 4)
-# 
-# 
-#   df.TSS <- data.frame(proj.i$cellNames,proj.i$TSS.cluster,proj.i$TSS.cluster.uncertainty,proj.i$TSSEnrichment)
-#   df.TSS <- dplyr::filter(df.TSS,proj.i.TSS.cluster == "2")
-#   #df.TSS <- dplyr::filter(df.TSS,proj.i.TSS.cluster.uncertainty <= 0.05)
-#   saveRDS(df.TSS,paste0("df_TSS_",i,".rds"))
-# 
-#   df.depth <- data.frame(proj.i$cellNames,proj.i$depth.cluster,proj.i$depth.cluster.uncertainty,proj.i$nFrags)
-#   df.depth <- dplyr::filter(df.depth,proj.i.depth.cluster == "2")
-#   df.depth <- dplyr::filter(df.depth,proj.i.depth.cluster.uncertainty <= 0.05)
-#   saveRDS(df.depth,paste0("df_depth_",i,".rds"))
-# 
-#   ggPoint(
-#     x = log10(proj.i$nFrags),
-#     y = log10(proj.i$TSSEnrichment+1),
-#     colorDensity = T,
-#     continuousSet = "sambaNight",
-#     xlabel = "log10(unique fragments)",
-#     ylabel = "log10(TSS Enrichment+1)"
-#   ) +geom_hline(yintercept = log10(min(df.TSS$proj.i.TSSEnrichment)+1),linetype = "dashed")+
-#     geom_vline(xintercept = min(log10(df.depth$proj.i.nFrags)),linetype = "dashed")+
-#     ggtitle(paste0("QC thresholds:\n",i))+
-#     ggsave(paste0(i,"_QC.pdf"),width = 4,height = 4)
-# 
-#   ggPoint(
-#     x = log10(proj.i$nFrags),
-#     y = log10(proj.i$TSSEnrichment+1),
-#     color = proj.i$DoubletEnrichment,
-#     discrete = F,
-#     continuousSet = "sambaNight",
-#     xlabel = "log10(unique fragments)",
-#     ylabel = "log10(TSS Enrichment+1)"
-#   ) +geom_hline(yintercept = min(log10(df.TSS$proj.i.TSSEnrichment+1)),linetype = "dashed")+
-#     geom_vline(xintercept = min(log10(df.depth$proj.i.nFrags)),linetype = "dashed")+
-#     ggtitle(paste0("Doublet Enrichment:\n",i))+
-#     ggsave(paste0(i,"_doublets.pdf"),width = 4,height = 4)
-# 
-# }
-# 
-# for (i in sampleNames[7]){
-#   proj.i <- proj[proj$Sample == i]
-# 
-#   # GMM for fragments per cell
-#   depth.clust <- Mclust(log10(proj.i$nFrags),G = 2)
-#   proj.i$depth.cluster <- depth.clust$classification
-#   proj.i$depth.cluster.uncertainty <- depth.clust$uncertainty
-# 
-#   ggPoint(
-#     x = log10(proj.i$nFrags),
-#     y = log10(proj.i$TSSEnrichment+1),
-#     color = as.character(proj.i$depth.cluster),
-#     xlabel = "log10(unique fragments)",
-#     ylabel = "log10(TSS Enrichment+1)"
-#   ) + ggtitle(paste0("GMM classification:\n",i," log10(fragments)"))+
-#     ggsave(paste0(i,"_depth.pdf"),width = 4,height = 4)
-# 
-#   # Manually set TSS threshold
-#   #TSS.clust <- Mclust(log10(proj.i$TSSEnrichment+1),G = 2)
-#   proj.i$TSS.cluster <- ifelse(log10(proj.i$TSSEnrichment+1) >= 0.80,"2","1")
-#   proj.i$TSS.cluster.uncertainty <- rep(NA,nrow(proj.i@cellColData))
-# 
-#   ggPoint(
-#     x = log10(proj.i$nFrags),
-#     y = log10(proj.i$TSSEnrichment+1),
-#     color = as.character(proj.i$TSS.cluster),
-#     discrete = T,
-#     xlabel = "log10(unique fragments)",
-#     ylabel = "log10(TSS Enrichment+1)"
-#   ) + ggtitle(paste0("GMM classification:\n",i," TSS Enrichment"))+
-#     ggsave(paste0(i,"_TSS.pdf"),width = 4,height = 4)
-# 
-# 
-#   df.TSS <- data.frame(proj.i$cellNames,proj.i$TSS.cluster,proj.i$TSS.cluster.uncertainty,proj.i$TSSEnrichment)
-#   df.TSS <- dplyr::filter(df.TSS,proj.i.TSS.cluster == "2")
-#   #df.TSS <- dplyr::filter(df.TSS,proj.i.TSS.cluster.uncertainty <= 0.05)
-#   saveRDS(df.TSS,paste0("df_TSS_",i,".rds"))
-# 
-#   df.depth <- data.frame(proj.i$cellNames,proj.i$depth.cluster,proj.i$depth.cluster.uncertainty,proj.i$nFrags)
-#   df.depth <- dplyr::filter(df.depth,proj.i.depth.cluster == "2")
-#   df.depth <- dplyr::filter(df.depth,proj.i.depth.cluster.uncertainty <= 0.05)
-#   saveRDS(df.depth,paste0("df_depth_",i,".rds"))
-# 
-#   ggPoint(
-#     x = log10(proj.i$nFrags),
-#     y = log10(proj.i$TSSEnrichment+1),
-#     colorDensity = T,
-#     continuousSet = "sambaNight",
-#     xlabel = "log10(unique fragments)",
-#     ylabel = "log10(TSS Enrichment+1)"
-#   ) +geom_hline(yintercept = log10(min(df.TSS$proj.i.TSSEnrichment)+1),linetype = "dashed")+
-#     geom_vline(xintercept = min(log10(df.depth$proj.i.nFrags)),linetype = "dashed")+
-#     ggtitle(paste0("QC thresholds:\n",i))+
-#     ggsave(paste0(i,"_QC.pdf"),width = 4,height = 4)
-# 
-#   ggPoint(
-#     x = log10(proj.i$nFrags),
-#     y = log10(proj.i$TSSEnrichment+1),
-#     color = proj.i$DoubletEnrichment,
-#     discrete = F,
-#     continuousSet = "sambaNight",
-#     xlabel = "log10(unique fragments)",
-#     ylabel = "log10(TSS Enrichment+1)"
-#   ) +geom_hline(yintercept = min(log10(df.TSS$proj.i.TSSEnrichment+1)),linetype = "dashed")+
-#     geom_vline(xintercept = min(log10(df.depth$proj.i.nFrags)),linetype = "dashed")+
-#     ggtitle(paste0("Doublet Enrichment:\n",i))+
-#     ggsave(paste0(i,"_doublets.pdf"),width = 4,height = 4)
-# 
-# }
-# 
-# 
-# 
-# ###############################################################################
-# dev.off()
-# 
-# # Filter out low quality cells, and remove doublets
-# ##############################################################################
-# 
-# list.depth <- list.files(pattern = "^df_depth")
-# 
-# df.depth <-  data.frame(cellNames=character(),
-#                         cluster=character(),
-#                         cluster.uncertainty=character(),
-#                         nFrags = character())
-# for (i in list.depth){
-#   df <- readRDS(i)
-#   colnames(df) <- c("cellNames","cluster","cluster.uncertainty","nFrags")
-#   df.depth <- rbind(df.depth,df)
-# }
-# 
-# list.TSS <- list.files(pattern = "^df_TSS")
-# 
-# df.TSS <-  data.frame(cellNames=character(),
-#                       cluster=character(),
-#                       cluster.uncertainty=character(),
-#                       TSSEnrichment = character())
-# for (i in list.TSS){
-#   df <- readRDS(i)
-#   colnames(df) <- c("cellNames","cluster","cluster.uncertainty","TSSEnrichment")
-#   df.TSS <- rbind(df.TSS,df)
-# }
-# 
-# 
-# colnames(df.TSS) <- c("cellNames","TSS.cluster","TSS.cluster.uncertainty","TSSEnrichment")
-# colnames(df.depth) <- c("cellNames","depth.cluster","depth.cluster.uncertainty","nFrags")
-# 
-# cellsPass <- intersect(df.TSS$cellNames,df.depth$cellNames)
-# 
-# cellsFail <-  proj$cellNames[!(proj$cellNames %in% cellsPass)]
-# 
-# # Screen for high quality barcodes (remove non cellular barcodes)
-# proj.filter <- proj[proj$cellNames %in% cellsPass]
-# 
-# 
-# proj <- filterDoublets(proj.filter,filterRatio = 1,cutEnrich = 1,cutScore = -Inf)
-# 
-# 
-# plotFragmentSizes(proj)+ggtitle("Fragment Size Histogram")+ggsave("Frags_hist.pdf",width = 6,height = 4)
-# plotTSSEnrichment(proj)+ggtitle("TSS Enrichment")+ggsave("TSS.pdf",width = 6,height = 4)
-# ###############################################################################################################
+##########################################################################
+ArrowFiles <- createArrowFiles(
+ inputFiles = inputFiles,
+ sampleNames = sampleNames,
+ filterTSS = 0, #Dont set this too high because you can always increase later
+ filterFrags = 0,
+ addTileMat = T,
+ addGeneScoreMat = F
+)
+ArrowFiles <- list.files(pattern=".arrow")
+doubScores <- addDoubletScores(
+  input = ArrowFiles,
+  k = 10, #Refers to how many cells near a "pseudo-doublet" to count.
+  knnMethod = "UMAP",useMatrix = "TileMatrix",nTrials=5,LSIMethod = 1,scaleDims = F,
+  corCutOff = 0.75,UMAPParams = list(n_neighbors =30, min_dist = 0.3, metric = "cosine", verbose =FALSE),
+  dimsToUse = 1:50
+)
+
+proj <- ArchRProject(
+  ArrowFiles = ArrowFiles,
+  outputDirectory = "All",
+  copyArrows = T #This is recommened so that you maintain an unaltered copy for later usage.
+)
+
+# Filter out outlier low quality cells and doublets
+###############################################################################
+# GMM for fragments per cell
+library(mclust)
+
+for (i in sampleNames){
+  proj.i <- proj[proj$Sample == i]
+
+  # GMM for fragments per cell
+  depth.clust <- Mclust(log10(proj.i$nFrags),G = 2)
+  proj.i$depth.cluster <- depth.clust$classification
+  proj.i$depth.cluster.uncertainty <- depth.clust$uncertainty
+
+  ggPoint(
+    x = log10(proj.i$nFrags),
+    y = log10(proj.i$TSSEnrichment+1),
+    color = as.character(proj.i$depth.cluster),
+    xlabel = "log10(unique fragments)",
+    ylabel = "log10(TSS Enrichment+1)"
+  ) + ggtitle(paste0("GMM classification:\n",i," log10(fragments)"))+
+    ggsave(paste0(i,"_depth.pdf"),width = 4,height = 4)
+
+  # GMM for TSS per cell
+  TSS.clust <- Mclust(log10(proj.i$TSSEnrichment+1),G = 2)
+  proj.i$TSS.cluster <- TSS.clust$classification
+  proj.i$TSS.cluster.uncertainty <- TSS.clust$uncertainty
+
+  ggPoint(
+    x = log10(proj.i$nFrags),
+    y = log10(proj.i$TSSEnrichment+1),
+    color = as.character(proj.i$TSS.cluster),
+    discrete = T,
+    xlabel = "log10(unique fragments)",
+    ylabel = "log10(TSS Enrichment+1)"
+  ) + ggtitle(paste0("GMM classification:\n",i," TSS Enrichment"))+
+    ggsave(paste0(i,"_TSS.pdf"),width = 4,height = 4)
+
+
+  df.TSS <- data.frame(proj.i$cellNames,proj.i$TSS.cluster,proj.i$TSS.cluster.uncertainty,proj.i$TSSEnrichment)
+  df.TSS <- dplyr::filter(df.TSS,proj.i.TSS.cluster == "2")
+  df.TSS <- dplyr::filter(df.TSS,proj.i.TSS.cluster.uncertainty <= 0.05)
+  saveRDS(df.TSS,paste0("df_TSS_",i,".rds"))
+
+  df.depth <- data.frame(proj.i$cellNames,proj.i$depth.cluster,proj.i$depth.cluster.uncertainty,proj.i$nFrags)
+  df.depth <- dplyr::filter(df.depth,proj.i.depth.cluster == "2")
+  df.depth <- dplyr::filter(df.depth,proj.i.depth.cluster.uncertainty <= 0.05)
+  saveRDS(df.depth,paste0("df_depth_",i,".rds"))
+
+  ggPoint(
+    x = log10(proj.i$nFrags),
+    y = log10(proj.i$TSSEnrichment+1),
+    colorDensity = T,
+    continuousSet = "sambaNight",
+    xlabel = "log10(unique fragments)",
+    ylabel = "log10(TSS Enrichment+1)"
+  ) +geom_hline(yintercept = log10(min(df.TSS$proj.i.TSSEnrichment)+1),linetype = "dashed")+
+    geom_vline(xintercept = min(log10(df.depth$proj.i.nFrags)),linetype = "dashed")+
+    ggtitle(paste0("QC thresholds:\n",i))+
+    ggsave(paste0(i,"_QC.pdf"),width = 4,height = 4)
+
+  ggPoint(
+    x = log10(proj.i$nFrags),
+    y = log10(proj.i$TSSEnrichment+1),
+    color = proj.i$DoubletEnrichment,
+    discrete = F,
+    continuousSet = "sambaNight",
+    xlabel = "log10(unique fragments)",
+    ylabel = "log10(TSS Enrichment+1)"
+  ) +geom_hline(yintercept = min(log10(df.TSS$proj.i.TSSEnrichment+1)),linetype = "dashed")+
+    geom_vline(xintercept = min(log10(df.depth$proj.i.nFrags)),linetype = "dashed")+
+    ggtitle(paste0("Doublet Enrichment:\n",i))+
+    ggsave(paste0(i,"_doublets.pdf"),width = 4,height = 4)
+
+}
+
+
+for (i in sampleNames[2]){
+  proj.i <- proj[proj$Sample == i]
+
+  # GMM for fragments per cell
+  depth.clust <- Mclust(log10(proj.i$nFrags),G = 2)
+  proj.i$depth.cluster <- depth.clust$classification
+  proj.i$depth.cluster.uncertainty <- depth.clust$uncertainty
+
+  ggPoint(
+    x = log10(proj.i$nFrags),
+    y = log10(proj.i$TSSEnrichment+1),
+    color = as.character(proj.i$depth.cluster),
+    xlabel = "log10(unique fragments)",
+    ylabel = "log10(TSS Enrichment+1)"
+  ) + ggtitle(paste0("GMM classification:\n",i," log10(fragments)"))+
+    ggsave(paste0(i,"_depth.pdf"),width = 4,height = 4)
+
+  # Manually set TSS threshold
+  #TSS.clust <- Mclust(log10(proj.i$TSSEnrichment+1),G = 2)
+  proj.i$TSS.cluster <- ifelse(log10(proj.i$TSSEnrichment+1) >= 0.80,"2","1")
+  proj.i$TSS.cluster.uncertainty <- rep(NA,nrow(proj.i@cellColData))
+
+  ggPoint(
+    x = log10(proj.i$nFrags),
+    y = log10(proj.i$TSSEnrichment+1),
+    color = as.character(proj.i$TSS.cluster),
+    discrete = T,
+    xlabel = "log10(unique fragments)",
+    ylabel = "log10(TSS Enrichment+1)"
+  ) + ggtitle(paste0("GMM classification:\n",i," TSS Enrichment"))+
+    ggsave(paste0(i,"_TSS.pdf"),width = 4,height = 4)
+
+
+  df.TSS <- data.frame(proj.i$cellNames,proj.i$TSS.cluster,proj.i$TSS.cluster.uncertainty,proj.i$TSSEnrichment)
+  df.TSS <- dplyr::filter(df.TSS,proj.i.TSS.cluster == "2")
+  #df.TSS <- dplyr::filter(df.TSS,proj.i.TSS.cluster.uncertainty <= 0.05)
+  saveRDS(df.TSS,paste0("df_TSS_",i,".rds"))
+
+  df.depth <- data.frame(proj.i$cellNames,proj.i$depth.cluster,proj.i$depth.cluster.uncertainty,proj.i$nFrags)
+  df.depth <- dplyr::filter(df.depth,proj.i.depth.cluster == "2")
+  df.depth <- dplyr::filter(df.depth,proj.i.depth.cluster.uncertainty <= 0.05)
+  saveRDS(df.depth,paste0("df_depth_",i,".rds"))
+
+  ggPoint(
+    x = log10(proj.i$nFrags),
+    y = log10(proj.i$TSSEnrichment+1),
+    colorDensity = T,
+    continuousSet = "sambaNight",
+    xlabel = "log10(unique fragments)",
+    ylabel = "log10(TSS Enrichment+1)"
+  ) +geom_hline(yintercept = log10(min(df.TSS$proj.i.TSSEnrichment)+1),linetype = "dashed")+
+    geom_vline(xintercept = min(log10(df.depth$proj.i.nFrags)),linetype = "dashed")+
+    ggtitle(paste0("QC thresholds:\n",i))+
+    ggsave(paste0(i,"_QC.pdf"),width = 4,height = 4)
+
+  ggPoint(
+    x = log10(proj.i$nFrags),
+    y = log10(proj.i$TSSEnrichment+1),
+    color = proj.i$DoubletEnrichment,
+    discrete = F,
+    continuousSet = "sambaNight",
+    xlabel = "log10(unique fragments)",
+    ylabel = "log10(TSS Enrichment+1)"
+  ) +geom_hline(yintercept = min(log10(df.TSS$proj.i.TSSEnrichment+1)),linetype = "dashed")+
+    geom_vline(xintercept = min(log10(df.depth$proj.i.nFrags)),linetype = "dashed")+
+    ggtitle(paste0("Doublet Enrichment:\n",i))+
+    ggsave(paste0(i,"_doublets.pdf"),width = 4,height = 4)
+
+}
+
+for (i in sampleNames[7]){
+  proj.i <- proj[proj$Sample == i]
+
+  # GMM for fragments per cell
+  depth.clust <- Mclust(log10(proj.i$nFrags),G = 2)
+  proj.i$depth.cluster <- depth.clust$classification
+  proj.i$depth.cluster.uncertainty <- depth.clust$uncertainty
+
+  ggPoint(
+    x = log10(proj.i$nFrags),
+    y = log10(proj.i$TSSEnrichment+1),
+    color = as.character(proj.i$depth.cluster),
+    xlabel = "log10(unique fragments)",
+    ylabel = "log10(TSS Enrichment+1)"
+  ) + ggtitle(paste0("GMM classification:\n",i," log10(fragments)"))+
+    ggsave(paste0(i,"_depth.pdf"),width = 4,height = 4)
+
+  # Manually set TSS threshold
+  #TSS.clust <- Mclust(log10(proj.i$TSSEnrichment+1),G = 2)
+  proj.i$TSS.cluster <- ifelse(log10(proj.i$TSSEnrichment+1) >= 0.80,"2","1")
+  proj.i$TSS.cluster.uncertainty <- rep(NA,nrow(proj.i@cellColData))
+
+  ggPoint(
+    x = log10(proj.i$nFrags),
+    y = log10(proj.i$TSSEnrichment+1),
+    color = as.character(proj.i$TSS.cluster),
+    discrete = T,
+    xlabel = "log10(unique fragments)",
+    ylabel = "log10(TSS Enrichment+1)"
+  ) + ggtitle(paste0("GMM classification:\n",i," TSS Enrichment"))+
+    ggsave(paste0(i,"_TSS.pdf"),width = 4,height = 4)
+
+
+  df.TSS <- data.frame(proj.i$cellNames,proj.i$TSS.cluster,proj.i$TSS.cluster.uncertainty,proj.i$TSSEnrichment)
+  df.TSS <- dplyr::filter(df.TSS,proj.i.TSS.cluster == "2")
+  #df.TSS <- dplyr::filter(df.TSS,proj.i.TSS.cluster.uncertainty <= 0.05)
+  saveRDS(df.TSS,paste0("df_TSS_",i,".rds"))
+
+  df.depth <- data.frame(proj.i$cellNames,proj.i$depth.cluster,proj.i$depth.cluster.uncertainty,proj.i$nFrags)
+  df.depth <- dplyr::filter(df.depth,proj.i.depth.cluster == "2")
+  df.depth <- dplyr::filter(df.depth,proj.i.depth.cluster.uncertainty <= 0.05)
+  saveRDS(df.depth,paste0("df_depth_",i,".rds"))
+
+  ggPoint(
+    x = log10(proj.i$nFrags),
+    y = log10(proj.i$TSSEnrichment+1),
+    colorDensity = T,
+    continuousSet = "sambaNight",
+    xlabel = "log10(unique fragments)",
+    ylabel = "log10(TSS Enrichment+1)"
+  ) +geom_hline(yintercept = log10(min(df.TSS$proj.i.TSSEnrichment)+1),linetype = "dashed")+
+    geom_vline(xintercept = min(log10(df.depth$proj.i.nFrags)),linetype = "dashed")+
+    ggtitle(paste0("QC thresholds:\n",i))+
+    ggsave(paste0(i,"_QC.pdf"),width = 4,height = 4)
+
+  ggPoint(
+    x = log10(proj.i$nFrags),
+    y = log10(proj.i$TSSEnrichment+1),
+    color = proj.i$DoubletEnrichment,
+    discrete = F,
+    continuousSet = "sambaNight",
+    xlabel = "log10(unique fragments)",
+    ylabel = "log10(TSS Enrichment+1)"
+  ) +geom_hline(yintercept = min(log10(df.TSS$proj.i.TSSEnrichment+1)),linetype = "dashed")+
+    geom_vline(xintercept = min(log10(df.depth$proj.i.nFrags)),linetype = "dashed")+
+    ggtitle(paste0("Doublet Enrichment:\n",i))+
+    ggsave(paste0(i,"_doublets.pdf"),width = 4,height = 4)
+
+}
+
+
+
+###############################################################################
+dev.off()
+
+# Filter out low quality cells, and remove doublets
+##############################################################################
+
+list.depth <- list.files(pattern = "^df_depth")
+
+df.depth <-  data.frame(cellNames=character(),
+                        cluster=character(),
+                        cluster.uncertainty=character(),
+                        nFrags = character())
+for (i in list.depth){
+  df <- readRDS(i)
+  colnames(df) <- c("cellNames","cluster","cluster.uncertainty","nFrags")
+  df.depth <- rbind(df.depth,df)
+}
+
+list.TSS <- list.files(pattern = "^df_TSS")
+
+df.TSS <-  data.frame(cellNames=character(),
+                      cluster=character(),
+                      cluster.uncertainty=character(),
+                      TSSEnrichment = character())
+for (i in list.TSS){
+  df <- readRDS(i)
+  colnames(df) <- c("cellNames","cluster","cluster.uncertainty","TSSEnrichment")
+  df.TSS <- rbind(df.TSS,df)
+}
+
+
+colnames(df.TSS) <- c("cellNames","TSS.cluster","TSS.cluster.uncertainty","TSSEnrichment")
+colnames(df.depth) <- c("cellNames","depth.cluster","depth.cluster.uncertainty","nFrags")
+
+cellsPass <- intersect(df.TSS$cellNames,df.depth$cellNames)
+
+cellsFail <-  proj$cellNames[!(proj$cellNames %in% cellsPass)]
+
+# Screen for high quality barcodes (remove non cellular barcodes)
+proj.filter <- proj[proj$cellNames %in% cellsPass]
+
+
+proj <- filterDoublets(proj.filter,filterRatio = 1,cutEnrich = 1,cutScore = -Inf)
+
+
+plotFragmentSizes(proj)+ggtitle("Fragment Size Histogram")+ggsave("Frags_hist.pdf",width = 6,height = 4)
+plotTSSEnrichment(proj)+ggtitle("TSS Enrichment")+ggsave("TSS.pdf",width = 6,height = 4)
+###############################################################################################################
 
 proj <- readRDS("./proj_LSI_AND_UMAP.rds")
 # Perform LSI reduction and clustering with ATAC data only
