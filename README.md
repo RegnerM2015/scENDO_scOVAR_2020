@@ -20,7 +20,7 @@ Adapted from Figure 1
 
 ### Please vist the [wiki](https://github.com/RegnerM2015/scENDO_scOVAR_2020/wiki) for an in depth walk-through of our data and analyses. 
 
-10.5281/zenodo.5546110
+https://zenodo.org/badge/DOI/10.5281/zenodo.5546110.svg
 
 ### To download the data, please visit the Gene Expression Omnibus (GEO) accession GSE173682.
 
