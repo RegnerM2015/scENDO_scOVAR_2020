@@ -1,6 +1,6 @@
 # scATAC-seq Processing Scripts
 
-IMPORTANT NOTE: Please ignore the comments in the body of the code as these comments may no longer be relevant. These comments may be updated/removed in later releases of the code (after v1.0.0). 
+IMPORTANT NOTE: Please ignore the comments in the body of the code as these comments may no longer be relevant. These comments may be updated/removed in later releases of the code (after v1.0.1). 
 
 ### /Full_Cohort/Patients1-11_scATAC-seq.R
 1. Preprocessing & QC
