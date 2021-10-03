@@ -22,7 +22,7 @@ Adapted from Figure 1
 
 ### To download the data, please visit the Gene Expression Omnibus (GEO) accession GSE173682.
 
-### The original code associated with our publication is available on Zenodo:
+### The original code associated with our publication is available on Zenodo, but please refer to this repository for the most updated versions. 
 [![image](https://user-images.githubusercontent.com/54336249/135734930-866a30f8-6799-4f58-94f0-236253e6b8e4.png)](https://doi.org/10.5281/zenodo.5546110)
 
 
