@@ -5,7 +5,7 @@
 ####      * Corresponding Author 
 
 
-### Please cite our paper published in Molecular Cell. 
+### Please cite our paper in press at Molecular Cell. 
 
 
 <p align="center">
