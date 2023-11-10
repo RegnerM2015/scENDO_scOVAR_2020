@@ -5,7 +5,7 @@
 ####      * Corresponding Author 
 
 
-### Please cite our paper published in Molecular Cell: https://www.cell.com/molecular-cell/pdf/S1097-2765(21)00842-X.pdf
+### Please cite our paper published in Molecular Cell: [https://www.cell.com/molecular-cell/pdf/S1097-2765(21)00842-X.pdf](https://www.cell.com/action/showPdf?pii=S1097-2765%2821%2900842-X)
 
 
 <p align="center">
